@@ -19,7 +19,8 @@ set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%
 
 set MESA3D_LIB=C:\Mesa3D\x64
-set FFMPEG_LIB=C:\ffmpeg-5.1.2-full_build-shared\bin
+REM set FFMPEG_LIB=C:\ffmpeg-5.1.2-full_build-shared\bin
+set FFMPEG_LIB=C:\ffmpeg-n6.1-latest-win64-gpl-shared-6.1\bin
 
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
@@ -53,10 +54,11 @@ REM set D_ARGS="-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.AudioSink"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native"
-set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native" "-Djogamp.debug.NativeLibrary=true"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native" "-Djogamp.debug.NativeLibrary=true"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25" "-Djogl.debug.GLMediaPlayer"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
 REM set D_ARGS="-Djogl.debug.AudioSink"
+set D_ARGS="-Djogamp.debug.NativeLibrary=true" "-Dnativewindow.debug.GraphicsConfiguration"
 REM set D_ARGS="-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.NativeLibrary.Lookup" "-Djogamp.debug.JNILibLoader" "-Djogamp.debug.TempJarCache" "-Djogamp.debug.JarUtil"
 REM set D_ARGS="-Djogl.debug.ExtensionAvailabilityCache" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true"
@@ -110,7 +112,11 @@ set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.de
 
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
 REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
-set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+
+REM If using a custom opengl32.dll (see MESA3D_LIB), java2d can't load system32's opengl32.dll
+REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
+set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false" %MODULE_ARGS%
 
 scripts\tests-win.bat %*
 

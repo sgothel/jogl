@@ -16,7 +16,8 @@ REM set TEMP=C:\Users\jogamp\temp\no-exec
 REM set TMP=C:\Users\jogamp\temp\no-exec
 
 set MESA3D_LIB=C:\Mesa3D\x64
-set FFMPEG_LIB=C:\ffmpeg-5.1.2-full_build-shared\bin
+REM set FFMPEG_LIB=C:\ffmpeg-5.1.2-full_build-shared\bin
+set FFMPEG_LIB=C:\ffmpeg-n6.1-latest-win64-gpl-shared-6.1\bin
 
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
 set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%MESA3D_LIB%;%FFMPEG_LIB%;%PATH%
@@ -33,10 +34,12 @@ echo CP_ALL %CP_ALL%
 REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
 set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
-set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
 REM set X_ARGS="-Xcheck:jni" "-verbose:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
 REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
 
+REM If using a custom opengl32.dll (see MESA3D_LIB), java2d can't load system32's opengl32.dll
+REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
+set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false" %MODULE_ARGS%
 
 scripts\tests-win.bat %*
 

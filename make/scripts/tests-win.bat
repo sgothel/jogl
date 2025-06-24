@@ -272,6 +272,8 @@ REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
 
 scripts\java-win.bat com.jogamp.opengl.demos.es2.GearsES2 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.es2.LandscapeES2 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.es2.PointsDemoES2 %*
 
