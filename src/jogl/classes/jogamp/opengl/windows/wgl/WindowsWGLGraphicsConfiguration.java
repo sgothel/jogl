@@ -158,6 +158,29 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
     }
 
     /**
+     * Preselect the graphics configuration in case it has been determined yet.<br>
+     * Uses a shared device's HDC and the given pfdIDs to preselect the pfd.
+     * No PIXELFORMAT is set.
+     *
+     * @param factory
+     * @param pfIDs optional pool of preselected PixelFormat IDs, maybe of zero size for unrestricted selection
+     *
+     * @see #isDetermined()
+     */
+    public final void preselectGraphicsConfiguration2(final GLDrawableFactory factory, final List<Integer> pfdIDs) {
+        final int[] pfdIDs2;
+        if( pfdIDs.size() > 0 ) {
+            pfdIDs2 = new int[pfdIDs.size()];
+            for(int i=0; i<pfdIDs2.length; ++i) {
+                pfdIDs2[i] = pfdIDs.get(i);
+            }
+        } else {
+            pfdIDs2 = null;
+        }
+        preselectGraphicsConfiguration(factory, pfdIDs2);
+    }
+
+    /**
      * Sets the hdc's PixelFormat, this configuration's capabilities and marks it as determined.
      */
     final void setPixelFormat(final long hdc, final WGLGLCapabilities caps) {

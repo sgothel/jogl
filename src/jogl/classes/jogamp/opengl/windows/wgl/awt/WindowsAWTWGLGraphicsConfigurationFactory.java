@@ -34,7 +34,6 @@
 package jogamp.opengl.windows.wgl.awt;
 
 
-import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
@@ -44,6 +43,10 @@ import jogamp.nativewindow.jawt.windows.Win32SunJDKReflection;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
@@ -130,7 +133,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 if ( 1 <= winConfig.getPixelFormatID() ) {
                     chosenGC = Win32SunJDKReflection.graphicsConfigurationGet(device, winConfig.getPixelFormatID());
                     if(DEBUG) {
-                        System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+                        System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found new AWT PFD ID "+winConfig.getPixelFormatID()+", hasGC "+(null!=chosenGC)+" -> "+winConfig);
                     }
                 }
             } catch (final GLException gle0) {
@@ -151,26 +154,35 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
 
                 // collect all available PFD IDs
                 final GraphicsConfiguration[] configs = device.getConfigurations();
-                final int[] pfdIDs = new int[configs.length];
-                final ArrayHashSet<Integer> pfdIDOSet =
-                        new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+                final List<Integer> pfdIDs = new ArrayList<Integer>();
+                final Map<Integer, GraphicsConfiguration> pfdID2Config = new HashMap<Integer, GraphicsConfiguration>();
                 for (int i = 0; i < configs.length; i++) {
                     final GraphicsConfiguration gc = configs[i];
-                    pfdIDs[i] = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
-                    pfdIDOSet.add( Integer.valueOf(pfdIDs[i]) );
-                    if(DEBUG) {
-                        System.err.println("AWT pfd["+i+"] "+pfdIDs[i]);
+                    final int pfd = Win32SunJDKReflection.graphicsConfigurationGetPixelFormatID(gc);
+                    if( pfd >= 1 ) {
+                        if( !pfdID2Config.containsKey(pfd) ) {
+                            pfdIDs.add( pfd );
+                            pfdID2Config.put(pfd, gc);
+                            if(DEBUG) {
+                                System.err.println("- AWT gc["+i+"] -> pfd "+pfd+": Mapped");
+                            }
+                        } else if(DEBUG) {
+                            System.err.println("- AWT gc["+i+"] -> pfd "+pfd+": Duplicate pfd skipped");
+                        }
+                    } else if(DEBUG) {
+                        System.err.println("- AWT gc["+i+"] -> pfd unresolved");
                     }
                 }
                 if(DEBUG) {
-                    System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: PFD IDs: "+pfdIDs.length+", unique: "+pfdIDOSet.size());
+                    System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: GCs "+configs.length+", PFDs: "+pfdIDs.size()+", mapped: "+pfdID2Config.size());
                 }
-                winConfig.preselectGraphicsConfiguration(drawableFactory, pfdIDs);
-                final int gcIdx = pfdIDOSet.indexOf(Integer.valueOf(winConfig.getPixelFormatID()));
-                if( 0 <= gcIdx ) {
-                    chosenGC = configs[gcIdx];
-                    if(DEBUG) {
-                        System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found matching AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+                winConfig.preselectGraphicsConfiguration2(drawableFactory, pfdIDs);
+                chosenGC = pfdID2Config.get( winConfig.getPixelFormatID() );
+                if(DEBUG) {
+                    if( null != chosenGC ) {
+                        System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found GC for AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
+                    } else {
+                        System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: GC not found for AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
                     }
                 }
             }
