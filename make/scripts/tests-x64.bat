@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jdk-17
-set JAVA_HOME=c:\jdk-17
+set J2RE_HOME=c:\jdk-21
+set JAVA_HOME=c:\jdk-21
 set ANT_PATH=C:\apache-ant-1.10.5
 
 REM set LIBGL_DEBUG=verbose

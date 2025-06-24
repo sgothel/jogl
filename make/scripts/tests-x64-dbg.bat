@@ -11,8 +11,8 @@ REM set INTEL_DEBUG="buf bat"
 REM set INTEL_STRICT_CONFORMANCE=1
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jdk-17
-set JAVA_HOME=c:\jdk-17
+set J2RE_HOME=c:\jdk-21
+set JAVA_HOME=c:\jdk-21
 set ANT_PATH=C:\apache-ant-1.10.5
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl

@@ -39,7 +39,7 @@ doit() {
         fi
 
         # MacOS: Select JVM path to allow DYLD_LIBRARY_PATH (FIXME?)
-        JAVA_HOME=`/usr/libexec/java_home -version 17`
+        JAVA_HOME=`/usr/libexec/java_home -version 21`
         PATH=$JAVA_HOME/bin:$PATH
         export JAVA_HOME PATH
     fi

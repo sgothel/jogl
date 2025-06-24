@@ -1,6 +1,6 @@
-set JRE_HOME=c:\jdk-17
-set J2RE_HOME=c:\jdk-17
-set JAVA_HOME=c:\jdk-17
+set JRE_HOME=c:\jdk-21
+set J2RE_HOME=c:\jdk-21
+set JAVA_HOME=c:\jdk-21
 REM set JRE_HOME=c:\jre1.8.0_121_x64
 set LOG_PATH=%USERPROFILE%\AppData\LocalLow\Sun\Java\Deployment\log
 
