@@ -1,7 +1,3 @@
-#! /bin/sh
-
-SDIR=$(readlink -f `dirname $0`)
-
 if [ -e ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh ] ; then
     . ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh
 fi
@@ -42,10 +38,6 @@ export TARGET_ADB_PORT=5555
 # needs executable bit (probably su)
 export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
-
-export SOURCE_LEVEL=1.8
-export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
 #export JUNIT_DISABLED="true"
 #export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"

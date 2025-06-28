@@ -18,10 +18,6 @@ export JAVA_HOME PATH
 which java
 java -version 
 
-export SOURCE_LEVEL=1.8
-export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/usr/local/jre1.8.0_212/lib/rt.jar
-
 export GLUEGEN_CPPTASKS_FILE=make/lib/gluegen-cpptasks-ios-aarch64.xml
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"

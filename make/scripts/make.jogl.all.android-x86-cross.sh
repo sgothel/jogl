@@ -43,10 +43,6 @@ export TARGET_ADB_PORT=5555
 export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
-export SOURCE_LEVEL=1.8
-export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
-
 #export JUNIT_DISABLED="true"
 #export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
