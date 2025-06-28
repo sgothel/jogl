@@ -609,7 +609,7 @@
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
-        <syslibset dir="${env.ANDROID_TOOLCHAIN_SYSROOT0}/usr/lib" libs="android" />
+        <syslibset dir="${env.ANDROID_TOOLCHAIN_SYSROOT1}/usr/lib" libs="android" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
