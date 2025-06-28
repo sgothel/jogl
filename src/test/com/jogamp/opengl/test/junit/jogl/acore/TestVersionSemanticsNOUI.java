@@ -36,21 +36,17 @@ import java.util.Set;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.osjava.jardiff.DiffCriteria;
-import org.semver.Delta;
 
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.junit.util.SingletonJunitCase;
 import com.jogamp.junit.util.VersionSemanticsUtil;
+import com.jogamp.junit.util.VersionSemanticsUtil.CompatibilityType;
 import com.jogamp.opengl.JoglVersion;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     static final String jarFile = "jogl-all.jar";
-
-    static final DiffCriteria diffCriteria = new org.osjava.jardiff.SimpleDiffCriteria();
-    // static final DiffCriteria diffCriteria = new org.osjava.jardiff.PublicDiffCriteria();
 
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
@@ -68,35 +64,35 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
 
     // @Test
     public void testVersionV212V213() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.2", "2.1.3", excludesDefault);
+        testVersions(CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.2", "2.1.3", excludesDefault);
     }
 
     // @Test
     public void testVersionV213V214() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.3", "2.1.4", excludesDefault);
+        testVersions(CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.3", "2.1.4", excludesDefault);
     }
 
     // @Test
     public void testVersionV214V215() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.4", "2.1.5", excludesDefault);
+        testVersions(CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.4", "2.1.5", excludesDefault);
     }
 
     // @Test
     public void testVersionV215V220() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.5", "2.2.0", excludesDefault);
+        testVersions(CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.1.5", "2.2.0", excludesDefault);
     }
 
     @Test
     public void testVersionV220V221() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.0", "2.2.1", excludesDefault);
+        testVersions(CompatibilityType.BACKWARD_COMPATIBLE_SOURCE, "2.2.0", "2.2.1", excludesDefault);
     }
 
     @Test
     public void testVersionV221V230() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.2.1", "2.3.0", excludesDefault);
+        testVersions(CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.2.1", "2.3.0", excludesDefault);
     }
 
-    void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
+    void testVersions(final CompatibilityType expectedCompatibilityType,
                       final String v1, final String v2, final Set<String> excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
         final VersionNumberString preVersionNumber = new VersionNumberString(v1);
@@ -105,19 +101,19 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
         final VersionNumberString curVersionNumber = new VersionNumberString(v2);
         final File currentJar = new File("lib/v"+v2+"/"+jarFile);
 
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         currentJar, curVersionNumber, excludes);
+        VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
+                                          previousJar, preVersionNumber,
+                                          currentJar, curVersionNumber, excludes);
     }
 
     @Test
     public void testVersionV230V232() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
+        testVersions(CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
     }
 
     @Test
     public void testVersionV232V24x() throws IllegalArgumentException, IOException, URISyntaxException {
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        final CompatibilityType expectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
 
@@ -126,10 +122,10 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
 
         final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
 
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesDefault);
+        VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
+                                          previousJar, preVersionNumber,
+                                          curVersion.getClass(), currentCL, curVersionNumber,
+                                          excludesDefault);
     }
 
     public static void main(final String args[]) throws IOException {
