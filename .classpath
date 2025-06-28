@@ -46,9 +46,9 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/junit.jar" sourcepath="/gluegen/make/lib/junit-sources.jar"/>
 	<classpathentry kind="lib" path="make/lib/plugin3/plugin3-public.jar" sourcepath="make/lib/plugin3/plugin3-public-src.zip"/>
-	<classpathentry kind="lib" path="/gluegen/make/lib/semantic-versioning/semver.jar" sourcepath="/gluegen/make/lib/semantic-versioning/semver-src.zip"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/android-sdk/24/android.jar" sourcepath="/gluegen/make/lib/android-sdk/24/android-java-src.zip"/>
 	<classpathentry kind="lib" path="make/lib/openjfx/11/javafx-base-11.jar"/>
 	<classpathentry kind="lib" path="make/lib/openjfx/11/javafx-graphics-11.jar"/>
+	<classpathentry kind="lib" path="/gluegen/make/lib/japicmp/japicmp-with-dependencies.jar" sourcepath="/gluegen/make/lib/japicmp/japicmp-sources.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
