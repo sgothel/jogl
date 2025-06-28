@@ -16,7 +16,7 @@
     </taskdef>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="declare.common" description="Declare properties" depends="common.init">
@@ -70,7 +70,7 @@
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
-    
+
     <!-- ================================================================== -->
     <!--
        - Clean up all that is built.
@@ -102,8 +102,8 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               source="${target.sourcelevel}"
+               target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_jogl_newt.compile.classpath"/>
@@ -117,8 +117,8 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               source="${target.sourcelevel}"
+               target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_joal_jogl_newt.compile.classpath"/>
@@ -145,7 +145,7 @@
             </fileset>
         </copy>
         <jar manifest="${build.test}/manifest-demo.mf" destfile="${jogl-demos.jar}" filesonly="true">
-            <fileset dir="${classes.demos}" 
+            <fileset dir="${classes.demos}"
                      excludes="${java.part.demo.android}"
                      includes="**"/>
             <fileset dir="resources/assets-test" includes="**" />
@@ -159,7 +159,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
+               source="${target.sourcelevel}"
                target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -174,7 +174,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
+               source="${target.sourcelevel}"
                target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
@@ -205,7 +205,7 @@
     </target>
 
     <target name="demo.package.android" depends="demos.cc.android" if="isAndroid">
-        <aapt.signed 
+        <aapt.signed
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/demos"
             jarbuilddir="${jar}"
@@ -218,15 +218,15 @@
             version.code="${jogamp.version.int}"
             version.name="${jogamp.version}">
           <d8-classpaths>
-              <arg line="--classpath ${gluegen-rt-android.jar}"/> 
-              <arg line="--classpath ${joal.jar}"/> 
-              <arg line="--classpath ${jogl-all-android.jar}"/> 
-              <arg line="--classpath ${gluegen-test-util.jar}"/> 
-              <arg line="--classpath ${junit.jar}"/> 
-              <arg line="--classpath ${ant.jar}"/> 
-              <arg line="--classpath ${ant-junit.jar}"/> 
-              <arg line="--classpath ${ant-junit4.jar}"/> 
-              <arg line="--classpath ${semver.jar}"/> 
+              <arg line="--classpath ${gluegen-rt-android.jar}"/>
+              <arg line="--classpath ${joal.jar}"/>
+              <arg line="--classpath ${jogl-all-android.jar}"/>
+              <arg line="--classpath ${gluegen-test-util.jar}"/>
+              <arg line="--classpath ${junit.jar}"/>
+              <arg line="--classpath ${ant.jar}"/>
+              <arg line="--classpath ${ant-junit.jar}"/>
+              <arg line="--classpath ${ant-junit4.jar}"/>
+              <arg line="--classpath ${japicmp.jar}"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
           </d8-classpaths>
@@ -240,8 +240,8 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               source="${target.sourcelevel}"
+               target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt.compile.classpath"/>
@@ -255,8 +255,8 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
+               source="${target.sourcelevel}"
+               target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt_oculusvr.compile.classpath"/>
@@ -281,7 +281,7 @@
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
-            <fileset dir="${classes}" 
+            <fileset dir="${classes}"
                      includes="${java.part.test.all}"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
@@ -342,7 +342,7 @@
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.log"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
-                 parallel="false" 
+                 parallel="false"
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
@@ -388,7 +388,7 @@
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
             <jvmarg value="-Djogl.debug.GLSLState"/>
             <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
             -->
@@ -411,12 +411,12 @@
     <target name="generic.junit.run.newt.headless">
         <!-- attribute name="generic.junit.run.newt.headless.include.pattern" -->
 
-        <!-- Test*NEWT* 
+        <!-- Test*NEWT*
 
              Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
-          --> 
+          -->
         <echo message="+++ "/>
         <echo message="+++ generic.junit.run.newt.headless"/>
         <echo message="+++ Pattern: ${generic.junit.run.newt.headless.include.pattern}"/>
@@ -444,7 +444,7 @@
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
-                 parallel="false" 
+                 parallel="false"
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
@@ -482,7 +482,7 @@
         <var name="test.class.path" unset="true"/>
         <var name="test.class.fqn" unset="true"/>
         <var name="test.class.result.file" unset="true"/>
-    </target>  
+    </target>
 
     <target name="junit.run.newt.headless" depends="test.compile">
         <!-- Test*NEWT* -->
@@ -513,7 +513,7 @@
             <jvmarg value="-Djogl.debug.GLSLState"/>
             <jvmarg value="-Dnativewindow.debug=all"/>
             <jvmarg value="-Dnewt.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
             -->
@@ -557,7 +557,7 @@
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
             <jvmarg value="-Djogl.debug.GLSLState"/>
             <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
             -->
@@ -610,7 +610,7 @@
             <jvmarg value="-Djogl.debug.GLSLState"/>
             <jvmarg value="-Dnativewindow.debug=all"/>
             <jvmarg value="-Dnewt.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
             -->
@@ -646,7 +646,7 @@
     </target>
 
     <target name="junit.run.sharedctx" depends="test.compile, junit.run.settings">
-        <!-- Test*NEWT* --> 
+        <!-- Test*NEWT* -->
         <echo message="+++ "/>
         <echo message="+++ Testing Shared NEWT"/>
         <echo message="+++ "/>
@@ -701,7 +701,7 @@
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
             <jvmarg value="-Djogl.debug.GLSLState"/>
             <jvmarg value="-Dnativewindow.debug=all"/>
-            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-verbose:jni"/>
             <jvmarg value="-client"/>
             <jvmarg value="-d32"/>
             -->
@@ -715,17 +715,17 @@
     </target>
 
     <target name="junit.run.newt.headless.singletest" depends="test.compile, junit.run.settings">
-        <!-- Test*NEWT* 
+        <!-- Test*NEWT*
 
              Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
-          --> 
+          -->
         <var name="test.class.result.file" unset="true"/>
         <var name="test.class.result.file" value="${results.test}/TEST-${testclass}.xml"/>
         <echo message="Testing ${testclass} -- ${test.class.result.file}"/>
         <apply dir="." executable="${jvmJava.exe}"
-             parallel="false" 
+             parallel="false"
              timeout="${batchtest.timeout}"
              vmlauncher="false"
              relative="true"
@@ -761,12 +761,12 @@
     <target name="generic.junit.run.swt.headless" unless="setup.noSWT">
         <!-- attribute name="generic.junit.run.swt.headless.include.pattern" -->
 
-        <!-- Test*SWTHeadless* 
+        <!-- Test*SWTHeadless*
 
              Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
-          --> 
+          -->
         <echo message="+++ "/>
         <echo message="+++ generic.junit.run.swt.headless"/>
         <echo message="+++ Pattern: ${generic.junit.run.swt.headless.include.pattern}"/>
@@ -793,7 +793,7 @@
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
-                 parallel="false" 
+                 parallel="false"
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
@@ -831,7 +831,7 @@
         <var name="test.class.path" unset="true"/>
         <var name="test.class.fqn" unset="true"/>
         <var name="test.class.result.file" unset="true"/>
-    </target>  
+    </target>
 
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
         <!-- Test*SWTHeadless* -->
@@ -841,12 +841,12 @@
     </target>
 
     <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
-        <!-- Test*SWT* 
+        <!-- Test*SWT*
 
              Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
-          --> 
+          -->
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
@@ -868,7 +868,7 @@
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
-                 parallel="false" 
+                 parallel="false"
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
@@ -1215,7 +1215,7 @@ ${line.separator}
 <!--
 rsync:
     -a == -rlptgoD
-    -rt 
+    -rt
 -->
 
     <target name="junit.run.remote.adb" if="isAndroidARMv6">
@@ -1334,13 +1334,13 @@ ${line.separator}
 
         <!-- ExclusiveContextThread very buggy Intel driver .. FIXME/Investigate
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/ect/Test*NEWT*"/>
-        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> 
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
         <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
         -->
 
         <!-- Drawable/Context switching very buggy Intel driver .. FIXME/Investigate
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/glels/Test*NEWT*"/>
-        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> 
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
         <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
         -->
 
@@ -1419,7 +1419,7 @@ ${line.separator}
             <fileset dir="." includes="hs_err_pid*.log" />
         </move>
         <archive.7z destfile="${build}/${test.archive.name}.7z"
-                    basedir="${project.root}" 
+                    basedir="${project.root}"
                     includes="${rootrel.build}/test/results ${rootrel.build}/test/results-x64 ${rootrel.build}/test/results-x32" />
     </target>
 
