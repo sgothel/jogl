@@ -1,3 +1,3 @@
-Eclipse 4.26.0 Release Build: 4.26
+Eclipse 4.36.0 Release Build: 4.36
 
-https://download.eclipse.org/eclipse/downloads/drops4/R-4.26-202211231800/
+https://eclipse.mirror.wearetriple.com//eclipse/downloads/drops4/R-4.36-202505281830/
