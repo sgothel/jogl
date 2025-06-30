@@ -382,7 +382,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
       // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
       // Minimal action required: setBackground of the parent canvas before reparenting!
-      setBackground(new Color(parent.getDisplay(), 255, 255, 255));
+      //
+      // SWT 3.110 (Eclipse 4.10?) would require color to be disposed, hence use pre-allocated.
+      // Since at least 'Eclipse 4.26.0 Release Build: 4.26' no more disposal of Color required.
+      setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
       final Listener listener = new Listener () {
           @Override

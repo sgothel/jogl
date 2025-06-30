@@ -254,7 +254,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
-    D_ARGS="-Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.window.icons=null,null"
     #D_ARGS="-Dnewt.window.icons=../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/test-ntscI_4-01-160x90.png,../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/cross-grey-alpha-16x16.png -Djogamp.debug.IOUtil"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
@@ -845,7 +845,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
+testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -1051,7 +1051,7 @@ function testawtswt() {
 #
 # Basic (Demos)
 #
-testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
+#testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.LandscapeES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.PointsDemoES2 $*
 
