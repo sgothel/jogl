@@ -79,6 +79,11 @@ static void dumpOutput(const char *prefix, Display *dpy, int screen_idx, XRRScre
         isPrim = 1;
     }
     XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    if(NULL ==  xrrOutputInfo) {
+        fprintf(stderr, "%s: Output[%d]: id %#lx, info not available, primary %d\n", 
+            prefix, outputIdx, output, isPrim);
+        return;
+    }
     fprintf(stderr, "%s: Output[%d]: id %#lx, crtx 0x%lX, name %s (%d), %lux%lu, ncrtc %d, nclone %d, nmode %d (preferred %d), primary %d\n", 
         prefix, outputIdx, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, 
         xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
@@ -482,6 +487,9 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
         isPrimary = 1;
     }
     XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    if(NULL ==  xrrOutputInfo) {
+        return NULL; // n/a
+    }
     int numModes = xrrOutputInfo->nmode;
 
     jsize propCount = MIN_MONITOR_DEVICE_PROPERTIES - 1 + numModes;
@@ -543,6 +551,9 @@ JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorName0
 
     RROutput output = xrrCrtcInfo->outputs[0];
     XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    if(NULL ==  xrrOutputInfo) {
+        return NULL; // n/a
+    }
     int name_len = xrrOutputInfo->nameLen;
     char* name = xrrOutputInfo->name;
     if( NULL == name || 0 == name_len ) {

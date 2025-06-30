@@ -45,8 +45,8 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # We use TempJarCache and JAR files per default now!
-#export USE_BUILDDIR=0
-export USE_BUILDDIR=1
+export USE_BUILDDIR=0
+#export USE_BUILDDIR=1
 
 if [ $USE_BUILDDIR -eq 1 ] ; then
     export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
@@ -254,7 +254,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
-    #D_ARGS="-Dnewt.debug.Screen"
+    D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.window.icons=null,null"
     #D_ARGS="-Dnewt.window.icons=../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/test-ntscI_4-01-160x90.png,../src/test/com/jogamp/opengl/test/junit/jogl/util/texture/cross-grey-alpha-16x16.png -Djogamp.debug.IOUtil"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
@@ -383,7 +383,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync -Djogl.debug.GLMediaPlayer.Native -Djogamp.debug.AudioSink"
-    D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
