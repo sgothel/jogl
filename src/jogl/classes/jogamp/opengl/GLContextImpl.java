@@ -1632,9 +1632,7 @@ public abstract class GLContextImpl extends GLContext {
   }
   protected abstract Map<String, String> getExtensionNameMap() ;
 
-  /**
-   * Returns the DynamicLookupHelper
-   */
+  @Override
   public final GLDynamicLookupHelper getGLDynamicLookupHelper() {
       return drawable.getFactoryImpl().getGLDynamicLookupHelper( ctxVersion.getMajor(), ctxOptions );
   }

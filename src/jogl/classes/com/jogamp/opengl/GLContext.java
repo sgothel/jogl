@@ -56,6 +56,7 @@ import com.jogamp.nativewindow.NativeSurface;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
+import jogamp.opengl.GLDynamicLookupHelper;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -1424,6 +1425,9 @@ public abstract class GLContext {
    * </p>
    */
   public abstract int getDefaultPixelDataFormat();
+
+  /** Returns the GLDynamicLookupHelper, matching context. */
+  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
 
   /**
    * @return The extension implementing the GLDebugOutput feature,
