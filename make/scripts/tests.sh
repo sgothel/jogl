@@ -120,7 +120,7 @@ function jrun() {
     #D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
-    #D_ARGS="-Djogl.debug.GLProfile"
+    D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
@@ -845,7 +845,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -1051,7 +1051,7 @@ testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #
 # Basic (Demos)
 #
-#testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
+testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.LandscapeES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.PointsDemoES2 $*
 

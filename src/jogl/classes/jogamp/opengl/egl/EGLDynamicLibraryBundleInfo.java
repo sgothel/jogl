@@ -29,6 +29,7 @@
 package jogamp.opengl.egl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jogamp.common.os.PlatformPropsImpl;
@@ -122,6 +123,9 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
 
         return eglLibNames;
     }
+
+    @Override
+    public List<String> getSymbolForToolLibPath() { return Arrays.asList("glClear", "eglGetProcAddress"); }
 
     @Override
     public final List<String> getGlueLibNames() {
