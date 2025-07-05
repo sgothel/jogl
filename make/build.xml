@@ -417,9 +417,9 @@
         <property name="javadoc.jogl.spec.path"   value="${javadoc.root.path}/jogl/javadoc_jogl_spec" />
         <property name="javadoc.nw.spec.path"     value="${javadoc.root.path}/jogl/javadoc_nativewindow_spec" />
 
-        <property name="doxygen.root.path" value="${build}/doxygen" />
-        <property name="doxygen.jogl.public.path" value="${doxygen.root.path}/jogl/doxygen" />
-        <property name="doxygen.jogl.dev.path"    value="${doxygen.root.path}/jogl/doxygen_dev" />
+        <property name="doxygen.root.path" value="${build}/javadoc" />
+        <property name="doxygen.jogl.public.path" value="${doxygen.root.path}/jogl/javadoc" />
+        <property name="doxygen.jogl.dev.path"    value="${doxygen.root.path}/jogl/javadoc_dev" />
 
         <!-- if gluegen-javadoc.path is not set, check in default location, 
              ${gluegen.root}/${rootrel.build}/javadoc/gluegen -->
@@ -493,7 +493,7 @@
     </target>
 
     <target name="doxygen.zip" depends="javadoc.init">
-        <archive.7z destfile="${build}/doxygen.7z"
+        <archive.7z destfile="${build}/javadoc.7z"
              basedir="${doxygen.root.path}"
              includes="jogl/**" />
     </target>
