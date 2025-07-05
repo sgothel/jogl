@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.VersionNumber;
@@ -1426,8 +1427,8 @@ public abstract class GLContext {
    */
   public abstract int getDefaultPixelDataFormat();
 
-  /** Returns the GLDynamicLookupHelper, matching context. */
-  public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
+  /** Returns the DynamicLibraryBundle, matching context. */
+  public abstract DynamicLibraryBundle getDynamicLibraryBundle();
 
   /**
    * @return The extension implementing the GLDebugOutput feature,

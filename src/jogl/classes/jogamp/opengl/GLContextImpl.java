@@ -48,6 +48,7 @@ import java.util.Set;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Clock;
+import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitfield;
@@ -1633,6 +1634,10 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract Map<String, String> getExtensionNameMap() ;
 
   @Override
+  public final DynamicLibraryBundle getDynamicLibraryBundle() {
+      return getGLDynamicLookupHelper();
+  }
+  /** Returns the GLDynamicLookupHelper, matching context. */
   public final GLDynamicLookupHelper getGLDynamicLookupHelper() {
       return drawable.getFactoryImpl().getGLDynamicLookupHelper( ctxVersion.getMajor(), ctxOptions );
   }
