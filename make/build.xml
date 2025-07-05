@@ -38,6 +38,8 @@
       <ant antfile="build-test.xml" target="test.manual.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="doxygen.all.zip" depends="javadoc.init, doxygen.public, doxygen.all, doxygen.zip"/>
+
     <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
 
     <target name="javadoc.spec.zip" depends="javadoc.init, javadoc.spec, javadoc.zip"/>
@@ -414,6 +416,10 @@
         <property name="javadoc.jogl.spec.path"   value="${javadoc.root.path}/jogl/javadoc_jogl_spec" />
         <property name="javadoc.nw.spec.path"     value="${javadoc.root.path}/jogl/javadoc_nativewindow_spec" />
 
+        <property name="doxygen.root.path" value="${build}/doxygen" />
+        <property name="doxygen.jogl.public.path" value="${doxygen.root.path}/jogl/doxygen" />
+        <property name="doxygen.jogl.dev.path"    value="${doxygen.root.path}/jogl/doxygen_dev" />
+
         <!-- if gluegen-javadoc.path is not set, check in default location, 
              ${gluegen.root}/${rootrel.build}/javadoc/gluegen -->
         <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/element-list" 
@@ -443,8 +449,9 @@
 
     <target name="doxygen.public" depends="javadoc.init">
         <!-- Build the general public Javadoc -->
-        <delete includeEmptyDirs="true" quiet="true" dir="${javadoc.jogl.public.path}" failonerror="false" />
-        <mkdir dir="${javadoc.jogl.public.path}" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${doxygen.jogl.public.path}" failonerror="false" />
+        <mkdir dir="${doxygen.jogl.public.path}" />
+        <copy file="${project.root}/doxygen/doxygen-awesome.css" todir="${build}" overwrite="true"/>
         <copy file="${project.root}/doxygen/Doxyfile.javapublic.in"
             tofile="${build}/Doxyfile.javapublic"
             overwrite="true">
@@ -452,7 +459,7 @@
                 <filter token="BUILD_DIR" value="${build.abs-path}"/>
                 <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
                 <filter token="JOGL_VERSION_LONG" value="${jogamp.version}"/>
-                <filter token="JOGL_DOCS_DIR" value="${javadoc.jogl.public.path}"/>
+                <filter token="JOGL_DOCS_DIR" value="${doxygen.jogl.public.path}"/>
             </filterset>
         </copy>
         <exec dir="${build}" executable="doxygen"
@@ -464,8 +471,9 @@
 
     <target name="doxygen.all" depends="javadoc.init">
         <!-- Build the general public Javadoc -->
-        <delete includeEmptyDirs="true" quiet="true" dir="${javadoc.jogl.dev.path}" failonerror="false" />
-        <mkdir dir="${javadoc.jogl.dev.path}" />
+        <delete includeEmptyDirs="true" quiet="true" dir="${doxygen.jogl.dev.path}" failonerror="false" />
+        <mkdir dir="${doxygen.jogl.dev.path}" />
+        <copy file="${project.root}/doxygen/doxygen-awesome.css" todir="${build}" overwrite="true"/>
         <copy file="${project.root}/doxygen/Doxyfile.javaall.in"
             tofile="${build}/Doxyfile.javaall"
             overwrite="true">
@@ -473,7 +481,7 @@
                 <filter token="BUILD_DIR" value="${build.abs-path}"/>
                 <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
                 <filter token="JOGL_VERSION_LONG" value="${jogamp.version}"/>
-                <filter token="JOGL_DOCS_DIR" value="${javadoc.jogl.dev.path}"/>
+                <filter token="JOGL_DOCS_DIR" value="${doxygen.jogl.dev.path}"/>
             </filterset>
         </copy>
         <exec dir="${build}" executable="doxygen"
@@ -481,6 +489,12 @@
              failonerror="false">
             <arg line="Doxyfile.javaall"/>
         </exec>
+    </target>
+
+    <target name="doxygen.zip" depends="javadoc.init">
+        <archive.7z destfile="${build}/doxygen.7z"
+             basedir="${doxygen.root.path}"
+             includes="jogl/**" />
     </target>
 
     <target name="javadoc.public" depends="javadoc.init">
