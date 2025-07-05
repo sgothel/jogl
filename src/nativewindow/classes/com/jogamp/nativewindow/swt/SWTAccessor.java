@@ -79,6 +79,7 @@ public class SWTAccessor {
     public static final boolean isWindows;
     public static final boolean isX11;
     public static final boolean isX11GTK;
+    public static final boolean useCairoAutoScale; // See SWT git commit 111b874343d65aaee4f13d74eda554bde1a740a7 (always true for GTK since version 4.36.0)
 
     // X11/GTK, Windows/GDI, ..
     private static final String str_handle = "handle";
@@ -123,7 +124,7 @@ public class SWTAccessor {
 
     private static final VersionNumber GTK_VERSION_2_14_0 = new VersionNumber(2, 14, 0);
     private static final VersionNumber GTK_VERSION_2_24_0 = new VersionNumber(2, 24, 0);
-    private static final VersionNumber GTK_VERSION_2_90_0 = new VersionNumber(2, 90, 0);
+    // private static final VersionNumber GTK_VERSION_2_90_0 = new VersionNumber(2, 90, 0);
     private static final VersionNumber GTK_VERSION_3_0_0  = new VersionNumber(3,  0, 0);
     // private static final VersionNumber GTK_VERSION_4_0_0  = new VersionNumber(4,  0, 0);
 
@@ -248,7 +249,6 @@ public class SWTAccessor {
         Class<?> cGTK=null;
         VersionNumber _gtk_version = new VersionNumber(0, 0, 0);
         Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null;
-        final Method ma=null, mb=null;
         final Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( isX11 ) {
             // mandatory
@@ -311,7 +311,7 @@ public class SWTAccessor {
         OS_gdk_x11_window_get_xid = m9;
 
         isX11GTK = isX11 && null != OS_gtk_class;
-
+        useCairoAutoScale = isX11GTK;
         if( DEBUG ) {
             printInfo(System.err, null);
         }
@@ -426,7 +426,7 @@ public class SWTAccessor {
         final Point dpi = null != d ? d.getDPI() : null;
         out.println("SWT: Display.DPI "+dpi+"; DPIUtil: autoScalingFactor "+
                         getAutoScalingFactor()+" (use-swt "+(null != swt_dpiutil_getScalingFactor)+
-                        "), useCairoAutoScale "+DPIUtil.useCairoAutoScale());
+                        "), useCairoAutoScale "+useCairoAutoScale);
     }
 
     //
@@ -448,7 +448,7 @@ public class SWTAccessor {
         }
         // Mimick original code ..
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if ( 100 == deviceZoom || DPIUtil.useCairoAutoScale() ) {
+        if ( 100 == deviceZoom || useCairoAutoScale ) {
             return 1f;
         }
         return deviceZoom/100f;
@@ -461,7 +461,7 @@ public class SWTAccessor {
      */
     public static int autoScaleUp (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || DPIUtil.useCairoAutoScale()) {
+        if (100 == deviceZoom || useCairoAutoScale) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;
@@ -475,7 +475,7 @@ public class SWTAccessor {
      */
     public static int autoScaleDown (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || DPIUtil.useCairoAutoScale()) {
+        if (100 == deviceZoom || useCairoAutoScale) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;

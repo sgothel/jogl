@@ -97,6 +97,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+                SWTAccessor.printInfo(System.err, display);
             }});
         display.syncExec(new Runnable() {
             @Override
