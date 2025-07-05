@@ -757,7 +757,7 @@ INPUT                  = @CURRENT_SOURCE_DIR@/src/nativewindow/classes/com \
                          @CURRENT_SOURCE_DIR@/src/newt/classes/com \
                          @CURRENT_SOURCE_DIR@/src/graphui/classes/com \
                          @BUILD_DIR@/jogl/gensrc/classes/com \
-                         @CURRENT_SOURCE_DIR@/README.md
+                         @CURRENT_SOURCE_DIR@/README.md \
                          @CURRENT_SOURCE_DIR@/src/demos \
                          @CURRENT_SOURCE_DIR@/src/test/com
 

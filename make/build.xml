@@ -39,6 +39,7 @@
     </target>
 
     <target name="doxygen.all.zip" depends="javadoc.init, doxygen.public, doxygen.all, doxygen.zip"/>
+    <target name="doxygen.public.zip" depends="javadoc.init, doxygen.public, doxygen.zip"/>
 
     <target name="javadoc.all.zip" depends="javadoc.init, javadoc.all, javadoc.zip"/>
 
@@ -470,7 +471,7 @@
     </target>
 
     <target name="doxygen.all" depends="javadoc.init">
-        <!-- Build the general public Javadoc -->
+        <!-- Build the general developer Javadoc -->
         <delete includeEmptyDirs="true" quiet="true" dir="${doxygen.jogl.dev.path}" failonerror="false" />
         <mkdir dir="${doxygen.jogl.dev.path}" />
         <copy file="${project.root}/doxygen/doxygen-awesome.css" todir="${build}" overwrite="true"/>
