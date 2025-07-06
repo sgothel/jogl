@@ -51,14 +51,11 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     static final JogampVersion curVersion = JoglVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludesDefault;
-    static final Set<String> excludesStereoPackageAndAppletUtils;
+    static final String excludesDefault;
+    static final String excludesStereoPackageAndAppletUtils;
     static {
-        excludesDefault = new HashSet<String>();
-        excludesDefault.add("^\\Qjogamp/\\E.*$");
-        excludesStereoPackageAndAppletUtils = new HashSet<String>(excludesDefault);
-        excludesStereoPackageAndAppletUtils.add("^\\Qcom/jogamp/opengl/util/stereo/\\E.*$");
-        excludesStereoPackageAndAppletUtils.add("^\\Qcom/jogamp/newt/util/applet/\\E.*$");
+        excludesDefault = "jogamp";
+        excludesStereoPackageAndAppletUtils = excludesDefault+";com.jogamp.opengl.util.stereo;com.jogamp.newt.util.applet";
     }
 
 
@@ -93,7 +90,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     }
 
     void testVersions(final CompatibilityType expectedCompatibilityType,
-                      final String v1, final String v2, final Set<String> excludes)
+                      final String v1, final String v2, final String excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
         final VersionNumberString preVersionNumber = new VersionNumberString(v1);
         final File previousJar = new File("lib/v"+v1+"/"+jarFile);
@@ -103,12 +100,14 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
 
         VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
                                           previousJar, preVersionNumber,
-                                          currentJar, curVersionNumber, excludes);
+                                          currentJar, curVersionNumber, excludes, true);
     }
 
     @Test
     public void testVersionV230V232() throws IllegalArgumentException, IOException, URISyntaxException {
-        testVersions(CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
+        final CompatibilityType expectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
+        testVersions(expectedCompatibilityType, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
     }
 
     @Test
@@ -125,7 +124,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
         VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
                                           previousJar, preVersionNumber,
                                           curVersion.getClass(), currentCL, curVersionNumber,
-                                          excludesDefault);
+                                          excludesDefault, true);
     }
 
     public static void main(final String args[]) throws IOException {

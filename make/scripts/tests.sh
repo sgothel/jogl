@@ -501,7 +501,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #
 
 #
@@ -844,7 +844,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor01 $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
-testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
