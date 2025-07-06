@@ -757,7 +757,7 @@ INPUT                  = @CURRENT_SOURCE_DIR@/src/nativewindow/classes/com \
                          @CURRENT_SOURCE_DIR@/src/newt/classes/com \
                          @CURRENT_SOURCE_DIR@/src/graphui/classes/com \
                          @BUILD_DIR@/jogl/gensrc/classes/com \
-                         @CURRENT_SOURCE_DIR@/README.md \
+                         @CURRENT_SOURCE_DIR@/doc/spec-overview.md \
                          @CURRENT_SOURCE_DIR@/src/demos \
                          @CURRENT_SOURCE_DIR@/src/test/com
 
@@ -899,7 +899,7 @@ FILTER_SOURCE_PATTERNS =
 # (index.html). This can be useful if you have a project on for instance GitHub
 # and want to reuse the introduction page also for the doxygen output.
 
-USE_MDFILE_AS_MAINPAGE = @CURRENT_SOURCE_DIR@/README.md
+USE_MDFILE_AS_MAINPAGE = @CURRENT_SOURCE_DIR@/doc/spec-overview.md
 
 #---------------------------------------------------------------------------
 # Configuration options related to source browsing

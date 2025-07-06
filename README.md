@@ -57,8 +57,8 @@ NativeWindow, NEWT and GraphUI might be build seperately.
 - [JOGL Home](https://jogamp.org/jogl/www/)
 - [Git Repository](https://jogamp.org/cgit/jogl.git/about/)
 - [OpenGL Evolution & JOGL](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html)
-- [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description)
-  - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria)
+- [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#overview_description)
+  - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#GLAPIInclusionCriteria)
   - [UML Diagram](https://jogamp.org/jogl/doc/uml/html/index-withframe.html)
 - [JOGL and OpenGL Divergence](https://jogamp.org/jogl/doc/OpenGL_API_Divergence.html)
 - [How To Build](https://jogamp.org/jogl/doc/HowToBuild.html)
@@ -69,7 +69,7 @@ NativeWindow, NEWT and GraphUI might be build seperately.
 Bottom line, too much work has been performed to be listed here.    
 However, let's have a few sentimental points listed and we may add a few more as we go.
 
-### *OpenGL™ for Java™ (GL4Java)*
+### OpenGL™ for Java™ (GL4Java)
 [*OpenGL™ for Java™ (GL4Java)*](https://jogamp.org/cgit/gl4java.git/about/) was developed [from March 1997](https://jausoft.com/gl4java/docs/overview/history.html) 
 until [March 2003](https://jogamp.org/cgit/gl4java.git/log/).    
 Its concepts were reused in the subsequently launched [JOGL project](https://jogamp.org/jogl/www/)    
