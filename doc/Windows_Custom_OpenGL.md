@@ -24,11 +24,26 @@ To using software rendering (not D3D) w/ Mesa3D and Java's AWT:
 - pass JVM argument `"-Dsun.java2d.noddraw=true"`
 
 ## Zero Deployment
+### Using `PATH` environment variable
 To pick up the custom library from its random path and 
 using software rendering (not D3D) w/ Mesa3D and Java's AWT:
 - `set PATH=C:\Mesa3D\x64;%PATH%`
 - `set LIBGL_ALWAYS_SOFTWARE=true`
 - pass JVM argument `"-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false"`
+
+See `AWT's OpenGL Usage` remarks above.
+
+### Using `jogamp.primary.library.path` property at runtime
+The OpenGL implementation can also be selected at runtime
+before the OpenGL library has loaded, i.e. before JOGL's initialization.
+
+One can set the new property `jogamp.primary.library.path` containing
+the usual OS path-separated paths to search for a custom OpenGL library. 
+```
+  System.setProperty("jogamp.primary.library.path", "C:\\Mesa3D\x64");
+```
+
+In this case, the `PATH` can be left untouched.
 
 See `AWT's OpenGL Usage` remarks above.
 

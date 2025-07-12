@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>OpenGL_API_Divergence.md</title>
+  <title>Windows_Custom_OpenGL.md</title>
   <style>
         div#header, header
             {
@@ -414,126 +414,82 @@
     <strong>Contents</strong><label for="contents">⊕</label>
   <input type="checkbox" id="contents">
   <ul>
-  <li><a href="#jogl-and-opengl-divergence">JOGL and OpenGL
-  Divergence</a>
+  <li><a href="#using-a-custom-opengl-library-under-windows">Using a
+  custom OpenGL Library under Windows</a>
   <ul>
-  <li><a href="#overview">Overview</a>
+  <li><a href="#tested-opengl-libraries">Tested OpenGL
+  Libraries</a></li>
+  <li><a href="#common">Common</a></li>
+  <li><a href="#awts-direct-draw-usage">AWT’s Direct Draw Usage</a></li>
+  <li><a href="#awts-opengl-usage">AWT’s OpenGL Usage</a></li>
+  <li><a href="#systemwide-deployment">Systemwide Deployment</a></li>
+  <li><a href="#zero-deployment">Zero Deployment</a>
   <ul>
-  <li><a href="#opengl-debugging">OpenGL Debugging</a></li>
-  <li><a href="#retrieve-mapped-buffers-data">Retrieve Mapped Buffer’s
-  Data</a></li>
+  <li><a href="#using-path-environment-variable">Using <code>PATH</code>
+  environment variable</a></li>
+  <li><a
+  href="#using-jogamp.primary.library.path-property-at-runtime">Using
+  <code>jogamp.primary.library.path</code> property at runtime</a></li>
   </ul></li>
-  <li><a href="#references">References</a></li>
+  <li><a href="#per-application-deployment">Per Application
+  Deployment</a></li>
   </ul></li>
   </ul>
 </nav>
-<style>
-table, th, td {
-   border: 1px solid black;
-}
-</style>
-<h1 id="jogl-and-opengl-divergence">JOGL and OpenGL Divergence</h1>
-<h2 id="overview">Overview</h2>
-<p>As described in <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">mapping
-of OpenGL profiles to interfaces</a>, JOGL is mostly API compatible with
-the OpenGL API while packaging functionality in <a
-href="https://jogamp.org/jogl/doc/uml/html/index-withframe.html">OpenGL
-profiles</a>.</p>
-<p>However, there are certain aspects where JOGL diverges due to managed
-code aspects and the Java™ language.</p>
-<h3 id="opengl-debugging">OpenGL Debugging</h3>
-<p>In 2009-2012 the <a
-href="https://www.khronos.org/opengl/wiki/Debug_Output">Debug Output</a>
-extensions <a
-href="http://www.opengl.org/registry/specs/AMD/debug_output.txt">AMD_debug_output</a>
-and <a
-href="https://registry.khronos.org/OpenGL/extensions/ARB/ARB_debug_output.txt">ARB_debug_output</a>
-were created, subsumed to the core via <a
-href="https://registry.khronos.org/OpenGL/extensions/KHR/KHR_debug.txt">KHR_debug</a>.</p>
-<p>They allow applications to <a
-href="https://docs.gl/gl4/glDebugMessageCallback">enable and control
-low-level debugging</a> using the OpenGL implementation.</p>
-<p>These extensions have been subsumed in <a
-href="https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageCallback">OpenGL
-4.3</a> and in <a
-href="https://registry.khronos.org/OpenGL-Refpages/es3/html/glDebugMessageCallback.xhtml">OpenGL
-ES 3.2</a>.</p>
-<p>In JOGL a user may attached a <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLDebugListener.html">GLDebugListener</a>
-to the <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html">GLContext</a>
-via <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#addGLDebugListener(com.jogamp.opengl.GLDebugListener)">addGLDebugListener(..)</a>.
-The GLDebugListener receives the native <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLDebugMessage.html">GLDebugMessage</a>
-if debugging is enabled.</p>
-<p>To enable debugging, the GLContext must be created having <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#CTX_OPTION_DEBUG">CTX_OPTION_DEBUG</a>
-set via <code>setContextCreationFlags(int)</code> on the <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#setContextCreationFlags(int)">GLContext</a>
-or <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLAutoDrawable.html#setContextCreationFlags(int)">GLAutoDrawable</a>.
-Alternatively, <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#enableGLDebugMessage(boolean)">GLContext.enableGLDebugMessage(boolean</a>
-may be used.</p>
-<p>Test cases</p>
+<h1 id="using-a-custom-opengl-library-under-windows">Using a custom
+OpenGL Library under Windows</h1>
+<h2 id="tested-opengl-libraries">Tested OpenGL Libraries</h2>
 <ul>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestGLDebug00NEWT.java">TestGLDebug00NEWT</a></li>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestGLDebug01NEWT.java">TestGLDebug01NEWT</a></li>
+<li><a href="https://github.com/pal1000/mesa-dist-win/releases">Mesa3D
+by pal1000</a></li>
 </ul>
-<h3 id="retrieve-mapped-buffers-data">Retrieve Mapped Buffer’s Data</h3>
-<p>Since OpenGL 1.5, a mapped buffer object’s data can be retrieved via
-<a
-href="https://www.khronos.org/opengl/wiki/GLAPI/glGetBufferPointer">glGetBufferPointerv(..)</a>,
-i.e. the client’s memory pointer.</p>
-<p>In JOGL, buffers are tracked via <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBufferStorage.html">GLBufferStorage</a>,
-covering the storage size, NIO client memory reference if mapped and
-usage flags. This ensures lifecycle alignment of the native NIO Java
-client memory with OpenGL buffer semantics.</p>
-<p>To retrieve the bound buffer you may use <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBase.html#getBoundBuffer(int)">getBoundBuffer(..)</a>
-and <a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBase.html#getBufferStorage(int)">getBufferStorage(..)</a>.</p>
-<p>Tracker Implementation</p>
+<h2 id="common">Common</h2>
+<p>To allow using software rendering (not D3D) w/ Mesa3D:</p>
 <ul>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/jogl/classes/jogamp/opengl/GLBufferObjectTracker.java">GLBufferObjectTracker</a></li>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/jogl/classes/jogamp/opengl/GLBufferStateTracker.java">GLBufferStateTracker</a></li>
+<li><code>set LIBGL_ALWAYS_SOFTWARE=true</code></li>
 </ul>
-<p>Test Cases</p>
+<h2 id="awts-direct-draw-usage">AWT’s Direct Draw Usage</h2>
+<p>To disable Direct Draw usage within AWT’s Java2D:</p>
 <ul>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestMapBufferRead01NEWT.java">TestMapBufferRead01NEWT</a></li>
-<li><a
-href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestMapBufferRead02NEWT.java">TestMapBufferRead02NEWT</a></li>
+<li>pass JVM argument <code>"-Dsun.java2d.noddraw=true"</code></li>
 </ul>
-<h2 id="references">References</h2>
+<h2 id="awts-opengl-usage">AWT’s OpenGL Usage</h2>
+<p>To disable OpenGL usage within AWT’s Java2D:</p>
 <ul>
-<li><a href="https://jogamp.org/">JogAmp Home</a></li>
-<li><a href="https://jogamp.org/cgit/jogl.git/about/">JOGL Git
-Repo</a></li>
-<li><a href="https://jogamp.org/jogl/www/">JOGL Home</a></li>
-<li><a
-href="https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html">OpenGL
-Evolution &amp; JOGL</a></li>
-<li><a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">Mapping
-of OpenGL Profiles to Interfaces</a>
-<ul>
-<li><a
-href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria">OpenGL
-API Inclusion Criteria</a></li>
-<li><a
-href="https://jogamp.org/jogl/doc/uml/html/index-withframe.html">UML
-Diagram</a></li>
-</ul></li>
-<li><a href="https://jogamp.org/jogl/doc/HowToBuild.html">How To
-Build</a></li>
+<li>pass JVM argument <code>"-Dsun.java2d.opengl=false"</code></li>
 </ul>
+<p>This is required if using the zero deployment method, i.e. avoiding
+having the JVM load a different OpenGL library.</p>
+<h2 id="systemwide-deployment">Systemwide Deployment</h2>
+<p>To using software rendering (not D3D) w/ Mesa3D and Java’s AWT:</p>
+<ul>
+<li><code>set LIBGL_ALWAYS_SOFTWARE=true</code></li>
+<li>pass JVM argument <code>"-Dsun.java2d.noddraw=true"</code></li>
+</ul>
+<h2 id="zero-deployment">Zero Deployment</h2>
+<h3 id="using-path-environment-variable">Using <code>PATH</code>
+environment variable</h3>
+<p>To pick up the custom library from its random path and using software
+rendering (not D3D) w/ Mesa3D and Java’s AWT:</p>
+<ul>
+<li><code>set PATH=C:\Mesa3D\x64;%PATH%</code></li>
+<li><code>set LIBGL_ALWAYS_SOFTWARE=true</code></li>
+<li>pass JVM argument
+<code>"-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false"</code></li>
+</ul>
+<p>See <code>AWT's OpenGL Usage</code> remarks above.</p>
+<h3 id="using-jogamp.primary.library.path-property-at-runtime">Using
+<code>jogamp.primary.library.path</code> property at runtime</h3>
+<p>The OpenGL implementation can also be selected at runtime before the
+OpenGL library has loaded, i.e. before JOGL’s initialization.</p>
+<p>One can set the new property <code>jogamp.primary.library.path</code>
+containing the usual OS path-separated paths to search for a custom
+OpenGL library.</p>
+<pre><code>  System.setProperty(&quot;jogamp.primary.library.path&quot;, &quot;C:\\Mesa3D\x64&quot;);</code></pre>
+<p>In this case, the <code>PATH</code> can be left untouched.</p>
+<p>See <code>AWT's OpenGL Usage</code> remarks above.</p>
+<h2 id="per-application-deployment">Per Application Deployment</h2>
+<p>Same as <code>Zero Deployment</code>, but <code>PATH</code> setting
+can be skipped.</p>
 </body>
 </html>
