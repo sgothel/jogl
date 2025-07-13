@@ -5,7 +5,7 @@ if [ -z "$1" -o -z "$2" -o -z "$3" ] ; then
     exit 0
 fi
 
-#set -x 
+#set -x
 
 ulimit -c unlimited
 
@@ -68,11 +68,11 @@ fi
 #export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
 #export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu/dri
 
-#export LIBGL_DEBUG=verbose 
-#export MESA_DEBUG=true 
+#export LIBGL_DEBUG=verbose
+#export MESA_DEBUG=true
 #export LIBGL_ALWAYS_SOFTWARE=true
 #export INTEL_DEBUG="buf bat"
-#export INTEL_STRICT_CONFORMANCE=1 
+#export INTEL_STRICT_CONFORMANCE=1
 
 # export ALSOFT_LOGLEVEL=[0..4]
 # export ALSOFT_LOGLEVEL=3
@@ -127,10 +127,10 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.quirks.force=NoSurfacelessCtx"
-    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles" 
+    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles"
     #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
-    #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer" 
+    #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Djogl.debug.Bug1398"
@@ -413,7 +413,7 @@ function jrun() {
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JOGL_BUILDDIR/jar/jogl-demos.jar:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
-    # StartFlightRecording: delay=10s, 
+    # StartFlightRecording: delay=10s,
     # FlightRecorderOptions: stackdepth=2048
     # Enable remote connection to jmc: jcmd <PID> ManagementAgent.start jmxremote.authenticate=false jmxremote.ssl=false jmxremote.port=7091
     # X_ARGS="-XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints $X_ARGS"
@@ -501,7 +501,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #
 
 #
@@ -852,7 +852,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 
 #
-# awtswt (testawtswt) 
+# awtswt (testawtswt)
 #
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
@@ -905,8 +905,8 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
 
 #
-# Bug 1249 - NEWT X11: 
-#   - setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN; 
+# Bug 1249 - NEWT X11:
+#   - setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN;
 #   - setVisible(true) not restoring from _NET_WM_STATE_HIDDEN
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
@@ -1047,6 +1047,8 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+
+testnoawt com.jogamp.opengl.demos.gl4es31.ComputeShader01GL4ES31 $*
 
 #
 # Basic (Demos)

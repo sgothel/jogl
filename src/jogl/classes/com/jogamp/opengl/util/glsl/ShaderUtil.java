@@ -225,6 +225,14 @@ public final class ShaderUtil {
              ctx.isExtensionAvailable(GLExtensions.ARB_geometry_shader4);
     }
 
+    /** Returns true if ComputeShader is supported, i.e. whether GLContext is >= 4.3 or ES >= 3.1 or ARB_compute_shader extension is available. */
+    public static boolean isComputeShaderSupported(final GL _gl) {
+      final GLContext ctx = _gl.getContext();
+      return ctx.isGLES31Compatible() ||
+             ctx.getGLVersionNumber().compareTo(GLContext.Version4_3) >= 0 ||
+             ctx.isExtensionAvailable(GLExtensions.ARB_compute_shader);
+    }
+
     public static void shaderSource(final GL _gl, final int shader, final CharSequence[] source)
     {
         final GL2ES2 gl = _gl.getGL2ES2();

@@ -81,6 +81,7 @@ public class GLExtensions {
   public static final String ARB_gpu_shader_fp64             = "GL_ARB_gpu_shader_fp64";
   public static final String ARB_shader_objects              = "GL_ARB_shader_objects";
   public static final String ARB_geometry_shader4            = "GL_ARB_geometry_shader4";
+  public static final String ARB_compute_shader              = "GL_ARB_compute_shader";
 
   //
   // Aliased GLX/WGL/.. extensions
