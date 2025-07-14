@@ -29,14 +29,14 @@
 #include <stdio.h> //required by android to identify NULL
 #include <jni.h>
 
-#if defined (JNI_VERSION_1_8)
+#if defined (JNI_VERSION_1_6)
 
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_awt(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_x11(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_win32(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_macosx(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_ios(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_drm(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_awt(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_x11(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_win32(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_macosx(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_ios(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_drm(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
 
 JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_awt(JavaVM *vm, void *reserved) { }
 JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_x11(JavaVM *vm, void *reserved) { }
@@ -45,5 +45,7 @@ JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_macosx(JavaVM *vm, void *reserv
 JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_ios(JavaVM *vm, void *reserved) { }
 JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_drm(JavaVM *vm, void *reserved) { }
 
-#endif /* defined (JNI_VERSION_1_8) */
+#else
+    #error build toolchain doesn't supply JNI_VERSION_1_6
+#endif /* defined (JNI_VERSION_1_6) */
 

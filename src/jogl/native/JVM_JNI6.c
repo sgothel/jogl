@@ -29,15 +29,17 @@
 #include <stdio.h> //required by android to identify NULL
 #include <jni.h>
 
-#if defined (JNI_VERSION_1_8)
+#if defined (JNI_VERSION_1_6)
 
-JNIEXPORT jint JNICALL JNI_OnLoad_jogl_mobile(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_jogl_desktop(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_jogl_cg(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
+JNIEXPORT jint JNICALL JNI_OnLoad_jogl_mobile(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_jogl_desktop(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
+JNIEXPORT jint JNICALL JNI_OnLoad_jogl_cg(JavaVM *vm, void *reserved) { return JNI_VERSION_1_6; }
 
 JNIEXPORT void JNICALL JNI_OnUnload_jogl_mobile(JavaVM *vm, void *reserved) { }
 JNIEXPORT void JNICALL JNI_OnUnload_jogl_desktop(JavaVM *vm, void *reserved) { }
 JNIEXPORT void JNICALL JNI_OnUnload_jogl_cg(JavaVM *vm, void *reserved) { }
 
-#endif /* defined (JNI_VERSION_1_8) */
+#else
+    #error build toolchain doesn't supply JNI_VERSION_1_6
+#endif /* defined (JNI_VERSION_1_6) */
 
