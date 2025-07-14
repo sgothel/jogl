@@ -926,7 +926,7 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.newt.head">
-          <include name="${rootrel.src.c}/JVM_JNI8.c" />
+          <include name="${rootrel.src.c}/JVM_JNI6.c" />
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <!-- include name="${rootrel.src.c}/timespec.c"   /--> <!-- currently used for X11 and OSX with special PERF DEBUG MODE-->
           <include name="${rootrel.src.c}/WindowsWindow.c"    if="isWindows"/>
@@ -950,7 +950,7 @@
         </patternset>
 
         <patternset id="c.src.files.newt.drmgbm">
-          <include name="${rootrel.src.c}/JVM_JNI8.c" />
+          <include name="${rootrel.src.c}/JVM_JNI6.c" />
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <include name="${rootrel.src.c}/drm_gbm.c"          if="setup.addNativeDRMGBM"/>
           <include name="${rootrel.src.c}/drm_gbm_legacy.c"   if="setup.addNativeDRMGBM"/>

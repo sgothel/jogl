@@ -1644,7 +1644,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/EGLContext.c"/>
@@ -1673,7 +1673,7 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.mobile">
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/EGLContext.c"/>

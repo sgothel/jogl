@@ -868,7 +868,7 @@
           <include name="${rootrel.generated.c}/drm/drm*.c"/>
           <include name="${rootrel.src.c}/drm/DRMmisc.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
         </patternset>
 
         <patternset id="c.src.files.x11">
@@ -876,7 +876,7 @@
           <include name="${rootrel.src.c}/x11/Xmisc.c"/>
           <include name="${rootrel.src.c}/x11/XineramaHelper.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
         </patternset>
 
         <patternset id="c.src.files.windows">
@@ -886,20 +886,20 @@
           <include name="${rootrel.src.c}/win32/WindowsDWM.c"/>
           <include name="${rootrel.src.c}/win32/WindowsSHC.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
         </patternset>
 
         <patternset id="c.src.files.macosx">
           <include name="${rootrel.src.c}/macosx/OSXmisc.m"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
         </patternset>
 
         <patternset id="c.src.files.ios">
           <include name="${rootrel.src.c}/ios/CAEAGLLayered.m"/>
           <include name="${rootrel.src.c}/ios/IOSmisc.m"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
-          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI6.c"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
