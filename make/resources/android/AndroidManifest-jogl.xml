@@ -22,6 +22,7 @@
                   android:configChanges="keyboardHidden|orientation"
                   android:label="@string/activity_version_name"
                   android:description="@string/activity_version_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

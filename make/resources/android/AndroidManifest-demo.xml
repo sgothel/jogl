@@ -23,6 +23,7 @@
                   android:label="@string/activity_gearses2_name"
                   android:description="@string/activity_gearses2_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,7 @@
                   android:label="@string/activity_gearses2rgb565_name"
                   android:description="@string/activity_gearses2rgb565_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,6 +45,7 @@
                   android:label="@string/activity_gearses2ect_name"
                   android:description="@string/activity_gearses2ect_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -54,6 +57,7 @@
                   android:label="@string/activity_redsquarees2_name"
                   android:description="@string/activity_redsquarees2_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -65,6 +69,7 @@
                   android:label="@string/activity_gearses2t_name"
                   android:description="@string/activity_gearses2t_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -75,6 +80,7 @@
                   android:label="@string/activity_graphui1p_name"
                   android:description="@string/activity_graphui1p_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -85,6 +91,7 @@
                   android:label="@string/activity_graphui2p_name"
                   android:description="@string/activity_graphui2p_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -95,6 +102,7 @@
                   android:label="@string/activity_moviesimple0b_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -105,6 +113,7 @@
                   android:label="@string/activity_moviesimple0c_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -115,6 +124,7 @@
                   android:label="@string/activity_moviesimple1a_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -125,6 +135,7 @@
                   android:label="@string/activity_moviesimple1b_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -135,6 +146,7 @@
                   android:label="@string/activity_moviesimple2_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -145,6 +157,7 @@
                   android:label="@string/activity_moviecube0a_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -155,6 +168,7 @@
                   android:label="@string/activity_moviecube0b_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -165,6 +179,7 @@
                   android:label="@string/activity_moviecube1a_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -175,6 +190,7 @@
                   android:label="@string/activity_moviecube1b_name"
                   android:description="@string/activity_moviecube_descr"
                   android:theme="@android:style/Theme.NoDisplay"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
