@@ -743,7 +743,7 @@ public abstract class NativeWindowFactory {
                 try {
                     // EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, unitID);
                     odev = ReflectionUtil.callStaticMethod("jogamp.opengl.egl.EGLDisplayUtil", "eglCreateEGLGraphicsDevice",
-                            new Class<?>[] { Long.class, String.class, Integer.class},
+                            new Class<?>[] { long.class, String.class, int.class},
                             new Object[] { 0L /* EGL.EGL_DEFAULT_DISPLAY */, DefaultGraphicsDevice.getDefaultDisplayConnection(nwt), unitID },
                             NativeWindowFactory.class.getClassLoader());
                 } catch (final Exception e) {
