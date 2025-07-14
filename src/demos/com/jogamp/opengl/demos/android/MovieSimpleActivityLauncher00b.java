@@ -35,9 +35,9 @@ import com.jogamp.opengl.demos.android.LauncherUtil.OrderedProperties;
 
 public class MovieSimpleActivityLauncher00b extends LauncherUtil.BaseActivityLauncher {
 
-    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity0";
+    static String demo = "com.jogamp.opengl.demos.android.MovieSimpleActivity0";
     static String[] sys_pkgs = new String[] { "com.jogamp.common", "com.jogamp.opengl" };
-    static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
+    static String[] usr_pkgs = new String[] { "com.jogamp.opengl.demos" };
 
     @Override
     public void init() {

@@ -7,9 +7,9 @@ import com.jogamp.opengl.demos.android.LauncherUtil.BaseActivityLauncher;
 import com.jogamp.opengl.demos.android.LauncherUtil.OrderedProperties;
 
 public class NEWTGraphUI1pActivityLauncher extends LauncherUtil.BaseActivityLauncher {
-    static String demo = "com.jogamp.opengl.test.android.NEWTGraphUI1pActivity";
+    static String demo = "com.jogamp.opengl.demos.android.NEWTGraphUI1pActivity";
     static String[] sys_pkgs = new String[] { "com.jogamp.common", "com.jogamp.opengl" };
-    static String[] usr_pkgs = new String[] { "com.jogamp.opengl.test" };
+    static String[] usr_pkgs = new String[] { "com.jogamp.opengl.demos" };
 
     @Override
     public void init() {
