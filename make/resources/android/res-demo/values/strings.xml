@@ -17,10 +17,10 @@
     <string name="activity_gearses2ect_descr">GearsECT</string>
     <string name="activity_gearses2t_name">GearsES2T</string>
     <string name="activity_gearses2t_descr">GearsES2T</string>
-    <string name="activity_graphui1p_name">GraphUI1p</string>
-    <string name="activity_graphui1p_descr">GraphUI 1-pass</string>
-    <string name="activity_graphui2p_name">GraphUI2p</string>
-    <string name="activity_graphui2p_descr">GraphUI 2-pass</string>
+    <string name="activity_graphuiscenedemo20_1p_name">GraphUIScene20 1p</string>
+    <string name="activity_graphuiscenedemo20_1p_descr">GraphUIScene20 1-pass</string>
+    <string name="activity_graphuiscenedemo20_2p_name">GraphUIScene20 2p</string>
+    <string name="activity_graphuiscenedemo20_2p_descr">GraphUIScene20 2-pass</string>
     <string name="activity_elektro_name">Elektro</string>
     <string name="activity_elektro_descr">Elektro</string>
     <string name="activity_moviesimple0b_name">MovieSimple0b</string>

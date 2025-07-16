@@ -41,8 +41,8 @@ import com.jogamp.opengl.util.Animator;
 import android.os.Bundle;
 import android.util.Log;
 
-public class NEWTGraphUI1pActivity extends NewtBaseActivity {
-   static String TAG = "NEWTGraphUIActivity";
+public class NEWTGraphUISceneDemo20Activity1p extends NewtBaseActivity {
+   static String TAG = "NEWTGraphUISceneDemo20Activity1p";
 
    @Override
    public void onCreate(final Bundle savedInstanceState) {

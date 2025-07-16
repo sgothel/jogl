@@ -76,9 +76,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.demos.android.NEWTGraphUI1pActivityLauncher"
-                  android:label="@string/activity_graphui1p_name"
-                  android:description="@string/activity_graphui1p_descr"
+        <activity android:name="com.jogamp.opengl.demos.android.NEWTGraphUISceneDemo20Activity1pLauncher"
+                  android:label="@string/activity_graphuiscenedemo20_1p_name"
+                  android:description="@string/activity_graphuiscenedemo20_1p_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   android:exported="true"
                   >
@@ -87,9 +87,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.demos.android.NEWTGraphUI2pActivityLauncher"
-                  android:label="@string/activity_graphui2p_name"
-                  android:description="@string/activity_graphui2p_descr"
+        <activity android:name="com.jogamp.opengl.demos.android.NEWTGraphUISceneDemo20Activity2pLauncher"
+                  android:label="@string/activity_graphuiscenedemo20_2p_name"
+                  android:description="@string/activity_graphuiscenedemo20_2p_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   android:exported="true"
                   >

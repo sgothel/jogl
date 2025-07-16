@@ -31,7 +31,9 @@
         <property name="java.part.demo"       value="com/jogamp/opengl/demos/**"/>
         <property name="java.part.demo.android" value="com/jogamp/opengl/demos/android/**"/>
         <property name="java.part.demo.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*"/>
-        <property name="java.part.demo.android.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*, com/jogamp/opengl/demos/android/NEWTGraphUI1p*, com/jogamp/opengl/demos/android/NEWTGraphUI2p*"/>
+        <property name="java.part.demo.android.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*, com/jogamp/opengl/demos/android/NEWTGraphUISceneDemo20Activity*"/>
+        <property name="java.part.demo.androidfat" value="com/jogamp/opengl/demos/androidfat/**"/>
+        <property name="java.part.demo.androidfat.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*, com/jogamp/opengl/demos/androidfat/NEWTGraphUISceneDemo20Activity*"/>
 
         <property name="java.part.test.all"   value="com/jogamp/opengl/test/** jogamp/**"/>
         <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
@@ -97,7 +99,7 @@
 
     <target name="make.demos.firstpass">
         <javac destdir="${classes.demos}"
-               excludes="${java.part.demo.android} ${java.part.demo.oculusvr} ${java.part.demo.openal}"
+               excludes="${java.part.demo.android} ${java.part.demo.androidfat} ${java.part.demo.oculusvr} ${java.part.demo.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -146,7 +148,7 @@
         </copy>
         <jar manifest="${build.test}/manifest-demo.mf" destfile="${jogl-demos.jar}" filesonly="true">
             <fileset dir="${classes.demos}"
-                     excludes="${java.part.demo.android}"
+                     excludes="${java.part.demo.android} ${java.part.demo.androidfat}"
                      includes="**"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
@@ -154,7 +156,7 @@
 
     <target name="demos.cc.android.firstpass" if="android-jars.available">
         <javac destdir="${classes.demos}"
-               excludes="${java.part.demo.oculusvr} ${java.part.demo.android.openal}"
+               excludes="${java.part.demo.oculusvr} ${java.part.demo.android.openal} ${java.part.demo.androidfat.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -169,7 +171,7 @@
     </target>
     <target name="demos.cc.android.secondpass.openal" if="android-joal-jars.available">
         <javac destdir="${classes.demos}"
-               includes="${java.part.demo.android.openal}"
+               includes="${java.part.demo.android.openal} ${java.part.demo.androidfat.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"

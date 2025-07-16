@@ -6,9 +6,9 @@ import java.util.List;
 import com.jogamp.opengl.demos.android.LauncherUtil.BaseActivityLauncher;
 import com.jogamp.opengl.demos.android.LauncherUtil.OrderedProperties;
 
-public class NEWTGraphUI1pActivityLauncher extends LauncherUtil.BaseActivityLauncher {
-    static String demo = "com.jogamp.opengl.demos.android.NEWTGraphUI1pActivity";
-    static String[] sys_pkgs = new String[] { "com.jogamp.common", "com.jogamp.opengl" };
+public class NEWTGraphUISceneDemo20Activity2pLauncher extends LauncherUtil.BaseActivityLauncher {
+    static String demo = "com.jogamp.opengl.demos.android.NEWTGraphUISceneDemo20Activity2p";
+    static String[] sys_pkgs = new String[] { "com.jogamp.common", "com.jogamp.openal", "com.jogamp.opengl" };
     static String[] usr_pkgs = new String[] { "com.jogamp.opengl.demos" };
 
     @Override
@@ -16,23 +16,23 @@ public class NEWTGraphUI1pActivityLauncher extends LauncherUtil.BaseActivityLaun
        final OrderedProperties props = getProperties();
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
-       // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       // props.setProperty("jogamp.debug.IOUtil", "true");
-       // props.setProperty("nativewindow.debug", "all");
+       // properties.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
+       // properties.setProperty("jogamp.debug.IOUtil", "true");
+       // properties.setProperty("nativewindow.debug", "all");
        props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
-       // props.setProperty("jogl.debug", "all");
-       // props.setProperty("jogl.debug.GLProfile", "true");
+       // properties.setProperty("jogl.debug", "all");
+       // properties.setProperty("jogl.debug.GLProfile", "true");
        props.setProperty("jogl.debug.GLDrawable", "true");
        props.setProperty("jogl.debug.GLContext", "true");
        props.setProperty("jogl.debug.GLSLCode", "true");
        props.setProperty("jogl.debug.CapabilitiesChooser", "true");
-       // props.setProperty("jogl.debug.GLSLState", "true");
-       // props.setProperty("jogl.debug.DebugGL", "true");
-       // props.setProperty("jogl.debug.TraceGL", "true");
-       // props.setProperty("newt.debug", "all");
+       // properties.setProperty("jogl.debug.GLSLState", "true");
+       // properties.setProperty("jogl.debug.DebugGL", "true");
+       // properties.setProperty("jogl.debug.TraceGL", "true");
+       // properties.setProperty("newt.debug", "all");
        props.setProperty("newt.debug.Window", "true");
-       // props.setProperty("newt.debug.Window.MouseEvent", "true");
-       // props.setProperty("newt.debug.Window.KeyEvent", "true");
+       // properties.setProperty("newt.debug.Window.MouseEvent", "true");
+       // properties.setProperty("newt.debug.Window.KeyEvent", "true");
     }
 
     @Override
