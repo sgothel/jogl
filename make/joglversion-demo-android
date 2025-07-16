@@ -1,15 +1,15 @@
 Manifest-Version: 1.0
-Application-Name: Java Bindings for OpenGL Test
-Specification-Title: Test Java Bindings for OpenGL API Specification
+Application-Name: Java Bindings for OpenGL Demo
+Specification-Title: Demo Java Bindings for OpenGL API Specification
 Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community
-Implementation-Title: Test JOGL Android Runtime Environment
+Implementation-Title: Demo JOGL Android Runtime Environment
 Implementation-Version: @VERSION@
 Implementation-Build: @BUILD_VERSION@
 Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
 Implementation-URL: http://jogamp.org/
-Extension-Name: com.jogamp.opengl.test
+Extension-Name: com.jogamp.opengl.demos.android
 Implementation-Vendor-Id: com.jogamp
 
