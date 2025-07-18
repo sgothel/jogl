@@ -3,6 +3,8 @@
     <string name="hello">Jogl Tests</string>
     <string name="app_name">Jogl Tests</string>
     <string name="app_descr">Launches Jogl Tests.</string>
+    <string name="activity_version_name">Jogl\'s Version</string>
+    <string name="activity_version_descr">Shows the version of the JOGL Library and runtime GL infos.</string>
     <string name="activity_redsquarees1_name">RedSqrES1</string>
     <string name="activity_redsquarees1_descr">RedSquareES1</string>
     <string name="activity_redsquarees2_name">RedSqrES2</string>

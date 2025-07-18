@@ -184,9 +184,21 @@
             <src path="${src.demos}" />
         </javac>
     </target>
-    <target name="demos.cc.android" depends="demos.cc.android.firstpass, demos.cc.android.secondpass.openal" if="android-jars.available">
+    <target name="demos.jar.android" depends="demos.cc.android.firstpass, demos.cc.android.secondpass.openal" if="android-jars.available">
         <copy file="joglversion-demo-android"
             tofile="${build.test}/manifest-demo-android.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+            </filterset>
+        </copy>
+
+        <copy file="joglversion-demo-fat-android"
+            tofile="${build.test}/manifest-demo-fat-android.mf"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogamp.version}"/>
@@ -206,12 +218,12 @@
         </jar>
     </target>
 
-    <target name="demo.package.android" depends="demos.cc.android" if="isAndroid">
+    <target name="demo.package.android" depends="demos.jar.android" if="isAndroid">
         <aapt.signed
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/demos"
             jarbuilddir="${jar}"
-            jarbasename="jogl-demos-android"
+            jarbasename="${jogl-demos-android.base}"
             nativebuilddir="${lib}"
             nativebasename="non-existing"
             androidmanifest.path="resources/android/AndroidManifest-demo.xml"
@@ -223,15 +235,32 @@
               <arg line="--classpath ${gluegen-rt-android.jar}"/>
               <arg line="--classpath ${joal.jar}"/>
               <arg line="--classpath ${jogl-all-android.jar}"/>
-              <arg line="--classpath ${gluegen-test-util.jar}"/>
-              <arg line="--classpath ${junit.jar}"/>
-              <arg line="--classpath ${ant.jar}"/>
-              <arg line="--classpath ${ant-junit.jar}"/>
-              <arg line="--classpath ${ant-junit4.jar}"/>
-              <arg line="--classpath ${japicmp.jar}"/>
-              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
-              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
           </d8-classpaths>
+        </aapt.signed>
+    </target>
+
+    <target name="demo.package.androidfat" if="isAndroid">
+        <!-- prepared via build.xml's `one.fat.jar.android` -->
+        <jar manifest="${build}/manifest-fat.mf" destfile="${jogl-demos-fat-android.jar}" filesonly="false" excludes="META-INF/*">
+            <fileset dir="${fat}/android/classes"/>
+            <fileset dir="${classes.demos}"/>
+            <fileset dir="resources/assets-test" includes="**" />
+        </jar>
+
+        <aapt.signed
+            assetsdir="resources/assets-test"
+            jarsrcdir="${src}/demos"
+            jarbuilddir="${jar}"
+            jarbasename="${jogl-demos-fat-android.base}"
+            nativebuilddir="${fat}/android/lib/natives/${os.and.arch}"
+            nativebasename=""
+            android.abi="${android.abi}"
+            androidmanifest.path="resources/android/AndroidManifest-demofat.xml"
+            androidresources.path="resources/android/res-demo"
+            jarmanifest.path="${build.test}/manifest-demo-fat-android.mf"
+            version.code="${jogamp.version.int}"
+            version.name="${jogamp.version}">
+          <d8-classpaths/>
         </aapt.signed>
     </target>
 
@@ -319,6 +348,7 @@
         </copy>
         <antcall target="make.demos" inheritRefs="true" inheritAll="true"/>
         <antcall target="demo.package.android" inheritRefs="true" inheritAll="true"/>
+        <antcall target="demo.package.androidfat" inheritRefs="true" inheritAll="true"/>
         <antcall target="test.compile.javase" inheritRefs="true" inheritAll="true"/>
     </target>
 

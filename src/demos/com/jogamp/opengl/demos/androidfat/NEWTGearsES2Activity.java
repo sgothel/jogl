@@ -1,0 +1,167 @@
+/**
+ * Copyright 2011 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+package com.jogamp.opengl.demos.androidfat;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.demos.androidfat.OrderedProperties;
+import com.jogamp.opengl.demos.es2.GearsES2;
+
+import jogamp.newt.driver.android.NewtBaseActivity;
+
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MonitorModeListener;
+import com.jogamp.newt.opengl.GLWindow;
+
+import com.jogamp.opengl.util.Animator;
+
+import android.os.Bundle;
+import android.util.Log;
+
+public class NEWTGearsES2Activity extends NewtBaseActivity {
+   static String TAG = "NEWTGearsES2Activity";
+
+   static final String forceRGBA5650 = "demo.force.rgba5650";
+   static final String forceECT = "demo.force.ect";
+   static final String forceKillProcessTest = "demo.force.killProcessTest";
+
+   public void initProperties() {
+       final OrderedProperties props = new OrderedProperties();
+       // props.setProperty("jogamp.debug.JNILibLoader", "true");
+       // props.setProperty("jogamp.debug.NativeLibrary", "true");
+       // props.setProperty("jogamp.debug.IOUtil", "true");
+       // properties.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
+       // props.setProperty("nativewindow.debug", "all");
+       // props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
+       // props.setProperty("jogl.debug", "all");
+       // properties.setProperty("jogl.debug.GLProfile", "true");
+       // props.setProperty("jogl.debug.EGLDisplayUtil", "true");
+       // props.setProperty("jogl.debug.GLDrawable", "true");
+       // props.setProperty("jogl.debug.GLContext", "true");
+       props.setProperty("jogl.debug.GLSLCode", "true");
+       // props.setProperty("jogl.debug.CapabilitiesChooser", "true");
+       // props.setProperty("jogl.debug.GLSLState", "true");
+       // props.setProperty("jogl.debug.DebugGL", "true");
+       // props.setProperty("jogl.debug.TraceGL", "true");
+       // props.setProperty("newt.debug", "all");
+       // props.setProperty("newt.debug.Screen", "true");
+       // props.setProperty("newt.debug.Window", "true");
+       // props.setProperty("newt.debug.Window.MouseEvent", "true");
+       // props.setProperty("newt.debug.Window.KeyEvent", "true");
+       // props.setProperty("newt.debug.Android.MouseEvent", "true");
+
+       // props.setProperty("demo.force.killProcessTest", "true");
+       props.setSystemProperties();
+   }
+
+   @Override
+   public void onCreate(final Bundle savedInstanceState) {
+       Log.d(TAG, "onCreate - 0");
+
+       initProperties();
+
+       super.onCreate(savedInstanceState);
+
+       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
+       final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
+       if( null != System.getProperty(forceRGBA5650) ) {
+           Log.d(TAG, "forceRGBA5650");
+           caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5);
+       }
+
+       Log.d(TAG, "req caps: "+caps);
+       final GLWindow glWindow = GLWindow.create(caps);
+       glWindow.setFullscreen(true);
+       setContentView(getWindow(), glWindow);
+
+       final GearsES2 demo = new GearsES2(-1);
+       // demo.enableAndroidTrace(true);
+       glWindow.addGLEventListener(demo);
+       glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
+           @Override
+           public void monitorModeChangeNotify(final MonitorEvent me) { }
+           @Override
+           public void monitorModeChanged(final MonitorEvent me, final boolean success) {
+               System.err.println("MonitorMode Changed (success "+success+"): "+me);
+           }
+       });
+       if( null != System.getProperty(forceKillProcessTest) ) {
+           Log.d(TAG, "forceKillProcessTest");
+           glWindow.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(final MouseEvent e) {
+                if( e.getPointerCount() == 3 ) {
+                    Log.d(TAG, "MemoryHog");
+                    new InterruptSource.Thread(null, new Runnable() {
+                        @Override
+                        public void run() {
+                            final ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+                            while(true) {
+                                final int halfMB = 512 * 1024;
+                                final float osizeMB = buffers.size() * 0.5f;
+                                final float nsizeMB = osizeMB + 0.5f;
+                                System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Try");
+                                buffers.add(ByteBuffer.allocateDirect(halfMB)); // 0.5 MB each
+                                System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Done");
+                                try {
+                                    Thread.sleep(500);
+                                } catch (final Exception e) { e.printStackTrace(); };
+                            }
+                        } }, "MemoryHog").start();
+                } else if( e.getPointerCount() == 4 ) {
+                    Log.d(TAG, "ForceKill");
+                    android.os.Process.killProcess( android.os.Process.myPid() );
+                }
+            }
+           });
+       }
+       final Animator animator = new Animator(glWindow);
+       // animator.setRunAsFastAsPossible(true);
+       // glWindow.setSkipContextReleaseThread(animator.getThread());
+
+       if( null != System.getProperty(forceECT) ) {
+           Log.d(TAG, "forceECT");
+           animator.setExclusiveContext(true);
+       }
+
+       glWindow.setVisible(true);
+
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
+
+       Log.d(TAG, "onCreate - X");
+   }
+}

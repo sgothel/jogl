@@ -287,6 +287,7 @@
         <property name="build.test"                 value="${build}/test/build" />
         <property name="obj.test"                   value="${build.test}/obj"/>
         <property name="build.demos"                value="${build}/demos/build" />
+        <property name="build.demos.fat"            value="${build}/demos/fat/build" />
 
         <condition property="obj.custom" value="${custom.libdir}${path.separator}" else="">
           <isset property="custom.libdir"/>
@@ -514,8 +515,12 @@
         <property name="gluegen-test-util.jar"          value="${build.gluegen}/gluegen-test-util.jar" />
         <property name="jogl-test.jar"                  value="${jar}/jogl-test.jar"/>
         <property name="jogl-demos.jar"                 value="${jar}/jogl-demos.jar"/>
+        <property name="jogl-demos-android.base"        value="jogl-demos-android"/>
         <property name="jogl-demos-android.jar"         value="${jar}/jogl-demos-android.jar"/>
         <property name="jogl-demos-android.apk"         value="${jar}/jogl-demos-android.apk"/>
+        <property name="jogl-demos-fat-android.base"    value="jogl-demos-fat-android"/>
+        <property name="jogl-demos-fat-android.jar"     value="${jar}/jogl-demos-fat-android.jar"/>
+        <property name="jogl-demos-fat-android.apk"     value="${jar}/jogl-demos-fat-android.apk"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl-all.jar"                   value="${jar}/jogl-all.jar" />

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Application-Name: Java Bindings for OpenGL Demo
+Specification-Title: Demo Java Bindings for OpenGL API Specification (fat)
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: Demo JOGL Android Runtime Environment (fat)
+Implementation-Version: @VERSION@
+Implementation-Build: @BUILD_VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
+Extension-Name: com.jogamp.opengl.demos.androidfat
+Implementation-Vendor-Id: com.jogamp
+

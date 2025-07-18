@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme" parent="android:Theme">
+    </style>
+
+    <style name="Theme.Translucent" parent="android:style/Theme.Translucent">
+        <item name="android:windowBackground">@drawable/translucent_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorForeground">#fff</item>
+    </style>
+
+    <style name="Theme.Transparent">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+        <item name="android:windowBackground">@drawable/transparent_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:colorForeground">#fff</item>
+    </style>
+
+</resources>

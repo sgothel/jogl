@@ -68,8 +68,8 @@ fi
 #export LD_LIBRARY_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
 #export LIBGL_DRIVERS_PATH=`pwd`/../../EXTERNAL/mesa_900/x86_64-linux-gnu/dri
 
-#export LIBGL_DEBUG=verbose
-#export MESA_DEBUG=true
+export LIBGL_DEBUG=verbose
+export MESA_DEBUG=true
 #export LIBGL_ALWAYS_SOFTWARE=true
 #export INTEL_DEBUG="buf bat"
 #export INTEL_STRICT_CONFORMANCE=1
@@ -1015,7 +1015,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo02a $*
@@ -1048,7 +1048,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
-testnoawt com.jogamp.opengl.demos.gl4es31.ComputeShader01GL4ES31 $*
+#testnoawt com.jogamp.opengl.demos.gl4es31.ComputeShader01GL4ES31 $*
 
 #
 # Basic (Demos)
