@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Application-Name: Jogamp Java Bindings for OpenAL and OpenGL
+Specification-Title: JogAmp Java Bindings for OpenAL and OpenGL API Specification
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: JogAmp Java Bindings for OpenAL and OpenGL Fat Jar
+Implementation-Version: @VERSION@
+Implementation-Build: @BUILD_VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
+Extension-Name: com.jogamp.opengl
+Implementation-Vendor-Id: com.jogamp
+Main-Class: com.jogamp.newt.opengl.GLWindow
+Trusted-Library: true
+Permissions: all-permissions
+Application-Library-Allowable-Codebase: *
+Add-Opens: java.desktop/sun.awt java.desktop/sun.awt.windows java.desktop/sun.java2d
+@JAR_CODEBASE_TAG@
+
+Name: com/jogamp/common/
+Sealed: true
+
+Name: jogamp/common/
+Sealed: true
+

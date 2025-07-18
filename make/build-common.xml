@@ -64,6 +64,7 @@
         <property name="lib"                        value="${build}/lib" />
         <property name="jar"                        value="${build}/jar" />
         <property name="jar-atomic"                 value="${build}/jar/atomic" />
+        <property name="fat"                        value="${build}/fat" />
 
         <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes;${src}/graphui/classes" />
         <!-- No generated classes for Newt at the present time -->
@@ -508,6 +509,7 @@
 
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
+        <property name="gluegen-rt-natives.jar"         value="${build.gluegen}/gluegen-rt-natives-${os.and.arch}.jar" />
         <property name="gluegen-rt-android.jar"         value="${build.gluegen}/gluegen-rt-android.jar" />
         <property name="gluegen-test-util.jar"          value="${build.gluegen}/gluegen-test-util.jar" />
         <property name="jogl-test.jar"                  value="${jar}/jogl-test.jar"/>
@@ -517,6 +519,8 @@
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl-all.jar"                   value="${jar}/jogl-all.jar" />
+        <property name="jogl-all-natives.jar"           value="${jar}/jogl-all-natives-${os.and.arch}.jar" />
+        <property name="jogl-fat.jar"                   value="${jar}/jogl-fat-${os.and.arch}.jar" />
 
         <!-- JavaSE combinations . NO.AWT -->
         <property name="jogl-all-noawt.jar"             value="${jar}/jogl-all-noawt.jar" />
@@ -526,11 +530,14 @@
 
         <!-- JavaSE combinations . JOAL (optional) -->
         <property name="joal.jar"                       value="${build.joal}/jar/joal.jar" />
+        <property name="joal-android.jar"               value="${build.joal}/jar/joal-android.jar" />
+        <property name="joal-natives.jar"               value="${build.joal}/jar/joal-natives-${os.and.arch}.jar" />
         <condition property="joal-jars.available">
             <available file="${joal.jar}"/>
         </condition>
         <condition property="android-joal-jars.available">
             <and>
+                <available file="${joal-android.jar}"/>
                 <istrue value="${joal-jars.available}" />
                 <istrue value="${android-jars.available}" />
             </and>
@@ -743,7 +750,6 @@
             <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${jogl-all.jar}" />
             <pathelement location="${oculusvr.jar}" />
-            <pathelement location="${graphui.jar}" />
             <pathelement location="${jogl-test.jar}" />
         </path>
         <property name="junit_jogl_awt.run.jars"

@@ -144,6 +144,18 @@
                 <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
             </filterset>
         </copy>
+        <copy file="joglversion-fat"
+            tofile="${build}/manifest-fat.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
     </target>
 
     <target name="one.jar.dir.android" depends="one.jar.dir.prep" if="android-jars.available" unless="one.dir.skip">
@@ -154,6 +166,7 @@
                     <path refid="jogl_all-android_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
                     <path refid="graphui_atoms.classpath"/>
+                    <fileset file="${jar}/jogl-fonts-p0.jar"/>
                 </zips>
             </archives>
         </jar>
@@ -170,6 +183,45 @@
                     <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
+        </jar>
+    </target>
+    <target name="one.fat.jar" if="joal-jars.available" unless="isAndroid">
+        <delete includeEmptyDirs="true" quiet="true" dir="${fat}/j2se" failonerror="false" />
+        <mkdir dir="${fat}/j2se/classes" />
+        <mkdir dir="${fat}/j2se/lib" />
+        <unzip dest="${fat}/j2se/classes">
+            <fileset file="${gluegen-rt.jar}" />
+            <fileset file="${joal.jar}" />
+            <fileset file="${jogl-all.jar}" />
+        </unzip>
+        <unzip dest="${fat}/j2se/lib">
+            <fileset file="${gluegen-rt-natives.jar}" />
+            <fileset file="${joal-natives.jar}" />
+            <fileset file="${jogl-all-natives.jar}" />
+        </unzip>
+        <jar manifest="${build}/manifest-fat.mf" destfile="${jogl-fat.jar}" filesonly="false" excludes="META-INF/*">
+            <fileset dir="${fat}/j2se/classes"/>
+            <fileset dir="${fat}/j2se/lib"/>
+        </jar>
+    </target>
+    <target name="one.fat.jar.android" if="isAndroid">
+        <delete includeEmptyDirs="true" quiet="true" dir="${fat}/android" failonerror="false" />
+        <mkdir dir="${fat}/android/classes" />
+        <mkdir dir="${fat}/android/lib" />
+        <unzip dest="${fat}/android/classes">
+            <fileset file="${gluegen-rt-android.jar}" />
+            <fileset file="${joal-android.jar}" />
+            <fileset file="${jogl-all-android.jar}" />
+            <fileset file="${jar}/jogl-fonts-p0.jar"/>
+        </unzip>
+        <unzip dest="${fat}/android/lib">
+            <fileset file="${gluegen-rt-natives.jar}" />
+            <fileset file="${joal-natives.jar}" />
+            <fileset file="${jogl-all-natives.jar}" />
+        </unzip>
+        <jar manifest="${build}/manifest-fat.mf" destfile="${jogl-fat.jar}" filesonly="false" excludes="META-INF/*">
+            <fileset dir="${fat}/android/classes"/>
+            <fileset dir="${fat}/android/lib"/>
         </jar>
     </target>
     <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
@@ -202,10 +254,14 @@
                         module="opengl"
                         includelibs="*.${native.library.suffix}" 
                         excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
+
+        <antcall target="one.fat.jar" inheritRefs="true" inheritAll="true"/>
+        <antcall target="one.fat.jar.android" inheritRefs="true" inheritAll="true"/>
+
         <!-- Produce duplicates for diff 'all' configuration, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
         <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" />
         <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-mobile-natives-${os.and.arch}.jar" />
-        <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-android-natives-${os.and.arch}.jar" />
+        <!-- copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-android-natives-${os.and.arch}.jar" / -->
     </target>
 
     <target name="android.package.jogl.skip.check" depends="init,gluegen.cpptasks.detect.os">
