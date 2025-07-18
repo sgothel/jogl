@@ -708,50 +708,53 @@ public class UISceneDemo20 implements GLEventListener {
             button.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
             button.addMouseListener(dragZoomRotateListener);
 
-            final ALAudioSink[] alAudioSink = { null };
-
             button.onToggle( (final Shape s) -> {
                 mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
             });
-            mPlayer.addEventListener( new GLMediaEventListener() {
-                @Override
-                public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                    System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
-                    System.err.println("MediaButton State: "+mp);
-                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
-                        final AudioSink audioSink = mp.getAudioSink();
-                        if( audioSink instanceof ALAudioSink ) {
-                            alAudioSink[0] = (ALAudioSink)audioSink;
-                        } else {
+
+            {
+                final ALAudioSink[] alAudioSink = { null };
+
+                mPlayer.addEventListener( new GLMediaEventListener() {
+                    @Override
+                    public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
+                        System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
+                        System.err.println("MediaButton State: "+mp);
+                        if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                            final AudioSink audioSink = mp.getAudioSink();
+                            if( audioSink instanceof ALAudioSink ) {
+                                alAudioSink[0] = (ALAudioSink)audioSink;
+                            } else {
+                                alAudioSink[0] = null;
+                            }
+                        }
+                        if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                             alAudioSink[0] = null;
                         }
                     }
-                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
-                        alAudioSink[0] = null;
-                    }
-                }
 
-            });
-            button.onMove((final Shape shape, final Vec3f origin, final Vec3f dest, final MouseEvent e) -> {
-                final ALAudioSink aSink = alAudioSink[0];
-                if( null != aSink && aSink.getContext().isValid() ) {
-                    setSoundPosition(shape, aSink.getContext(), aSink.getSource());
-                }
-            } );
-            button.onDraw( (final Shape shape, final GL2ES2 gl_, final RegionRenderer renderer_) -> {
-                final ALAudioSink aSink = alAudioSink[0];
-                if( null != aSink && aSink.getContext().isValid() ) {
-                    initSound(shape, aSink.getContext(), aSink.getSource());
-                    System.err.println("Media Audio: "+aSink);
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+                });
+                button.onMove((final Shape shape, final Vec3f origin, final Vec3f dest, final MouseEvent e) -> {
+                    final ALAudioSink aSink = alAudioSink[0];
+                    if( null != aSink && aSink.getContext().isValid() ) {
+                        setSoundPosition(shape, aSink.getContext(), aSink.getSource());
+                    }
+                } );
+                button.onDraw( (final Shape shape, final GL2ES2 gl_, final RegionRenderer renderer_) -> {
+                    final ALAudioSink aSink = alAudioSink[0];
+                    if( null != aSink && aSink.getContext().isValid() ) {
+                        initSound(shape, aSink.getContext(), aSink.getSource());
+                        System.err.println("Media Audio: "+aSink);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+            }
             buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
-        if( true ) {
+        {
             final SimpleSineSynth sineSound = new SimpleSineSynth();
             scene.addDisposeAction((final GLAutoDrawable glad) -> {
                 sineSound.stop();
