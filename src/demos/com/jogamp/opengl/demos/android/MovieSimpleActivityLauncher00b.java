@@ -42,8 +42,8 @@ public class MovieSimpleActivityLauncher00b extends LauncherUtil.BaseActivityLau
     @Override
     public void init() {
        final OrderedProperties props = getProperties();
-       props.setProperty("jnlp.media0_url0", "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
-       props.setProperty("jnlp.media0_url1", "http://video.webmfiles.org/big-buck-bunny_trailer.webm");
+       props.setProperty("jnlp.media0_url0", "https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4");
+       props.setProperty("jnlp.media0_url1", "https://video.webmfiles.org/big-buck-bunny_trailer.webm");
        props.setProperty("jnlp.media0_url2", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");

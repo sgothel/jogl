@@ -186,7 +186,7 @@ public class UISceneDemo20 implements GLEventListener {
         animator.start();
     }
 
-    static private final String defaultMediaURL = "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
+    static private final String defaultMediaURL = "https://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
 
     private boolean debug = false;
     private boolean trace = false;
