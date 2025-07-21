@@ -34,9 +34,12 @@ import java.util.Random;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Clock;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.GraphShape;
@@ -69,6 +72,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
@@ -111,10 +115,12 @@ public class UISceneDemo03 {
     static final String[] originalTexts = {
             " JOGL, Java™ Binding for the OpenGL® API ",
             " GraphUI, Resolution Independent Curves ",
-            " JogAmp, Java™ libraries for 3D & Media "
+            " JogAmp, Java™ libraries for 3D & Media ",
+            " Linux, Android, Windows, MacOS; iOS, embedded, etc on demand"
     };
 
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 0, 4);
     static float frame_velocity = 5f / 1e3f; // [m]/[s]
     static float velocity = 30 / 1e3f; // [m]/[s]
     static float ang_velo = velocity * 60f; // [radians]/[s]
@@ -183,6 +189,7 @@ public class UISceneDemo03 {
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        scene.getRenderer().setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
         final AnimGroup animGroup = new AnimGroup(null);
         scene.addShape(animGroup);
@@ -201,6 +208,8 @@ public class UISceneDemo03 {
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo03.class.getSimpleName() + ": " + window.getSurfaceWidth() + " x " + window.getSurfaceHeight());
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
+
         window.addGLEventListener(scene);
         scene.attachInputListenerTo(window);
 
@@ -210,6 +219,12 @@ public class UISceneDemo03 {
             pixPerMM = tmp[1]; // [px]/[mm]
             MonitorDevice.mmToInch( tmp );
             dpiV = tmp[1];
+        }
+        {
+            final int o = options.fixDefaultAARenderModeWithDPIThreshold(dpiV);
+            System.err.println("AUTO RenderMode: dpi "+dpiV+", threshold "+options.noAADPIThreshold+
+                               ", mode "+Region.getRenderModeString(o)+" -> "+
+                               Region.getRenderModeString(options.renderModes));
         }
 
         animator.add(window);
@@ -227,7 +242,7 @@ public class UISceneDemo03 {
             final GL gl = drawable.getGL();
             gl.glEnable(GL.GL_DEPTH_TEST);
             // gl.glDepthFunc(GL.GL_LEQUAL);
-            // gl.glEnable(GL.GL_BLEND);
+            gl.glEnable(GL.GL_BLEND);
             return true;
         });
 
@@ -318,34 +333,34 @@ public class UISceneDemo03 {
         System.err.println("AnimBox " + animBox);
         System.err.println("AnimGroup.1 " + animGroup);
 
-        final float[] y_pos = { 0 };
+        final float[] top_ypos = { 0 };
         window.invoke(true, (drawable) -> {
             final float fontScale2;
             {
-                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Bremerhaven 19°C, Munich";
+                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp. XXXXXXXXXXXXXXXXXXXXXXXXXXX";
                 final AABBox fbox = font.getGlyphBounds(vs);
                 fontScale2 = g_w / fbox.getWidth();
                 System.err.println("FontScale2: " + fontScale2 + " = " + g_w + " / " + fbox.getWidth());
             }
             final AABBox clippedBox = new AABBox(animBox).resizeWidth(-sceneBoxFrameWidth, -sceneBoxFrameWidth);
-            y_pos[0] = clippedBox.getMaxY();
+            top_ypos[0] = clippedBox.getMaxY();
             // AnimGroup.Set 1:
             // Circular short scrolling text (right to left) without rotation, no acceleration
             {
-                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  ";
-                y_pos[0] -= fontScale2 * 1.5f;
+                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp.";
+                top_ypos[0] -= fontScale2 * 1.5f;
                 animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
                         font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
-                        50 / 1e3f /* velocity */, clippedBox, y_pos[0]);
+                        50 / 1e3f /* velocity */, clippedBox, top_ypos[0]);
             }
             // AnimGroup.Set 2:
             // Circular long scrolling text (right to left) without rotation, no acceleration
             {
-                final String vs = "Berlin 23°C, London 20°C, Paris 22°C, Madrid 26°C, Lisbon 28°C, Moscow 22°C, Prag 22°C, Bremerhaven 19°C, Munich 25°C, Fukushima 40°C, Bejing 30°C, Rome 29°C, Beirut 28°C, Damaskus 29°C  ***  ";
-                y_pos[0] -= fontScale2 * 1.2f;
+                final String vs = VersionUtil.getPlatformInfo().replace(Platform.getNewline(), "; ").replace(VersionUtil.SEPERATOR, "  ***  ").replaceAll("\\s+", " ");
+                top_ypos[0] -= fontScale2 * 1.2f;
                 animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
                         font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
-                        30 / 1e3f /* velocity */, clippedBox, y_pos[0]);
+                        30 / 1e3f /* velocity */, clippedBox, top_ypos[0]);
             }
             return true;
         });
@@ -426,7 +441,7 @@ public class UISceneDemo03 {
                                 new AnimGroup.TargetLerp(Vec3f.UNIT_Z), refShape);
                     final AnimGroup.ShapeSetup shapeSetup = (final AnimGroup.Set as, final int idx, final AnimGroup.ShapeData sd) -> {
                             sd.targetPos.add(animBox.getMinX() + as.refShape.getScaledWidth() * 1.0f,
-                                             y_pos[0] - as.refShape.getScaledHeight() * 1.5f, 0f);
+                                             top_ypos[0] - as.refShape.getScaledHeight() * 1.5f, 0f);
 
                             sd.startPos.set( sd.targetPos.x() + animBox.getWidth(),
                                              sd.targetPos.y(), sd.targetPos.z());

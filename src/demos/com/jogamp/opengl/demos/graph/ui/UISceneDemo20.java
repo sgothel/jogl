@@ -191,11 +191,7 @@ public class UISceneDemo20 implements GLEventListener {
     private boolean debug = false;
     private boolean trace = false;
 
-    private final float noAADPIThreshold;
     private final Scene scene;
-
-    /** -1 == AUTO, TBD @ init(..) */
-    private int renderModes;
 
     private final Font font;
     private final Font fontButtons;
@@ -212,13 +208,6 @@ public class UISceneDemo20 implements GLEventListener {
     /** Relative Font Size to Window Height  for Main Text, normalized to 1. */
     private static final float fontSizeFixedNorm = 0.04f;
     private float dpiV = 96;
-
-    /**
-     * Default DPI threshold value to disable {@link Region#VBAA_RENDERING_BIT VBAA}: {@value} dpi
-     * @see #UISceneDemo20(float)
-     * @see #UISceneDemo20(float, boolean, boolean)
-     */
-    public static final float DefaultNoAADPIThreshold = 200f;
 
     private int currentText = 0;
 
@@ -255,7 +244,7 @@ public class UISceneDemo20 implements GLEventListener {
      * @param renderModes
      */
     public UISceneDemo20(final int renderModes) {
-        this(null, null, renderModes, false, false);
+        this(null, null, options.noAADPIThreshold, renderModes, false, false);
     }
 
     /**
@@ -265,7 +254,7 @@ public class UISceneDemo20 implements GLEventListener {
      * @param trace
      */
     public UISceneDemo20(final String fontfilename, final String filmURL, final int renderModes, final boolean debug, final boolean trace) {
-        this(fontfilename, filmURL, 0f, renderModes, debug, trace);
+        this(fontfilename, filmURL, options.noAADPIThreshold, renderModes, debug, trace);
     }
 
     /**
@@ -279,11 +268,11 @@ public class UISceneDemo20 implements GLEventListener {
     }
 
     private UISceneDemo20(final String fontfilename, final String filmURL, final float noAADPIThreshold, final int renderModes, final boolean debug, final boolean trace) {
-        this.noAADPIThreshold = noAADPIThreshold;
+        options.noAADPIThreshold = noAADPIThreshold;
         this.debug = debug;
         this.trace = trace;
 
-        this.renderModes = renderModes;
+        UISceneDemo20.options.renderModes = renderModes;
 
         try {
             if( null == fontfilename ) {
@@ -460,7 +449,7 @@ public class UISceneDemo20 implements GLEventListener {
     }
 
     private void initButtons(final GL2ES2 gl) {
-        final boolean pass2Mode = Region.isTwoPass( renderModes ) ;
+        final boolean pass2Mode = Region.isTwoPass( options.renderModes ) ;
         buttonsLeft.removeAllShapes(gl, scene.getRenderer());
         buttonsRight.removeAllShapes(gl, scene.getRenderer());
 
@@ -478,7 +467,7 @@ public class UISceneDemo20 implements GLEventListener {
         final Vec2f symSpacing = new Vec2f(0f, 0.2f);
 
         BaseButton button;
-        button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("fast_forward"), buttonLWidth, buttonLHeight); // next (ffwd)
+        button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("fast_forward"), buttonLWidth, buttonLHeight); // next (ffwd)
         ((Button)button).setSpacing(symSpacing, fixedSymSize);
         button.setID(BUTTON_NEXTTEXT);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -495,7 +484,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, "Show fps", "Hide fps", buttonLWidth, buttonLHeight, Button.DEFAULT_LABEL_ZOFFSET);
+        button = new Button(options.renderModes, fontButtons, "Show fps", "Hide fps", buttonLWidth, buttonLHeight, Button.DEFAULT_LABEL_ZOFFSET);
         button.setID(BUTTON_FPS);
         button.setToggleable(true);
         button.setToggle(fpsLabel.isVisible());
@@ -511,7 +500,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, " V-Sync ", buttonLWidth, buttonLHeight);
+        button = new Button(options.renderModes, fontButtons, " V-Sync ", buttonLWidth, buttonLHeight);
         button.setID(BUTTON_VSYNC);
         button.setToggleable(true);
         button.setToggle(gl.getSwapInterval()>0);
@@ -534,7 +523,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, " < Tilt > ", buttonLWidth, buttonLHeight);
+        button = new Button(options.renderModes, fontButtons, " < Tilt > ", buttonLWidth, buttonLHeight);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -552,7 +541,7 @@ public class UISceneDemo20 implements GLEventListener {
         buttonsLeft.addShape(button);
 
         if( pass2Mode ) {
-            button = new Button(renderModes, fontButtons, "< Samples >", buttonLWidth, buttonLHeight);
+            button = new Button(options.renderModes, fontButtons, "< Samples >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -570,7 +559,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Quality >", buttonLWidth, buttonLHeight);
+            button = new Button(options.renderModes, fontButtons, "< Quality >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -591,7 +580,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttonsLeft.addShape(button);
         }
 
-        button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("power_settings_new"), buttonLWidth, buttonLHeight); // exit (power_settings_new)
+        button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("power_settings_new"), buttonLWidth, buttonLHeight); // exit (power_settings_new)
         ((Button)button).setSpacing(symSpacing, fixedSymSize);
         button.setID(BUTTON_QUIT);
         button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
@@ -607,7 +596,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         // second column to the left
         {
-            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("flip"), buttonLWidth, buttonLHeight); // Y Flip (flip)
+            button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("flip"), buttonLWidth, buttonLHeight); // Y Flip (flip)
             ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -617,7 +606,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, " X Flip ", buttonLWidth, buttonLHeight);
+            button = new Button(options.renderModes, fontButtons, " X Flip ", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -626,7 +615,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Space >", buttonLWidth, buttonLHeight);
+            button = new Button(options.renderModes, fontButtons, "< Space >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -645,7 +634,7 @@ public class UISceneDemo20 implements GLEventListener {
                 } } );
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Corner >", buttonLWidth, buttonLHeight);
+            button = new Button(options.renderModes, fontButtons, "< Corner >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -664,7 +653,7 @@ public class UISceneDemo20 implements GLEventListener {
                 } } );
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("undo"), buttonLWidth, buttonLHeight); // reset (undo)
+            button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("undo"), buttonLWidth, buttonLHeight); // reset (undo)
             ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -674,7 +663,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("camera"), buttonLWidth, buttonLHeight); // snapshot (camera)
+            button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("camera"), buttonLWidth, buttonLHeight); // snapshot (camera)
             ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -700,7 +689,7 @@ public class UISceneDemo20 implements GLEventListener {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
-            button = new MediaButton(renderModes, buttonRWidth, buttonRHeight, mPlayer);
+            button = new MediaButton(options.renderModes, buttonRWidth, buttonRHeight, mPlayer);
             button.setID(BUTTON_MOVIE);
             ((MediaButton)button).setVerbose(false).addDefaultEventListener().setFixedARatioResize(true);
             button.setToggleable(true);
@@ -762,7 +751,7 @@ public class UISceneDemo20 implements GLEventListener {
             } );
             sineSound.setFreq(200f);
             sineSound.setAmplitude(0.1f);
-            final Button sineButton = new Button(renderModes, fontButtons, "lala", buttonRWidth, buttonRHeight);
+            final Button sineButton = new Button(options.renderModes, fontButtons, "lala", buttonRWidth, buttonRHeight);
             button = sineButton;
             button.setToggleable(true);
             button.setToggle(false); // toggle == false -> mute audio
@@ -828,7 +817,7 @@ public class UISceneDemo20 implements GLEventListener {
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
-            button = new ImageButton(renderModes, buttonRWidth, buttonRHeight, imgSeq);
+            button = new ImageButton(options.renderModes, buttonRWidth, buttonRHeight, imgSeq);
             try {
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-pressed-145x53.png", TextureIO.PNG);
@@ -880,7 +869,7 @@ public class UISceneDemo20 implements GLEventListener {
                     System.err.println("Gears Anim: End");
                 }
             }).start();
-            button = new GLButton(renderModes, buttonRWidth, buttonRHeight,
+            button = new GLButton(options.renderModes, buttonRWidth, buttonRHeight,
                                   texUnitGLELButton, gears, false /* useAlpha */);
             button.setID(BUTTON_GLEL);
             button.setToggleable(true);
@@ -937,12 +926,12 @@ public class UISceneDemo20 implements GLEventListener {
 
 
     private void initLabels(final GL2ES2 gl) {
-        jogampLabel = new Label(renderModes, font, fontSizeFixedNorm, jogamp);
+        jogampLabel = new Label(options.renderModes, font, fontSizeFixedNorm, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         jogampLabel.setVisible(enableOthers);
         scene.addShape(jogampLabel);
 
-        truePtSizeLabel = new Label(renderModes, font, truePtSize);
+        truePtSizeLabel = new Label(options.renderModes, font, truePtSize);
         truePtSizeLabel.setVisible(enableOthers);
         truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         scene.addShape(truePtSizeLabel);
@@ -952,7 +941,7 @@ public class UISceneDemo20 implements GLEventListener {
          * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
-        fpsLabel = new Label(renderModes, fontFPS, "Nothing there yet");
+        fpsLabel = new Label(options.renderModes, fontFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         fpsLabel.setVisible(enableOthers);
         fpsLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -975,11 +964,11 @@ public class UISceneDemo20 implements GLEventListener {
         } else {
             System.err.println("Using default DPI of "+dpiV);
         }
-        if( 0 == renderModes && !FloatUtil.isZero(noAADPIThreshold)) {
-            final boolean noAA = dpiV >= noAADPIThreshold;
-            final String noAAs = noAA ? " >= " : " < ";
-            System.err.println("AUTO RenderMode: dpi "+dpiV+noAAs+noAADPIThreshold+" -> noAA "+noAA);
-            renderModes = noAA ? 0 : Region.VBAA_RENDERING_BIT;
+        {
+            final int o = options.fixDefaultAARenderModeWithDPIThreshold(dpiV);
+            System.err.println("AUTO RenderMode: dpi "+dpiV+", threshold "+options.noAADPIThreshold+
+                               ", mode "+Region.getRenderModeString(o)+" -> "+
+                               Region.getRenderModeString(options.renderModes));
         }
         if(drawable instanceof GLWindow) {
             System.err.println("UISceneDemo20: init (1)");
@@ -1076,7 +1065,7 @@ public class UISceneDemo20 implements GLEventListener {
             truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight() - truePtSizeLabel.getScaledLineHeight(), dz);
         }
         {
-            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, dpiV));
+            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, options.renderModes, dpiV));
             final float scale = sceneWidth / ( 1.4f * fbox.getWidth() ); // add 40% width
             fpsLabel.setScale(scale, scale, 1f);
             fpsLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + scale * ( fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent() ), 0f);
@@ -1114,7 +1103,7 @@ public class UISceneDemo20 implements GLEventListener {
             final float sceneHeight = sbox.getHeight();
             final float dyTop = sbox.getMinY() + sbox.getHeight() - jogampLabel.getScaledLineHeight();
             final float dxMiddle = sbox.getMinX() + sbox.getWidth() * relMiddle;
-            labels[currentText] = new Label(renderModes, font, fontSizeFixedNorm, strings[currentText]);
+            labels[currentText] = new Label(options.renderModes, font, fontSizeFixedNorm, strings[currentText]);
             labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setVisible(enableOthers);
@@ -1132,7 +1121,7 @@ public class UISceneDemo20 implements GLEventListener {
         if( fpsLabel.isVisible() ) {
             final String text;
             if( null == actionText ) {
-                text = scene.getStatusText(drawable, renderModes, dpiV);
+                text = scene.getStatusText(drawable, options.renderModes, dpiV);
             } else if( null != drawable.getAnimator() ) {
                 text = Scene.getStatusText(drawable.getAnimator())+", "+actionText;
             } else {

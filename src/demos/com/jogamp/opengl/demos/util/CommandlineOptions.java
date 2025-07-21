@@ -28,12 +28,21 @@
 package com.jogamp.opengl.demos.util;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 
 public class CommandlineOptions {
+    /**
+     * Default DPI threshold value to disable {@link Region#VBAA_RENDERING_BIT VBAA}: {@value} dpi
+     * @see #UISceneDemo20(float)
+     * @see #UISceneDemo20(float, boolean, boolean)
+     */
+    public static final float DefaultNoAADPIThreshold = 200f;
+
     public int surface_width, surface_height;
     public String glProfileName = GLProfile.GL2ES2;
+    public float noAADPIThreshold = DefaultNoAADPIThreshold;
     public int renderModes = Region.NORM_RENDERING_BIT;
     public int sceneMSAASamples = 0;
     /** Sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
@@ -46,13 +55,17 @@ public class CommandlineOptions {
     public boolean stayOpen = false;
     public int swapInterval = -1; // auto
     public float total_duration = 0f; // [s]
+    /** Is true if values haven't changed throug parse() */
+    public boolean default_setting = true;
+    /** Is true if AA values haven't changed through parse() */
+    public boolean default_aa_setting = true;
 
     static {
         GLProfile.initSingleton(); // ensure JOGL is completely initialized
     }
 
     /**
-     * Commandline options
+     * Commandline options defining default_setting and default_aa_setting
      * @param width viewport width in pixels
      * @param height viewport height in pixels
      * @param renderModes {@link Region#getRenderModes()}, if {@link Region#isGraphAA(int)} {@link #graphAASamples} is set to {@code 4}.
@@ -62,7 +75,7 @@ public class CommandlineOptions {
     }
 
     /**
-     * Commandline options
+     * Commandline options defining default_setting and default_aa_setting
      * @param width viewport width in pixels
      * @param height viewport height in pixels
      * @param renderModes {@link Region#getRenderModes()}
@@ -121,27 +134,31 @@ public class CommandlineOptions {
             sceneMSAASamples = 0;
             graphAASamples = 0;
             renderModes = Region.NORM_RENDERING_BIT;
-        } else if(args[idx[0]].equals("-color")) {
-            renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
-        } else if(args[idx[0]].equals("-no-color")) {
-            renderModes &= ~Region.COLORCHANNEL_RENDERING_BIT;
+            default_aa_setting = false;
         } else if(args[idx[0]].equals("-smsaa")) {
             ++idx[0];
             graphAASamples = 0;
             sceneMSAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes &= ~Region.AA_RENDERING_MASK;
+            default_aa_setting = false;
         } else if(args[idx[0]].equals("-gmsaa")) {
             ++idx[0];
             sceneMSAASamples = 0;
             graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.MSAA_RENDERING_BIT;
+            default_aa_setting = false;
         } else if(args[idx[0]].equals("-gvbaa")) {
             ++idx[0];
             sceneMSAASamples = 0;
             graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.VBAA_RENDERING_BIT;
+            default_aa_setting = false;
+        } else if(args[idx[0]].equals("-color")) {
+            renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
+        } else if(args[idx[0]].equals("-no-color")) {
+            renderModes &= ~Region.COLORCHANNEL_RENDERING_BIT;
         } else if(args[idx[0]].equals("-gaaq")) {
             ++idx[0];
             graphAAQuality = Region.clipAAQuality( MiscUtils.atoi(args[idx[0]], graphAAQuality) );
@@ -163,6 +180,7 @@ public class CommandlineOptions {
         } else {
             res = false;
         }
+        default_setting = default_setting && !res;
         return res;
     }
     public GLProfile getGLProfile() {
@@ -177,6 +195,32 @@ public class CommandlineOptions {
             caps.setNumSamples(sceneMSAASamples);
         }
         return caps;
+    }
+
+    /**
+     * Fix AA rendering bit.
+     * @param force even fix renderModes if any Region.AA_RENDERING_MASK bits is already set
+     * @param dpiV display vertical DPI
+     * @return the previous renderModes
+     */
+    public int fixAARenderModeWithDPIThreshold(final boolean force, final float dpiV) {
+        final int o = renderModes;
+        if( ( force || !Region.isGraphAA(renderModes) ) && !FloatUtil.isZero(noAADPIThreshold)) {
+            if( dpiV >= noAADPIThreshold ) {
+                renderModes &= ~Region.AA_RENDERING_MASK;
+            } else if( !Region.isGraphAA(renderModes) ) {
+                renderModes = Region.VBAA_RENDERING_BIT;
+            }
+        }
+        return o;
+    }
+    /**
+     * Fix default AA rendering bit, forced if having default_aa_setting is true
+     * @param dpiV display vertical DPI
+     * @return the previous renderModes
+     */
+    public int fixDefaultAARenderModeWithDPIThreshold(final float dpiV) {
+        return fixAARenderModeWithDPIThreshold(default_aa_setting, dpiV);
     }
 
     @Override
