@@ -49,6 +49,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -159,7 +160,7 @@ public final class Scene implements Container, GLEventListener {
     private PinchToZoomGesture pinchToZoomGesture = null;
     private SBCKeyListener sbcKeyListener = null;
 
-    final GLReadBufferUtil screenshot;
+    private final GLReadBufferUtil screenshot;
 
     private GLAutoDrawable cDrawable = null;
 
@@ -201,7 +202,11 @@ public final class Scene implements Container, GLEventListener {
             throw new IllegalArgumentException("Null RegionRenderer");
         }
         this.renderer = renderer;
-        this.screenshot = new GLReadBufferUtil(false, false);
+        if( Platform.OSType.ANDROID != Platform.getOSType() ) {
+            this.screenshot = new GLReadBufferUtil(false, false);
+        } else {
+            this.screenshot = null;
+        }
     }
 
     /** Returns the associated RegionRenderer */
@@ -636,7 +641,9 @@ public final class Scene implements Container, GLEventListener {
             cDrawable = null;
         }
         renderer.destroy(gl);
-        screenshot.dispose(gl);
+        if( null != screenshot ) {
+            screenshot.dispose(gl);
+        }
     }
     private final List<GLRunnable> disposeActions = new ArrayList<GLRunnable>();
     /**
@@ -1446,6 +1453,8 @@ public final class Scene implements Container, GLEventListener {
     /** Return the number of {@link #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)} calls. */
     public int getScreenshotCount() { return screenShotCount; }
 
+    public boolean isScreenshotSupported() { return null != screenshot; }
+
     /**
      * Write current read drawable (screen) to a file.
      * <p>
@@ -1459,7 +1468,7 @@ public final class Scene implements Container, GLEventListener {
      * @see #screenshot(boolean, File)
      */
     public void screenshot(final GL gl, final File file)  {
-        if(screenshot.readPixels(gl, false)) {
+        if(null != screenshot && screenshot.readPixels(gl, false)) {
             screenshot.write(file);
             System.err.println("Wrote: "+file);
         }
