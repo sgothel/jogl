@@ -49,6 +49,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Android 24 (stripped)"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Android 26 (stripped)"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
