@@ -40,6 +40,6 @@ JNIEXPORT void JNICALL JNI_OnUnload_jogl_desktop(JavaVM *vm, void *reserved) { }
 JNIEXPORT void JNICALL JNI_OnUnload_jogl_cg(JavaVM *vm, void *reserved) { }
 
 #else
-    #error build toolchain doesn't supply JNI_VERSION_1_6
+    #error build toolchain does not supply JNI_VERSION_1_6
 #endif /* defined (JNI_VERSION_1_6) */
 
