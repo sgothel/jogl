@@ -405,8 +405,11 @@ public class UISceneDemo03 {
                 // Sine animated text moving to target (right to left) with sine amplitude alternating on Z- and Y-axis + acceleration
                 {
                     final GL gl = drawable.getGL();
-
-                    final String vs = "JogAmp Version "+JoglVersion.getInstance().getImplementationVersion()+", "+gl.glGetString(GL.GL_VERSION)+", "+gl.glGetString(GL.GL_VENDOR);
+                    final GLContext ctx = gl.getContext();
+                    final String vs = "JogAmp Version "+JoglVersion.getInstance().getImplementationVersion()+
+                                      ", GL "+ctx.getGLVersionNumber().getVersionString()+
+                                      ", GLSL "+ctx.getGLSLVersionNumber().getVersionString() +
+                                      " by "+gl.glGetString(GL.GL_VENDOR);
                     final float fontScale2;
                     {
                         final AABBox fbox = font.getGlyphBounds(vs);

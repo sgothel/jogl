@@ -1510,18 +1510,18 @@ public abstract class GLContextImpl extends GLContext {
       if ( 0 == ctp ) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
-      ctxVersion = new VersionNumber(major, minor, 0);
+      ctxVersion = new VersionNumberString(major, minor, glVersion);
       ctxVersionString = getGLVersion(major, minor, ctp, glVersion);
       ctxVendorVersion = glVendorVersion;
       ctxOptions = ctp;
       if(useGL) {
-          ctxGLSLVersion = VersionNumber.zeroVersion;
+          ctxGLSLVersion = VersionNumberString.zeroVersion;
           if( hasGLSL() ) { // >= ES2 || GL2.0
               final String glslVersion = isGLES() && !isGLES3() ? null : glGetStringInt(GL2ES2.GL_SHADING_LANGUAGE_VERSION) ; // Use static GLSL version for ES < 3 to be safe!
               if( null != glslVersion ) {
-                  ctxGLSLVersion = new VersionNumber(glslVersion);
+                  ctxGLSLVersion = new VersionNumberString(glslVersion);
                   if( ctxGLSLVersion.getMajor() < 1 ) {
-                      ctxGLSLVersion = VersionNumber.zeroVersion; // failed ..
+                      ctxGLSLVersion = VersionNumberString.zeroVersion; // failed ..
                   }
               }
               if( ctxGLSLVersion.isZero() ) {

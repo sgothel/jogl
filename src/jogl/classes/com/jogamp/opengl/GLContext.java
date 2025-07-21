@@ -232,11 +232,11 @@ public abstract class GLContext {
       resetStates(true);
   }
 
-  protected VersionNumber ctxVersion;
+  protected VersionNumberString ctxVersion;
   protected int ctxOptions;
   protected String ctxVersionString;
   protected VersionNumberString ctxVendorVersion;
-  protected VersionNumber ctxGLSLVersion;
+  protected VersionNumberString ctxGLSLVersion;
   protected GLRendererQuirks glRendererQuirks;
 
   /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */
@@ -254,7 +254,7 @@ public abstract class GLContext {
       ctxVendorVersion = VersionNumberString.zeroVersion;
       ctxOptions=0;
       ctxVersionString=null;
-      ctxGLSLVersion = VersionNumber.zeroVersion;
+      ctxGLSLVersion = VersionNumberString.zeroVersion;
       attachedObjects.clear();
       contextHandle=0;
       glRendererQuirks = null;
@@ -778,7 +778,8 @@ public abstract class GLContext {
    * Returns this context OpenGL version.
    * @see #getGLSLVersionNumber()
    **/
-  public final VersionNumber getGLVersionNumber() { return ctxVersion; }
+  public final VersionNumberString getGLVersionNumber() { return ctxVersion; }
+
   /**
    * Returns the vendor's version, i.e. version number at the end of <code>GL_VERSION</code> not being the GL version.
    * <p>
@@ -824,7 +825,7 @@ public abstract class GLContext {
    *
    * @see #getGLVersionNumber()
    */
-  public final VersionNumber getGLSLVersionNumber() {
+  public final VersionNumberString getGLSLVersionNumber() {
       return ctxGLSLVersion;
   }
 
@@ -867,35 +868,38 @@ public abstract class GLContext {
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + profileOpt + "\n" ;
   }
 
-  protected static final VersionNumber getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
+  protected static final VersionNumberString getStaticGLSLVersionNumber(final int glMajorVersion, final int glMinorVersion, final int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
           if( 3 == glMajorVersion ) {
               switch ( glMinorVersion ) {
-                  case 0:  return Version3_0;   // ES 3.0  ->  GLSL 3.00
-                  case 1:  return Version3_10;  // ES 3.1  ->  GLSL 3.10
-                  case 2:  return Version3_20;  // ES 3.2  ->  GLSL 3.20
-                  default: return Version3_20;  // ES 3.2  ->  GLSL 3.20
+                  case 0:  return new VersionNumberString(Version3_0, glsl_es_prefix+Version3_0.toString());    // ES 3.0  ->  GLSL 3.00
+                  case 1:  return new VersionNumberString(Version3_10, glsl_es_prefix+Version3_10.toString());  // ES 3.1  ->  GLSL 3.10
+                  default: return new VersionNumberString(Version3_20, glsl_es_prefix+Version3_20.toString());  // ES 3.2  ->  GLSL 3.20
               }
           } else if( 2 == glMajorVersion ) {
-              return Version1_0;           // ES 2.0  ->  GLSL 1.00
+              return new VersionNumberString(Version1_0, glsl_es_prefix+Version1_0.toString());                 // ES 2.0  ->  GLSL 1.00
           }
       } else if( 1 == glMajorVersion ) {
-          return Version1_10;               // GL 1.x  ->  GLSL 1.10
+          return new VersionNumberString(Version1_10, glsl_prefix+Version1_10.toString());                      // GL 1.x  ->  GLSL 1.10
       } else if( 2 == glMajorVersion ) {
           switch ( glMinorVersion ) {
-              case 0:  return Version1_10;  // GL 2.0  ->  GLSL 1.10
-              default: return Version1_20;  // GL 2.1  ->  GLSL 1.20
+              case 0:  return new VersionNumberString(Version1_10, glsl_prefix+Version1_10.toString());         // GL 2.0  ->  GLSL 1.10
+              default: return new VersionNumberString(Version1_20, glsl_prefix+Version1_20.toString());         // GL 2.1  ->  GLSL 1.20
           }
       } else if( 3 == glMajorVersion && 2 >= glMinorVersion ) {
           switch ( glMinorVersion ) {
-              case 0:  return Version1_30;  // GL 3.0  ->  GLSL 1.30
-              case 1:  return Version1_40;  // GL 3.1  ->  GLSL 1.40
-              default: return Version1_50;  // GL 3.2  ->  GLSL 1.50
+              case 0:  return new VersionNumberString(Version1_30, glsl_prefix+Version1_30.toString());         // GL 3.0  ->  GLSL 1.30
+              case 1:  return new VersionNumberString(Version1_40, glsl_prefix+Version1_40.toString());         // GL 3.1  ->  GLSL 1.40
+              default: return new VersionNumberString(Version1_50, glsl_prefix+Version1_50.toString());         // GL 3.2  ->  GLSL 1.50
           }
       }
-      // The new default: GL >= 3.3, ES >= 3.0
-      return new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
+      // The new default: GL >= 3.x, ES >= 3.x
+      final String prefix = 0 != ( CTX_PROFILE_ES & ctxOptions ) ? glsl_es_prefix : glsl_prefix;
+      final VersionNumber vn = new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
+      return new VersionNumberString(vn, prefix+vn.toString()); // GL M.N  ->  GLSL M.N
   }
+  private static final String glsl_prefix = "OpenGL GLSL ";
+  private static final String glsl_es_prefix = "OpenGL ES GLSL ES ";
 
   /**
    * @return true if this context is an ES2 context or implements
