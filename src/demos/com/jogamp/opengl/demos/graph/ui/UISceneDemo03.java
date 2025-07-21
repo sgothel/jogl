@@ -207,9 +207,9 @@ public class UISceneDemo03 {
         final float pixPerMM, dpiV;
         {
             final float[] tmp = window.getPixelsPerMM(new float[2]);
-            pixPerMM = tmp[0]; // [px]/[mm]
-            final float[] sDPI = MonitorDevice.perMMToPerInch( tmp );
-            dpiV = sDPI[1];
+            pixPerMM = tmp[1]; // [px]/[mm]
+            MonitorDevice.mmToInch( tmp );
+            dpiV = tmp[1];
         }
 
         animator.add(window);

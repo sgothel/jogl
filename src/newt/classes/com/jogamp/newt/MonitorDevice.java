@@ -231,11 +231,11 @@ public abstract class MonitorDevice {
      * {@link SurfaceSize#getResolution() surface resolution}.
      * <p>
      * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>,
-     * see {@link #perMMToPerInch(float[])}.
+     * see {@link #mmToInch(float[])}.
      * </p>
      * @param ppmmStore float[2] storage for the ppmm result
      * @return the passed storage containing the ppmm for chaining
-     * @see #perMMToPerInch(float[])
+     * @see #mmToInch(float[])
      */
     public final float[] getPixelsPerMM(final float[] ppmmStore) {
         return getPixelsPerMM(getCurrentMode(), ppmmStore);
@@ -264,10 +264,39 @@ public abstract class MonitorDevice {
      * @param ppmm float[2] [1/mm] value
      * @return return [1/inch] value
      */
-    public static float[/*2*/] perMMToPerInch(final float[/*2*/] ppmm) {
+    public static float[/*2*/] mmToInch(final float[/*2*/] ppmm) {
         ppmm[0] *= 25.4f;
         ppmm[1] *= 25.4f;
         return ppmm;
+    }
+    /**
+     * Converts [1/mm] to [1/inch]
+     * @param ppmm [1/mm] value
+     * @return return [1/inch] value
+     */
+    public static float mmToInch(float ppmm) {
+        ppmm *= 25.4f;
+        return ppmm;
+    }
+
+    /**
+     * Converts [1/inch] to [1/mm] in place
+     * @param ppinch float[2] [1/inch] value
+     * @return return [1/mm] value
+     */
+    public static float[/*2*/] inchToMM(final float[/*2*/] ppinch) {
+        ppinch[0] /= 25.4f;
+        ppinch[1] /= 25.4f;
+        return ppinch;
+    }
+    /**
+     * Converts [1/inch] to [1/mm]
+     * @param ppinch [1/inch] value
+     * @return return [1/mm] value
+     */
+    public static float inchToMM(float ppinch) {
+        ppinch /= 25.4f;
+        return ppinch;
     }
 
     /**

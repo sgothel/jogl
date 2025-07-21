@@ -965,8 +965,8 @@ public class UISceneDemo20 implements GLEventListener {
         if( upObj instanceof Window ) {
             final Window upWin = (Window)upObj;
             final MonitorDevice monitor = upWin.getMainMonitor();
-            final float[] monitorDPI = MonitorDevice.perMMToPerInch( monitor.getPixelsPerMM(new float[2]) );
-            final float[] sDPI = MonitorDevice.perMMToPerInch( upWin.getPixelsPerMM(new float[2]) );
+            final float[] monitorDPI = MonitorDevice.mmToInch( monitor.getPixelsPerMM(new float[2]) );
+            final float[] sDPI = MonitorDevice.mmToInch( upWin.getPixelsPerMM(new float[2]) );
             dpiV = sDPI[1];
             System.err.println("Monitor detected: "+monitor);
             System.err.println("Monitor dpi: "+monitorDPI[0]+" x "+monitorDPI[1]);

@@ -169,7 +169,7 @@ public class UISceneDemo02 {
         {
             final float[] tmp = window.getPixelsPerMM(new float[2]);
             pixPerMM = tmp[0]; // [px]/[mm]
-            final float[] sDPI = MonitorDevice.perMMToPerInch( tmp );
+            final float[] sDPI = MonitorDevice.mmToInch( tmp );
             dpiV = sDPI[1];
         }
 
