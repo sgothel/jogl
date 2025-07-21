@@ -35,6 +35,13 @@
         float position = rtex.y - (rtex.x * (1.0 - rtex.x));
 
         float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_CurveParam.y), 0.0, 1.0);
+        if( 0.0 == a ) {
+            #if USE_DISCARD
+                discard; // freezes NV tegra2 compiler
+            #else
+                mgl_FragColor = vec4(0);
+            #endif
+        } else {
 #if defined(USE_COLOR_TEXTURE) && defined(USE_COLOR_CHANNEL)
         vec4 t = clip_coord(gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st), gcu_ColorTexClearCol, gcv_ColorTexCoord, vec2(0), gcu_ColorTexBBox[2]);
                                               
@@ -49,5 +56,6 @@
 #else
         mgl_FragColor = vec4(gcu_ColorStatic.rgb, gcu_ColorStatic.a * a);
 #endif
+        }
     }
 
