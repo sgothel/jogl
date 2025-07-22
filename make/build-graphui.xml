@@ -62,9 +62,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="newt_jogl_nativewindow_gluegen.compile.classpath"/>
             <src path="${src.java}" />

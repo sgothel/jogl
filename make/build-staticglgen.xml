@@ -33,9 +33,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}">
+               release="${target.releaselevel}">
             <classpath refid="antlr.classpath" />
         </javac>
         
@@ -59,9 +57,7 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}">
+               release="${target.releaselevel}">
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>

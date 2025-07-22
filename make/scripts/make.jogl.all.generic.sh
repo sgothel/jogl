@@ -8,10 +8,6 @@
 #    -DisLinuxAMD64=true \
 #    -DisX11=true \
 #
-#    -Dtarget.sourcelevel=1.6 \
-#    -Dtarget.targetlevel=1.6 \
-#    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
-#
 #    -Dsetup.addNativeOpenMAX=true \
 #    -Dsetup.addNativeKD=true \
 

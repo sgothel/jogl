@@ -351,9 +351,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/drm/DRMLib.java" />
@@ -370,9 +368,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/x11/X11Lib.java" />
@@ -389,9 +385,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/windows/GDI.java" />
@@ -408,9 +402,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/jawt/macosx/MacOSXJAWTWindow.java" />
@@ -427,9 +419,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/ios/IOSUtil.java" />
@@ -445,9 +435,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
+               release="${target.releaselevel}" 
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />
