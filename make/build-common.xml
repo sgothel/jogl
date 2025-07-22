@@ -37,22 +37,22 @@
     </condition>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Base initialization of properties and detection of operating system.
       -->
     <target name="set.debug">
-        <property name="c.compiler.debug" value="true" /> 
-        <property name="c.compiler.optimise"  value="none" /> 
-        <property name="javacdebug"       value="true" /> 
-        <property name="javacdebuglevel"  value="source,lines,vars" /> 
+        <property name="c.compiler.debug" value="true" />
+        <property name="c.compiler.optimise"  value="none" />
+        <property name="javacdebug"       value="true" />
+        <property name="javacdebuglevel"  value="source,lines,vars" />
     </target>
     <target name="common.init.debug" depends="set.debug, common.init"/>
 
     <target name="common.init" depends="jogamp.env.init, gluegen.cpptasks.detect.os" unless="common.init.done">
         <property name="common.init.done" value="true" />
 
-        <property name="c.compiler.debug"     value="false" /> 
-        <property name="c.compiler.optimise"  value="none" /> 
+        <property name="c.compiler.debug"     value="false" />
+        <property name="c.compiler.optimise"  value="none" />
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
@@ -109,7 +109,7 @@
         </condition>
         <condition property="setup.noNativeAWT">
             <or>
-                <isset property="setup.noAWT"/> 
+                <isset property="setup.noAWT"/>
                 <istrue value="${isAndroid}" />
             </or>
         </condition>
@@ -176,7 +176,7 @@
             <or>
               <os arch="AMD64" />
               <os arch="x86_64" />
-            </or>                
+            </or>
           </and>
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-aarch64/swt.jar">
@@ -300,7 +300,7 @@
           <pathelement location="${gluegen.jar}" />
           <pathelement location="${antlr.jar}" />
         </path>
-        
+
         <property name="gluegen-gl.jar"             value="${build.jogl}/gluegen-gl.jar" />
 
         <path id="gluegen-gl.classpath">
@@ -345,7 +345,7 @@
         <path id="nativewindow_core_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
         </path>
-        
+
         <property name="jogl.jar"                     value="${build.jogl}/jogl.jar" />
         <property name="jogl-sdk.jar"                 value="${build.jogl}/jogl-sdk.jar" />
         <property name="jogl-glmobile.jar"            value="${build.jogl}/jogl-glmobile.jar" />
@@ -434,7 +434,7 @@
             <pathelement location="${jogl-os-android.jar}" />
             <pathelement location="${jogl-omx.jar}" />
         </path>
-        <!-- 
+        <!--
             ${jogl.jar} ${jogl-glu.jar} ${jogl-glu-gldesktop.jar} ${jogl-os-x11.jar} ${jogl-os-win.jar} ${jogl-os-osx.jar} ${jogl-gldesktop.jar} ${jogl-gldesktop-dbg.jar} ${jogl-glmobile.jar} ${jogl-glmobile-dbg.jar} ${jogl-omx.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-gldesktop.jar} ${jogl-util-awt.jar} ${jogl-util-fixedfuncemu.jar} ${jogl-sdk.jar} -->
 
         <property name="newt.jar"                 value="${build.newt}/newt.jar" />
@@ -814,13 +814,13 @@
         </path>
         <property name="junit_jogl_android.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${japicmp.jar}${path.separator}${gluegen-rt-android.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-android.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
-        <property name="junit.run.remote.apks" 
+        <property name="junit.run.remote.apks"
                   value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${jogl-all-android.apk}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.apk}"/>
 
-        <!-- Dummy extra CLASSPATH value, maybe overwritten -->  
+        <!-- Dummy extra CLASSPATH value, maybe overwritten -->
         <property name="junit_extra_classpath" value=""/>
 
-        <!-- The location and name of the configuration ANT file that will 
+        <!-- The location and name of the configuration ANT file that will
            - validate to ensure that all user-define variables are set. -->
         <property name="validate.user.properties" value="${make}/validate-properties.xml" />
     </target>

@@ -27,14 +27,14 @@
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
-   - 
+   -
    - Note: on Windows the "win32.c.compiler" property in gluegen.properties
    - is required to select the appropriate C compiler. See the example
    - gluegen.properties in this directory for valid values. On Mac OS X
    - universal binaries may also be built by setting the "macosxfat"
    - property in gluegen.properties; again see the example file in this
    - directory.
-   -   
+   -
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen and StaticGLInfo tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
@@ -49,7 +49,7 @@
 
        setup.addNativeOpenMAX    - add experimental binding to Khrono's OpenMAX
 
-       setup.addNativeNVidiaCG   - add experimental binding to NVidia's Cg language 
+       setup.addNativeNVidiaCG   - add experimental binding to NVidia's Cg language
                                    (enabled for windows, osx and X11 per default)
 
    - Internal settings, may not be necessary to set them manually,
@@ -68,7 +68,7 @@
     </taskdef>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Base initialization and detection of operating system.
       -->
     <target name="partitioning.setup" depends="common.init">
@@ -84,13 +84,13 @@
         <echo message="setup.addNativeOpenMAX : ${setup.addNativeOpenMAX}" />
         <echo message="setup.addNativeNVidiaCG: ${setup.addNativeNVidiaCG}" />
 
-        <property name="java.part.gluegen-gl" 
+        <property name="java.part.gluegen-gl"
                   value="com/jogamp/gluegen/opengl/**"/>
 
-        <property name="java.part.gluegen-gl-rt" 
+        <property name="java.part.gluegen-gl-rt"
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
-        <property name="java.part.core.math" 
+        <property name="java.part.core.math"
                   value="com/jogamp/math/**"/>
 
         <property name="java.part.core.shadercode"
@@ -102,7 +102,7 @@
         <property name="java.part.core.util"
                   value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* ${java.part.core.shadercode} ${java.part.core.assets}"/>
 
-        <property name="java.part.core" 
+        <property name="java.part.core"
                   value="${java.part.gluegen-gl-rt} ${java.part.core.math} com/jogamp/opengl/* com/jogamp/opengl/fixedfunc/* jogamp/opengl/* ${java.part.core.util}"/>
 
         <property name="java.part.core.exclude" value="com/jogamp/opengl/Debug* com/jogamp/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
@@ -163,7 +163,7 @@
 
         <property name="java.part.awt"
                   value="com/jogamp/opengl/awt/** jogamp/opengl/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
-        
+
         <property name="java.part.swt"
                   value="com/jogamp/opengl/**/swt/**"/>
 
@@ -197,25 +197,25 @@
         <property name="java.part.util.fixedfuncemu.shadercode"
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
-        <property name="java.part.nonjava" 
+        <property name="java.part.nonjava"
                   value="${java.part.core.assets} ${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <!-- condition excludes -->
 
         <condition property="java.excludes.awt"
                    value="${java.part.awt} ${java.part.util.awt}">
-           <isset property="setup.noAWT"/> 
+           <isset property="setup.noAWT"/>
         </condition>
 
         <condition property="java.excludes.swt"
                    value="${java.part.swt}">
-           <isset property="setup.noSWT"/> 
+           <isset property="setup.noSWT"/>
         </condition>
 
         <property name="java.excludes.javadoc.packagenames"
                   value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
 
-        <property name="java.excludes.fixme" 
+        <property name="java.excludes.fixme"
                   value="jogamp/opengl/gl2/fixme/** com/jogamp/audio/windows/waveout/TestSpatialization.java" />
 
         <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt}" />
@@ -223,7 +223,7 @@
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="declare.common" description="Declare properties" depends="partitioning.setup">
@@ -242,7 +242,7 @@
         <property name="src.java"            value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"               value="${project.root}/${rootrel.src.c}" />
         <property name="nativewindow.src.c"  value="${project.root}/src/nativewindow/native" />
-        
+
         <!-- The generated source directories. -->
         <property name="src.generated"            value="${build.jogl}/gensrc" />
         <property name="src.generated.java"       value="${src.generated}/classes" />
@@ -251,7 +251,7 @@
         <property name="src.generated.c.openmax"  value="${src.generated}/native/openmax" />
         <property name="src.generated.c.libav"    value="${src.generated}/native/libav" />
         <property name="src.generated.c.cg"        value="${src.generated}/native/jogl_cg" />
-        
+
         <!-- The compiler output directories. -->
         <property name="classes"                    value="${build.jogl}/classes" />
         <property name="obj.joglsub"                value="${obj.jogl}/jogl" />
@@ -320,7 +320,7 @@
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},jogamp.opengl.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
-    
+
     <target name="declare.gl.gles1">
         <property name="gles1.headers" value="${stub.includes}/opengl/GLES/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
@@ -345,7 +345,7 @@
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
@@ -441,7 +441,7 @@
         <gluegen src="${stub.includes.opengl}/gles2.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl.cfg"
-                 includeRefid="stub.includes.fileset.all.gldesktop" 
+                 includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
                  debug="false">
@@ -454,7 +454,7 @@
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles1.c"
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl2_es1.cfg" 
+                 config="${config.jogl}/gl-if-gl2_es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -465,7 +465,7 @@
     <target name="java.generate.gles1">
         <echo message="Generating GLES1 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles1.c" 
+        <gluegen src="${stub.includes.opengl}/gles1.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -481,7 +481,7 @@
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles2.c"
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl2_es2.cfg" 
+                 config="${config.jogl}/gl-if-gl2_es2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -492,7 +492,7 @@
     <target name="java.generate.gles2">
         <echo message="Generating GLES2 interface and implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles2.c" 
+        <gluegen src="${stub.includes.opengl}/gles2.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-es2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -505,7 +505,7 @@
     <target name="java.generate.gl2_es3_if">
         <echo message="Generating GL2_ES3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles3.c" 
+        <gluegen src="${stub.includes.opengl}/gles3.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2es3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -516,7 +516,7 @@
         </gluegen>
         <gluegen src="${stub.includes.opengl}/gl2.c"
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl2_es3.cfg" 
+                 config="${config.jogl}/gl-if-gl2_es3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
@@ -530,7 +530,7 @@
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles3.c"
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl3_es3.cfg" 
+                 config="${config.jogl}/gl-if-gl3_es3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -541,7 +541,7 @@
     <target name="java.generate.gl2_gl3_if">
         <echo message="Generating GL2_GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl3.c" 
+        <gluegen src="${stub.includes.opengl}/gl3.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -550,7 +550,7 @@
                  debug="false">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
-        <gluegen src="${stub.includes.opengl}/gl2.c" 
+        <gluegen src="${stub.includes.opengl}/gl2.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2_gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -563,7 +563,7 @@
     <target name="java.generate.gl2">
         <echo message="Generating GL2 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl2.c" 
+        <gluegen src="${stub.includes.opengl}/gl2.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -576,7 +576,7 @@
     <target name="java.generate.gl3">
         <echo message="Generating GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl3.c" 
+        <gluegen src="${stub.includes.opengl}/gl3.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -591,7 +591,7 @@
     <target name="java.generate.gl3bc">
         <echo message="Generating GL3bc interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl3bc.c" 
+        <gluegen src="${stub.includes.opengl}/gl3bc.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl3bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -606,7 +606,7 @@
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gles3.c"
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl4_es3.cfg" 
+                 config="${config.jogl}/gl-if-gl4_es3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter">
@@ -617,7 +617,7 @@
     <target name="java.generate.gles3">
         <echo message="Generating GLES3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles3.c" 
+        <gluegen src="${stub.includes.opengl}/gles3.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-es3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -630,7 +630,7 @@
     <target name="java.generate.gles3impl">
         <echo message="Generating GLES3 implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles3.c" 
+        <gluegen src="${stub.includes.opengl}/gles3.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-es3-impl.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -643,7 +643,7 @@
     <target name="java.generate.gl4">
         <echo message="Generating GL4 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl4.c" 
+        <gluegen src="${stub.includes.opengl}/gl4.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-if-gl4.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -658,7 +658,7 @@
     <target name="java.generate.gl4bc">
         <echo message="Generating GL4bc implementation" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gl4bc.c" 
+        <gluegen src="${stub.includes.opengl}/gl4bc.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/gl-gl4bc.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -674,7 +674,7 @@
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
-        <gluegen src="${gl.c}" 
+        <gluegen src="${gl.c}"
                  config="${gl.cfg.nsig}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
@@ -686,7 +686,7 @@
     <target name="java.generate.glu.base">
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/glu.c" 
+        <gluegen src="${stub.includes.opengl}/glu.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-base.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -699,7 +699,7 @@
     <target name="java.generate.glu.GL2ES1">
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/glu.c" 
+        <gluegen src="${stub.includes.opengl}/glu.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2es1.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -712,7 +712,7 @@
     <target name="java.generate.glu.GL2">
         <echo message="Generating GLU class" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/glu.c" 
+        <gluegen src="${stub.includes.opengl}/glu.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/glu-gl2.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -725,7 +725,7 @@
     <target name="java.generate.platform.glext" if="glext.platform.cfg">
         <echo message="Generating platform-specific OpenGL extension class: ${window.os.system}" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${glext.platform.header}" 
+        <gluegen src="${glext.platform.header}"
                  outputRootDir="${build.jogl}"
                  config="${glext.platform.cfg}"
                  includeRefid="stub.includes.fileset.all.gldesktop"
@@ -800,7 +800,7 @@
     </target>
 
     <!--
-       - Setup the generating ANT tasks and use it to generate the Java files 
+       - Setup the generating ANT tasks and use it to generate the Java files
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
@@ -811,7 +811,7 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
@@ -823,7 +823,7 @@
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
@@ -862,7 +862,7 @@
             <param name="window.os1.cfg"                         value="${config.jogl}/wgl-win32.cfg" />
             <param name="glext.platform.cfg"                     value="${config.jogl}/wglext.cfg" />
             <param name="glext.platform.header"                  value="${stub.includes}/win32/wglext.c" />
-        </antcall>          
+        </antcall>
 
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="macosx"/>
@@ -870,25 +870,25 @@
           <param name="glext.platform.cfg"                   value="${config.jogl}/cglext.cfg" />
           <param name="glext.platform.header"                value="${stub.includes}/macosx/cglext.c" />
         </antcall>
-    
+
         <antcall target="java.generate.gl.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="ios"/>
           <param name="window.os1.cfg"                       value="${config.jogl}/eagl-ios.cfg" />
           <!-- param name="glext.platform.cfg"                   value="${config.jogl}/eagl-ext.cfg" /-->
           <!-- param name="glext.platform.header"                value="${stub.includes}/ios/eagl-ext.c" /-->
         </antcall>
-    
+
         <!-- Generate GLU class -->
         <antcall target="java.generate.glu.base"   inheritrefs="true" />
         <antcall target="java.generate.glu.GL2ES1" inheritrefs="true" />
         <antcall target="java.generate.glu.GL2"    inheritrefs="true" />
 
-        <!-- Inform the user that the generators have successfully created 
+        <!-- Inform the user that the generators have successfully created
            - the necessary Java files -->
         <echo message="" />
         <echo message="GlueGen and BuildStaticGLInfo have successfully generated files." />
-    
-    </target>      
+
+    </target>
 
     <target name="java.generate.cg.check">
         <!-- Blow away all target files if any dependencies are violated
@@ -909,13 +909,13 @@
     </target>
 
     <!--
-       - Setup the generating ANT tasks and use it to generate the Java files 
+       - Setup the generating ANT tasks and use it to generate the Java files
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
     <target name="java.generate.cg" depends="build.gluegen-gl.jar,java.generate.cg.check" unless="java.generate.cg.skip">
         <!-- Generate CgGL interface class -->
-        <gluegen src="${stub.includes.opengl}/cg.c" 
+        <gluegen src="${stub.includes.opengl}/cg.c"
                  outputRootDir="${build.jogl}"
                  config="${config.jogl}/cg-common.cfg"
                  includeRefid="stub.includes.cg.fileset.all"
@@ -927,7 +927,7 @@
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Build and dependency rules for the composable pipeline
       -->
     <target name="java.generate.composable.pipeline.check.es1">
@@ -938,13 +938,13 @@
             <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES1.java,TraceGLES1.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es1"
                   srcfile="${classes}/com/jogamp/opengl/GLES1.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES1.java" />
 
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.check.es2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -954,13 +954,13 @@
             <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES2.java,TraceGLES2.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es2"
                   srcfile="${classes}/com/jogamp/opengl/GLES2.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES2.java" />
 
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.check.es3">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -970,13 +970,13 @@
             <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGLES3.java,TraceGLES3.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.es3"
                   srcfile="${classes}/com/jogamp/opengl/GLES3.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGLES3.java" />
 
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.check.gl2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -991,7 +991,7 @@
         <uptodate property="java.generate.composable.pipeline.skip.gl2"
                   srcfile="${classes}/com/jogamp/opengl/GL2.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL2.java" />
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.check.gl3">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -1001,12 +1001,12 @@
             <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGL3.java,TraceGL3.java,DebugGL3bc.java,TraceGL3bc.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl3"
                   srcfile="${classes}/com/jogamp/opengl/GL3.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL3.java" />
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.check.gl4bc">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
@@ -1016,12 +1016,12 @@
             <targetfileset dir="${src.generated.java}/com/jogamp/opengl"
                            includes="DebugGL4bc.java,TraceGL4bc.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.skip.gl4bc"
                   srcfile="${classes}/com/jogamp/opengl/GL4bc.class"
                   targetfile="${src.generated.java}/com/jogamp/opengl/DebugGL4bc.java" />
-    </target>        
+    </target>
 
     <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
@@ -1029,7 +1029,7 @@
             <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-    </target>          
+    </target>
 
     <target name="java.generate.composable.pipeline.es3" depends="java.generate.composable.pipeline.check.es3" unless="java.generate.composable.pipeline.skip.es3">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
@@ -1037,7 +1037,7 @@
             <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-    </target>          
+    </target>
 
     <target name="java.generate.composable.pipeline.gl4bc" depends="java.generate.composable.pipeline.check.gl4bc" unless="java.generate.composable.pipeline.skip.gl4bc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
@@ -1045,7 +1045,7 @@
             <arg value="${src.generated.java}/com/jogamp/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-    </target>          
+    </target>
 
     <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es3, java.generate.composable.pipeline.gl4bc">
     </target>
@@ -1060,12 +1060,12 @@
             <targetfileset dir="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc"
                            includes="FixedFuncImpl.java" />
         </dependset>
-                           
+
         <!-- Now choose one of the two to test to see if we have to regenerate -->
         <uptodate property="java.generate.composable.pipeline.custom.skip.glfixfunc"
                   srcfile="${classes}/com/jogamp/opengl/GL2ES1.class"
                   targetfile="${src.generated.java}/jogamp/opengl/util/glsl/fixedfunc/FixedFuncImpl.java" />
-    </target>        
+    </target>
     <target name="java.generate.composable.pipeline.custom.glfixfunc" depends="java.generate.composable.pipeline.custom.check.glfixfunc" unless="java.generate.composable.pipeline.custom.skip.glfixfunc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="com.jogamp.opengl.GL2ES1" />
@@ -1077,12 +1077,12 @@
             <arg value="gl_identity_by_assignable_class" />
             <classpath refid="pipeline.classpath" />
         </java>
-    </target>          
+    </target>
     <target name="java.generate.composable.pipeline.custom" depends="init, common.gluegen.init, java.generate.composable.pipeline.custom.glfixfunc">
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the original and generated source.  The composable pipelines
        - will be generated.
       -->
@@ -1095,7 +1095,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/GLDebugMessageHandler.java" />
@@ -1111,7 +1111,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/util/av/impl/FFMPEGStaticNatives.java" />
@@ -1129,7 +1129,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/util/av/impl/OMXGLMediaPlayer.java" />
@@ -1143,7 +1143,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1159,7 +1159,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen_joal.classpath"/>
             <src path="${src.java}" />
@@ -1175,7 +1175,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1191,7 +1191,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen_android.classpath"/>
             <src path="${src.java}" />
@@ -1210,7 +1210,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1230,7 +1230,7 @@
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
@@ -1257,7 +1257,7 @@
       </compiler>
 
       <!-- linker configuration -->
- 
+
       <linker id="linker.cfg.freebsd.jogl.x11" extends="linker.cfg.freebsd">
         <syslibset dir="/usr/local/lib" libs="X11"/>
       </linker>
@@ -1366,7 +1366,7 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.win32.msvc.jogl" />
     </target>
-    
+
     <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.win32.mingw" />
@@ -1384,49 +1384,49 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.x86" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.x86.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.amd64.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.armv6.jogl.x11" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.armv6.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.aarch64" if="isLinuxARM64">
       <echo message="Linux.aarch64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.aarch64.jogl.x11" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.aarch64.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.HPPA" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.mips" if="isLinuxMips">
       <echo message="Linux.MIPS" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
       <echo message="Linux.MIPSEL" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.jogl.x11" />
     </target>
-    
+
     <target name="c.configure.linux.ppc" if="isLinuxPpc">
       <echo message="Linux.PPC" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
@@ -1464,27 +1464,27 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
       <property name="linker.cfg.id.os"                     value="linker.cfg.android.jogl" />
     </target>
-    
+
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solaris.jogl.x11" />
     </target>
-  
- 
+
+
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solaris.sparcv9.jogl.x11" />
     </target>
-   
+
 
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris.amd64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solaris.amd64.jogl.x11" />
     </target>
-   
+
     <target name="c.configure.freebsd.x86" depends="c.configure.x11" if="isFreeBSDX86">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.freebsd.jogl" />
@@ -1518,18 +1518,18 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.ios.amd64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.ios.amd64.jogl" />
     </target>
-    
+
     <target name="c.configure.ios.arm64" if="isIOSArm64">
       <property name="compiler.cfg.id"                     value="compiler.cfg.ios.arm64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.ios.arm64.jogl" />
     </target>
-    
+
     <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64, c.configure.ios.arm64, c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
-    <!-- Only compile the ffmpeg version depending source files 
-         against their respective header files! 
+    <!-- Only compile the ffmpeg version depending source files
+         against their respective header files!
          We do not use the resulting static libraries directly,
          but inject their obj-files in build.c for the jogl_* library! -->
     <macrodef name="c.build.ffmpeg">
@@ -1563,19 +1563,19 @@
             <fileset dir="${obj.joglsub}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="${output.lib.type}" 
+            <cc outtype="${output.lib.type}"
                 usehighleveltool="true"
                 writesoname="true"
-                objdir="${obj.joglsub}" 
+                objdir="${obj.joglsub}"
                 outfile="${obj.joglsub}/@{output.lib.name}"
-                optimize="${c.compiler.optimise}" 
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}"><patternset refid="c.src.files.@{version.lav}"/></fileset>
-      
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -1583,11 +1583,11 @@
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/opengl"/>
                 <includepath path="stub_includes/ffmpeg/@{version.lav}"/>
-      
+
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c.libav}" />
-      
+
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
@@ -1595,13 +1595,13 @@
               <linker extends="@{linker.cfg.id}">
               </linker>
             </cc>
-            <gluegen.make.libsymbols builddir="${build}" 
+            <gluegen.make.libsymbols builddir="${build}"
                 nativelib="${obj.joglsub}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
                 symbolsfile="${obj.joglsub}/${native.library.prefix}@{output.lib.name}.symbols"/>
           </sequential>
         </outofdate>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <macrodef name="c.build">
       <attribute name="c.compiler.src.files" />
@@ -1693,21 +1693,21 @@
             <fileset dir="${obj.jogl}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="${output.lib.type}" 
+            <cc outtype="${output.lib.type}"
                 usehighleveltool="true"
-                objdir="${obj.joglsub}" 
+                objdir="${obj.joglsub}"
                 outfile="${obj.jogl}/@{output.lib.name}"
-                optimize="${c.compiler.optimise}" 
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}">
                 <patternset refid="@{c.compiler.src.files}"/>
                 <patternset refid="@{c.compiler.obj.files}"/>
               </fileset>
-      
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -1716,8 +1716,8 @@
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
                 <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
-                <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
-      
+                <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>
+
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${nativewindow.src.c}/macosx" if="isOSX"/>
@@ -1729,18 +1729,18 @@
                 <includepath path="${src.generated.c}/Windows"   if="isWindows"/>
                 <includepath path="${src.generated.c.libav}" />
                 <includepath path="${src.generated.c.openmax}"   if="setup.addNativeOpenMAX"/>
-      
+
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
-    
+
               <linker extends="@{linker.cfg.id}">
                 <syslibset dir="${java.lib.platform}" libs="jawt" if="@{output.lib.name}.useLibJAWT"/>
                 <syslibset dir="${java.lib.platform}/server" libs="jvm" if="@{output.lib.name}.useLibJVM"/>
               </linker>
             </cc>
-    
-            <gluegen.make.libsymbols builddir="${build}" 
+
+            <gluegen.make.libsymbols builddir="${build}"
                 nativelib="${obj.jogl}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
                 symbolsfile="${obj.jogl}/${native.library.prefix}@{output.lib.name}.symbols"/>
 
@@ -1754,7 +1754,7 @@
           </sequential>
         </outofdate>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <target name="c.build.jogl.ffmpeg" if="setup.addNativeFFmpeg">
       <c.build.ffmpeg version.lav="v0400"
@@ -1800,7 +1800,7 @@
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>
-    
+
     <target name="c.manifest.cg" if="setup.addNativeNVidiaCG">
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_cg" />
     </target>
@@ -1935,7 +1935,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase, 
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase,
                                               build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -1980,7 +1980,7 @@
                         nativejarfile="${build.jogl}/jogl-natives-${os.and.arch}.jar"
                         manifestfile="${build.jogl}/manifest-natives.mf"
                         module="opengl"
-                        includelibs="*.${native.library.suffix}" 
+                        includelibs="*.${native.library.suffix}"
                         excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
 
         <native.tag.jar objdir="${obj.jogl}"
@@ -1993,8 +1993,8 @@
     <!-- ================================================================== -->
     <!--
        - Build the Javadocs for the sources.
-       - NOTE:  these are not entirely correct as the javadocs targets depend 
-       -        on the platform specific build targets.  To circumvent any 
+       - NOTE:  these are not entirely correct as the javadocs targets depend
+       -        on the platform specific build targets.  To circumvent any
        -        errors, ensure that the source is built first.
       -->
     <!-- Same as above but with Cg directories added -->
@@ -2002,9 +2002,9 @@
         <!-- Build the general public Javadoc with CG -->
         <javadoc packagenames="${javadoc.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
@@ -2036,9 +2036,9 @@
     <target name="javadoc.dev.all" depends="init">
         <javadoc packagenames="${javadoc.dev.packagenames},com.jogamp.opengl.cg"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"

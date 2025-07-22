@@ -47,11 +47,11 @@
 
     <target name="javadoc.nw.spec.zip" depends="javadoc.init, javadoc.nw.spec, javadoc.zip"/>
 
-    <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow" 
+    <target name="javadoc.spec" description="Build Specifications JOGL and Nativewindow"
                                 depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec" />
 
     <!-- excluded javadoc.dev due to time consumption -->
-    <target name="javadoc.all" description="Build all NativeWindow, JOGL and NEWT docs" 
+    <target name="javadoc.all" description="Build all NativeWindow, JOGL and NEWT docs"
                                depends="javadoc.init, javadoc.nw.spec, javadoc.jogl.spec, javadoc.public"/>
 
     <target name="clean" depends="init">
@@ -67,7 +67,7 @@
         </delete>
         <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
         <delete includeEmptyDirs="true" quiet="true" dir="${lib}" failonerror="false" />
-    </target>        
+    </target>
 
     <!-- ================================================================== -->
     <!--
@@ -252,7 +252,7 @@
                         nativejarfile="${jar}/jogl-all-natives-${os.and.arch}.jar"
                         manifestfile="${build}/manifest-all-natives.mf"
                         module="opengl"
-                        includelibs="*.${native.library.suffix}" 
+                        includelibs="*.${native.library.suffix}"
                         excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
 
         <antcall target="one.fat.jar" inheritRefs="true" inheritAll="true"/>
@@ -272,7 +272,7 @@
     </target>
 
     <target name="android.jogl.package" depends="init,gluegen.cpptasks.detect.os,android.package.jogl.skip.check" if="isAndroid" unless="android.package.jogl.skip">
-        <aapt.signed 
+        <aapt.signed
             assetsdir="resources/assets"
             jarsrcdir="${src}/jogl/classes"
             jarbuilddir="${jar}"
@@ -286,9 +286,9 @@
             version.code="${jogamp.version.int}"
             version.name="${jogamp.version}">
           <d8-classpaths>
-              <arg line="--classpath ${gluegen-rt-android.jar}"/> 
-              <arg line="--classpath ${joal.jar}"/> 
-              <arg line="--classpath ${jogl-all-android.jar}"/> 
+              <arg line="--classpath ${gluegen-rt-android.jar}"/>
+              <arg line="--classpath ${joal.jar}"/>
+              <arg line="--classpath ${jogl-all-android.jar}"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
           </d8-classpaths>
@@ -332,8 +332,8 @@
         <copy todir="${jar}/orig">
             <fileset dir="${jar}" includes="*.jar" />
         </copy>
-        <apply dir="${jar}" executable="${java.home}/bin/pack200" 
-             parallel="false" 
+        <apply dir="${jar}" executable="${java.home}/bin/pack200"
+             parallel="false"
              vmlauncher="false"
              relative="true"
              failonerror="false">
@@ -430,9 +430,9 @@
        - Javadoc build target.
       -->
 
-    <!-- copies ${gluegen-javadoc.path}/** to ${javadoc.root.path}/gluegen/ 
+    <!-- copies ${gluegen-javadoc.path}/** to ${javadoc.root.path}/gluegen/
          gluegen-javadoc.path is the parent folder of element-list:
-            gluegen-javadoc.path := build/javadoc/gluegen 
+            gluegen-javadoc.path := build/javadoc/gluegen
             with build/javadoc/gluegen/javadoc/element-list
       -->
     <target name="javadoc.gluegen" depends="init" if="gluegen-javadoc.path">
@@ -446,7 +446,7 @@
 
     <target name="javadoc.init" depends="init">
         <!-- Link offline with relative URLs does not work.
-             Link online with relative URLs works, 
+             Link online with relative URLs works,
              so we have to assume the same relative online folder structure:
 
                  http://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/
@@ -466,7 +466,7 @@
 
                  jogl.root:    build/javadoc/gluegen/javadoc
           -->
-        <property name="gluegen.link" value="../../gluegen/javadoc" /> 
+        <property name="gluegen.link" value="../../gluegen/javadoc" />
         <property name="javadoc.root.path" value="${build}/javadoc" />
         <property name="javadoc.jogl.public.path" value="${javadoc.root.path}/jogl/javadoc" />
         <property name="javadoc.jogl.dev.path"    value="${javadoc.root.path}/jogl/javadoc_dev" />
@@ -477,9 +477,9 @@
         <property name="doxygen.jogl.public.path" value="${doxygen.root.path}/jogl/javadoc" />
         <property name="doxygen.jogl.dev.path"    value="${doxygen.root.path}/jogl/javadoc_dev" />
 
-        <!-- if gluegen-javadoc.path is not set, check in default location, 
+        <!-- if gluegen-javadoc.path is not set, check in default location,
              ${gluegen.root}/${rootrel.build}/javadoc/gluegen -->
-        <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/element-list" 
+        <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/element-list"
                    type="file"
                    property="gluegen-javadoc.path"
                    value="${gluegen.root}/${rootrel.build}/javadoc/gluegen" />
@@ -560,20 +560,20 @@
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.jogl.public.path}" 
+                 destdir="${javadoc.jogl.public.path}"
                  windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  access="public"
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
-                 bottom="${javadoc.bottom}" 
+                 bottom="${javadoc.bottom}"
                  stylesheetfile="${gluegen.make}/doc/javadoc/stylesheet.css">
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg value="--frames"/>
-            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
+            <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
             <arg value="${javadoc.xarg1}"/>
         </javadoc>
@@ -588,7 +588,7 @@
         <javadoc packagenames="${javadoc.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.jogl.spec.path}" 
+                 destdir="${javadoc.jogl.spec.path}"
                  windowtitle="${javadoc.spec.windowtitle}"
                  overview="${javadoc.overview}"
                  access="public"
@@ -610,16 +610,16 @@
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
         </copy>
     </target>
-                                                                                                                                   
+
     <target name="javadoc.dev" depends="javadoc.init">
         <!-- Build the internal developer Javadoc -->
         <mkdir dir="${javadoc.jogl.dev.path}" />
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.jogl.dev.path}" 
+                 destdir="${javadoc.jogl.dev.path}"
                  windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  access="protected"
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
@@ -645,7 +645,7 @@
         <javadoc packagenames="${javadoc.nw.spec.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
                  sourcepath="${all.srcj.path};${all.genj.path}"
-                 destdir="${javadoc.nw.spec.path}" 
+                 destdir="${javadoc.nw.spec.path}"
                  windowtitle="${javadoc.nw.spec.windowtitle}"
                  overview="${javadoc.nw.overview}"
                  access="public"
@@ -666,7 +666,7 @@
             <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
         </copy>
     </target>
-                                                                                                                                   
+
     <target name="javadoc.zip" depends="javadoc.init">
         <archive.7z destfile="${build}/javadoc.7z"
              basedir="${javadoc.root.path}"

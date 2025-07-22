@@ -104,7 +104,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_jogl_newt.compile.classpath"/>
             <src path="${src.demos}" />
@@ -117,7 +117,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_joal_jogl_newt.compile.classpath"/>
             <src path="${src.demos}" />
@@ -157,7 +157,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_jogl_newt_android.compile.classpath"/>
             <src path="${src.demos}" />
@@ -170,7 +170,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="demo_joal_jogl_newt_android.compile.classpath"/>
             <src path="${src.demos}" />
@@ -263,7 +263,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
@@ -276,7 +276,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt_oculusvr.compile.classpath"/>
             <src path="${src.test}" />

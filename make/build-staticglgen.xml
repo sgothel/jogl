@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   - Ant build for JOGL's BuildStaticGLInfo and corresponding ANT task.  This 
-   - build should not be called directly.  It is invoked from the main 
+   - Ant build for JOGL's BuildStaticGLInfo and corresponding ANT task.  This
+   - build should not be called directly.  It is invoked from the main
    - "build.xml" file and relies on the properties set therein.
    -
    - This build has been tested with ANT 1.5.3 and JOGL 1.1.1.1.
@@ -12,7 +12,7 @@
   -->
 <project name="JOGL.BuildStaticGLInfo" default="all">
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="declare" description="Declare properties">
@@ -36,12 +36,12 @@
                release="${target.releaselevel}">
             <classpath refid="antlr.classpath" />
         </javac>
-        
+
         <!-- Inform the user that BuildStaticGLInfo has been successfully built. -->
         <echo message="" />
         <echo message="BuildStaticGLInfo has been built successfully." />
-    </target>      
-    
+    </target>
+
     <!-- ================================================================== -->
     <!--
        - Build the StaticGLGen ANT task.
@@ -49,9 +49,9 @@
     <target name="build.static.gl.task" depends="declare">
         <!-- Ensure that the output classes directory exists. -->
         <mkdir dir="${classes}" />
-            
+
         <!-- Build the BuildStaticGLInfo ANT task.
-           - NOTE:  ONLY the StaticGLGen is built at this time.  BuildStaticGLInfo 
+           - NOTE:  ONLY the StaticGLGen is built at this time.  BuildStaticGLInfo
            -        itself is built in a separate task.  -->
         <javac destdir="${classes}" includes="**/StaticGLGenTask.java" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="true"
@@ -61,8 +61,8 @@
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>
-        
-        <!-- Inform the user that the BuildStaticGLInfo ANT task has been 
+
+        <!-- Inform the user that the BuildStaticGLInfo ANT task has been
            - successfully built. -->
         <echo message="" />
         <echo message="StaticGLGen ANT task has been built successfully." />
@@ -70,7 +70,7 @@
 
     <!-- ================================================================== -->
     <!--
-       - Clean up all that is built.  
+       - Clean up all that is built.
        - NOTE:  this is a bit heavy-handed as it may delete more than just
        -        what is built with this build.
       -->
@@ -83,17 +83,17 @@
             <fileset dir="${classes}" />
         </delete>
     </target>
-    
+
     <!-- ================================================================== -->
     <!--
        - Build BuildStaticGLInfo and the BuildStaticGLInfo ANT task.
       -->
     <target name="all" depends="declare">
         <!-- Build BuildStaticGLInfo -->
-        <antcall target="build.static.gl" />    
-    
+        <antcall target="build.static.gl" />
+
         <!-- Build the BuildStaticGLInfo ANT task -->
         <antcall target="build.static.gl.task" />
-    </target>      
+    </target>
 
 </project>

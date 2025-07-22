@@ -159,7 +159,7 @@
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
 
-        <property name="java.part.nonjava" 
+        <property name="java.part.nonjava"
                   value="${java.part.core.assets}"/>
 
         <!-- condition excludes -->
@@ -171,18 +171,18 @@
 
         <condition property="java.excludes.swt"
                    value="${java.part.swt}">
-           <isset property="setup.noSWT"/> 
+           <isset property="setup.noSWT"/>
         </condition>
 
         <condition property="java.excludes.javafx"
                    value="${java.part.javafx}">
-           <isset property="setup.noJFX"/> 
+           <isset property="setup.noJFX"/>
         </condition>
 
         <condition property="java.excludes.applet3"
                    value="${java.part.applet3}">
            <not>
-               <isset property="plugin3-jars.available"/> 
+               <isset property="plugin3-jars.available"/>
            </not>
         </condition>
 
@@ -265,7 +265,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/kd/WindowDriver.java" />
@@ -281,7 +281,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/intel/gdl/DisplayDriver.java" />
@@ -299,7 +299,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/bcm/egl/WindowDriver.java" />
@@ -315,7 +315,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/bcm/vc/iv/DisplayDriver.java" />
@@ -333,7 +333,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/egl/gbm/DisplayDriver.java" />
@@ -351,7 +351,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/windows/WindowDriver.java" />
@@ -369,7 +369,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/macosx/WindowDriver.java" />
@@ -387,7 +387,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/ios/WindowDriver.java" />
@@ -405,7 +405,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/x11/WindowDriver.java" />
@@ -415,14 +415,14 @@
             <include name="jogamp/newt/driver/x11/RandR13.java" />
           <compilerarg value="-implicit:none" />
         </javac>
-        
+
         <javac destdir="${classes}"
                excludes="${java.excludes.all} ${java.part.driver.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -437,7 +437,7 @@
     </target>
 
     <target name="java.compile.android" if="android-jars.available">
-        
+
         <!-- create Android native headers -->
         <javac srcdir="${src.java}"
                destdir="${classes}"
@@ -447,7 +447,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
             <include name="jogamp/newt/driver/android/WindowDriver.java" />
@@ -460,7 +460,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
@@ -813,7 +813,7 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.android.newt" />
     </target>
-    
+
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
@@ -875,12 +875,12 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.ios.amd64" />
       <property name="linker.cfg.id.oswin"                 value="linker.cfg.ios.amd64.newt" />
     </target>
-    
+
     <target name="c.configure.ios.arm64" if="isIOSArm64">
       <property name="compiler.cfg.id"                     value="compiler.cfg.ios.arm64" />
       <property name="linker.cfg.id.oswin"                 value="linker.cfg.ios.arm64.newt" />
     </target>
-    
+
     <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64,c.configure.ios.arm64,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
@@ -944,7 +944,7 @@
             <fileset dir="${obj.newt}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="${output.lib.type}" 
+            <cc outtype="${output.lib.type}"
                 usehighleveltool="true"
                 writesoname="true"
                 objdir="${obj.newt}"
@@ -954,9 +954,9 @@
                 multithreaded="true"
                 exceptions="false"
                 rtti="false">
-    
+
               <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
-    
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -984,14 +984,14 @@
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
-    
+
               <linker extends="@{linker.cfg.id}">
                 <syslibset dir="${java.lib.platform}" libs="jawt" if="@{output.lib.name}.useLibJAWT"/>
                 <syslibset dir="${java.lib.platform}/server" libs="jvm" if="@{output.lib.name}.useLibJVM"/>
               </linker>
             </cc>
-    
-            <gluegen.make.libsymbols builddir="${build}" 
+
+            <gluegen.make.libsymbols builddir="${build}"
                 nativelib="${obj.newt}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
                 symbolsfile="${obj.newt}/${native.library.prefix}@{output.lib.name}.symbols"/>
 

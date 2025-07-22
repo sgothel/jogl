@@ -27,14 +27,14 @@
    -                       Java and C file generators. Note that it is only supported
    -                       to create the Javadoc for the platform on which you are
    -                       currently running.
-   - 
+   -
    - Note: on Windows the "win32.c.compiler" property in gluegen.properties
    - is required to select the appropriate C compiler. See the example
    - gluegen.properties in the gluegen workspace for valid values. On Mac OS X
    - universal binaries may also be built by setting the "macosxfat"
    - property in gluegen.properties; again see the example file in this
    - directory.
-   -   
+   -
    - Thanks to Rob Grzywinski and Artur Biesiadowski for the bulk of the
    - ANT build, including the GlueGen tasks, the building of
    - the Java generated sources, the first and second phase Java compiles, and
@@ -59,7 +59,7 @@
     </taskdef>
 
 	<!-- ================================================================== -->
-    <!-- 
+    <!--
        - Base initialization and detection of operating system.
       -->
     <target name="base.init" depends="common.init">
@@ -93,7 +93,7 @@
         <!-- condition excludes -->
 
         <condition property="java.excludes.awt" value="${java.part.awt}">
-           <isset property="setup.noAWT"/> 
+           <isset property="setup.noAWT"/>
         </condition>
 
         <property name="java.excludes.all" value="${java.excludes.awt}" />
@@ -102,7 +102,7 @@
 
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="declare.common" description="Declare properties" depends="base.init">
@@ -119,12 +119,12 @@
         <!-- The source directories. -->
         <property name="src.java" value="${project.root}/${rootrel.src.java}" />
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
-        
+
         <!-- The generated source directories. -->
         <property name="src.generated" value="${build.nativewindow}/gensrc" />
         <property name="src.generated.java" value="${src.generated}/classes" />
         <property name="src.generated.c" value="${src.generated}/native" />
-        
+
         <!-- The compiler output directories. -->
         <property name="classes" value="${build.nativewindow}/classes" />
 
@@ -165,9 +165,9 @@
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames},com.jogamp.nativewindow.util.*,jogamp.nativewindow.*,com.jogamp.gluegen,com.jogamp.gluegen.runtime" />
     <property name="javadoc.bottom" value="Copyright 2005 Sun Microsystems, Inc. All rights reserved. Use is subject to &lt;a href=&quot;http://jcp.org/en/jsr/detail?id=231&quot;&gt;license terms&lt;/a&gt;." />
     </target>
-    
+
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
@@ -271,7 +271,7 @@
     </target>
 
     <!--
-       - Setup the generating ANT tasks and use it to generate the Java files 
+       - Setup the generating ANT tasks and use it to generate the Java files
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
@@ -310,7 +310,7 @@
             <param name="jawt.cfg"                               value="${config.nativewindow}/jawt-win32.cfg" />
             <param name="jawt.platform.header"                   value="${stub.includes.gluegen}/jni/win32/jawt_md.h" />
             <param name="jni.platform.sub"                       value="win32" />
-        </antcall>          
+        </antcall>
 
         <echo message="Generating platform-specifics: MacOSX" />
         <antcall target="java.generate.platforms" inheritRefs="true">
@@ -319,7 +319,7 @@
           <param name="jawt.platform.header"                 value="${stub.includes.gluegen}/jni/macosx/jawt_md.h" />
           <param name="jni.platform.sub"                     value="macosx" />
         </antcall>
-    
+
         <echo message="Generating platform-specifics: iOS (nop)" /> <!-- actually nothing gets generated -->
         <antcall target="java.generate.platforms" inheritRefs="true">
           <param name="window.os.system"                     value="ios"/>
@@ -327,16 +327,16 @@
           <!-- param name="jawt.platform.header"                 value="${stub.includes.gluegen}/jni/ios/jawt_md.h" / --> <!-- n/a -->
           <!-- param name="jni.platform.sub"                     value="ios" / --> <!-- n/a -->
         </antcall>
-    
-        <!-- Inform the user that the generators have successfully created 
+
+        <!-- Inform the user that the generators have successfully created
            - the necessary Java files -->
         <echo message="" />
         <echo message="GlueGen has successfully generated files." />
-    
-    </target>      
+
+    </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the original and generated source.  The composable pipelines
        - will be generated.
       -->
@@ -351,7 +351,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/drm/DRMLib.java" />
@@ -368,7 +368,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/x11/X11Lib.java" />
@@ -385,7 +385,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/windows/GDI.java" />
@@ -402,7 +402,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/jawt/macosx/MacOSXJAWTWindow.java" />
@@ -419,7 +419,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/ios/IOSUtil.java" />
@@ -435,7 +435,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -446,7 +446,7 @@
     <target name="java.compile" depends="java.compile.javase" />
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the native C code for JOGL (and optionally the Cg binding).
       -->
 
@@ -599,7 +599,7 @@
       <linker id="linker.cfg.win32.msvc.nativewindow" extends="linker.cfg.win32.msvc">
         <syslibset libs="gdi32, user32, kernel32" />
       </linker>
-      
+
       <linker id="linker.cfg.macosx.nativewindow" extends="linker.cfg.macosx">
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
@@ -640,7 +640,7 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.win32.msvc.nativewindow" />
     </target>
-    
+
     <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
@@ -659,28 +659,28 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.x86.nativewindow.x11" />
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.x86.nativewindow.drm" />
     </target>
-    
+
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.amd64.nativewindow.drm" />
     </target>
-    
+
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv6.nativewindow.x11" />
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.armv6.nativewindow.drm" />
     </target>
-    
+
     <target name="c.configure.linux.aarch64" if="isLinuxARM64">
       <echo message="Linux.aarch64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.aarch64.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.aarch64.nativewindow.x11" />
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.aarch64.nativewindow.drm" />
     </target>
-    
+
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
@@ -750,39 +750,39 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.android" />
     </target>
-    
+
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.nativewindow.x11" />
     </target>
-  
- 
+
+
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11.sparcv9" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.sparcv9.nativewindow.x11" />
     </target>
-   
+
 
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.nativewindow.x11.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.solaris.amd64.nativewindow.x11" />
     </target>
-   
+
     <target name="c.configure.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.nativewindow.x11" />
     </target>
-    
+
     <target name="c.configure.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSD.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.freebsd.amd64.nativewindow.x11" />
     </target>
-    
+
     <target name="c.configure.freebsd" depends="c.configure.freebsd.x86,c.configure.freebsd.amd64,c.configure.x11" if="isFreeBSD" />
 
     <target name="c.configure.hpux" depends="c.configure.x11" if="isHPUX">
@@ -799,17 +799,17 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
-    
+
     <target name="c.configure.ios.amd64" if="isIOSAmd64">
       <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.ios.amd64.nativewindow" />
     </target>
-    
+
     <target name="c.configure.ios.arm64" if="isIOSArm64">
       <property name="compiler.cfg.id"                      value="compiler.cfg.ios.arm64.nativewindow" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.ios.arm64.nativewindow" />
     </target>
-    
+
     <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64,c.configure.ios.arm64,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
@@ -824,9 +824,9 @@
         <echo message="Output lib name = @{output.lib.name}" />
 
         <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-        <property name="c.compiler.debug"     value="false" /> 
-        <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-        <property name="c.compiler.optimise"  value="none" /> 
+        <property name="c.compiler.debug"     value="false" />
+        <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } -->
+        <property name="c.compiler.optimise"  value="none" />
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
@@ -842,7 +842,7 @@
             <isset property="isHPUX"/>
             <isset property="@{output.lib.name}.useLibJAWT"/>
           </and>
-        </condition> 
+        </condition>
 
         <patternset id="c.src.files.awt">
           <include name="${rootrel.src.c}/JAWT*.c"/>
@@ -891,7 +891,7 @@
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
-        <echo message="java.lib.dir.platform: ${java.lib.dir.platform}" />      
+        <echo message="java.lib.dir.platform: ${java.lib.dir.platform}" />
 
         <!-- have to wrap cc task with outofdate, because otherwise cc links a new library
              even when no files have been compiled -->
@@ -903,19 +903,19 @@
             <fileset dir="${obj.nativewindow}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="${output.lib.type}" 
+            <cc outtype="${output.lib.type}"
                 usehighleveltool="true"
                 writesoname="true"
-                objdir="${obj.nativewindow}" 
+                objdir="${obj.nativewindow}"
                 outfile="${obj.nativewindow}/@{output.lib.name}"
-                optimize="${c.compiler.optimise}" 
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
-      
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -934,18 +934,18 @@
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}/drm"     if="setup.addNativeDRMGBM" />
                 <includepath path="stub_includes/drm"          if="setup.addNativeDRMGBM" />
-      
+
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
-      
+
               <linker extends="@{linker.cfg.id}">
                 <syslibset dir="${java.lib.dir.platform}" libs="jawt" if="@{output.lib.name}.useLibJAWT"/>
                 <syslibset dir="${java.lib.dir.platform}/server" libs="jvm" if="@{output.lib.name}.useLibJVM"/>
               </linker>
             </cc>
 
-            <gluegen.make.libsymbols builddir="${build}" 
+            <gluegen.make.libsymbols builddir="${build}"
                 nativelib="${obj.nativewindow}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
                 symbolsfile="${obj.nativewindow}/${native.library.prefix}@{output.lib.name}.symbols"/>
 
@@ -959,7 +959,7 @@
           </sequential>
       	</outofdate>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
@@ -1116,18 +1116,18 @@
     <!-- ================================================================== -->
     <!--
        - Build the Javadocs for the sources.
-       - NOTE:  these are not entirely correct as the javadoc targets depend 
-       -        on the platform specific build targets.  To circumvent any 
+       - NOTE:  these are not entirely correct as the javadoc targets depend
+       -        on the platform specific build targets.  To circumvent any
        -        errors, ensure that the source is built first.
       -->
     <target name="javadoc" depends="init">
         <!-- Build the general public Javadoc -->
         <javadoc packagenames="${javadoc.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"
                  classpath="${gluegen-rt.jar}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
@@ -1151,15 +1151,15 @@
           <arg value="${javadoc.xarg1}"/>
         </javadoc>
     </target>
-                                                                                                                                   
+
     <target name="javadoc.dev" depends="init">
         <!-- Build the internal developer Javadoc -->
         <javadoc packagenames="${javadoc.dev.packagenames}"
                  excludepackagenames="${java.excludes.javadoc.packagenames}"
-                 sourcepath="${src.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.generated.java}"
                  classpath="${gluegen-rt.jar}"
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"

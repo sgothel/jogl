@@ -18,7 +18,7 @@
     </taskdef>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Base initialization and detection of operating system.
       -->
     <target name="partitioning.setup" depends="common.init">
@@ -28,12 +28,12 @@
         <property name="java.part.graph.ui.shadercode"
                   value="jogamp/graph/ui/opengl/shader/* jogamp/graph/ui/opengl/shader/bin/**"/>
 
-        <property name="java.part.nonjava" 
+        <property name="java.part.nonjava"
                   value="${java.part.graph.ui.shadercode}"/>
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="declare.common" description="Declare properties" depends="partitioning.setup">
@@ -41,13 +41,13 @@
 
         <!-- The source directories. -->
         <property name="src.java"                 value="${project.root}/${rootrel.src.java}" />
-        
+
         <!-- The compiler output directories. -->
         <property name="classes"                  value="${build.graphui}/classes" />
     </target>
-    
+
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Initialize all parameters required for the build and create any
        - required directories.
       -->
@@ -62,7 +62,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="newt_jogl_nativewindow_gluegen.compile.classpath"/>
             <src path="${src.java}" />

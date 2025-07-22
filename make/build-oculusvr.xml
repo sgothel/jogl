@@ -11,24 +11,24 @@
     </taskdef>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Base initialization and detection of operating system.
       -->
     <target name="partitioning.setup" depends="common.init">
-        <property name="java.part.oculusvr" 
+        <property name="java.part.oculusvr"
                   value="com/jogamp/oculusvr/**"/>
-        <property name="java.part.opengl.oculusvr" 
+        <property name="java.part.opengl.oculusvr"
                   value="com/jogamp/opengl/oculusvr/** jogamp/opengl/oculusvr/**"/>
-        <property name="java.part.oculusvr.exclude" 
+        <property name="java.part.oculusvr.exclude"
                   value="" />
         <property name="java.part.oculusvr.shadercode"
                   value="jogamp/opengl/oculusvr/shader/**"/>
-        <property name="java.part.nonjava" 
+        <property name="java.part.nonjava"
                   value="${java.part.oculusvr.shadercode}"/>
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Declare all paths and user defined variables.
       -->
     <target name="init" depends="declare.common">
@@ -52,12 +52,12 @@
         <property name="src.java"                 value="${project.root}/${rootrel.src.java}" />
         <property name="src.ovr.java"             value="${rel.oculusvr.sdk}/jogl/src/classes" />
         <property name="src.c"                    value="${project.root}/${rootrel.src.c}" />
-        
+
         <!-- The generated source directories. -->
         <property name="src.generated"            value="${build.oculusvr}/gensrc" />
         <property name="src.generated.java"       value="${src.generated}/classes" />
         <property name="src.generated.c"          value="${src.generated}/native/oculusvr" />
-        
+
         <!-- The compiler output directories. -->
         <property name="classes"                  value="${build.oculusvr}/classes" />
 
@@ -89,7 +89,7 @@
             <include name="*.java" />
             <include name="*.c" />
         </fileset>
-        
+
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_oculusvr" />
         <property name="javadoc.windowtitle" value="OculusVR API Specification -- Version ${jogamp.version.base}" />
@@ -122,7 +122,7 @@
         <echo message="oculusvr.build.enabled ${oculusvr.build.enabled}" />
         <echo message="c.build.supported ${c.build.supported}" />
     </target>
-    
+
     <!-- ================================================================== -->
     <!--
        - Check to see whether we need to rebuild the generated sources.
@@ -189,7 +189,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -202,7 +202,7 @@
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
-               release="${target.releaselevel}" 
+               release="${target.releaselevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -218,7 +218,7 @@
     </target>
 
     <!-- ================================================================== -->
-    <!-- 
+    <!--
        - Compile the native C code for OculusVR
       -->
 
@@ -254,9 +254,9 @@
           <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         </defineset>
       </compiler>
-  
+
       <!-- linker configuration -->
- 
+
       <linker id="linker.cfg.macosx.oculusvr" extends="linker.cfg.macosx">
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
@@ -271,7 +271,7 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="c.configure.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.win32.mingw" />
@@ -289,43 +289,43 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.x86" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.x86" />
     </target>
-    
+
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.amd64" />
     </target>
-    
+
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux.armv6.oculusvr.x11" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux.armv6" />
     </target>
-    
+
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
-    
+
     <target name="c.configure.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.HPPA" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
-    
+
     <target name="c.configure.linux.mips" if="isLinuxMips">
       <echo message="Linux.MIPS" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
-    
+
     <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
       <echo message="Linux.MIPSEL" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
-    
+
     <target name="c.configure.linux.ppc" if="isLinuxPpc">
       <echo message="Linux.PPC" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
@@ -363,27 +363,27 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
       <property name="linker.cfg.id.os"                     value="linker.cfg.android" />
     </target>
-    
+
     <target name="c.configure.solaris32" depends="c.configure.x11" if="isSolaris32Bit">
       <echo message="Solaris" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solarisx11" />
     </target>
-  
- 
+
+
     <target name="c.configure.solaris.sparcv9" depends="c.configure.x11" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris.sparcv9" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solaris.sparcv9" />
     </target>
-   
+
 
     <target name="c.configure.solaris.amd64" depends="c.configure.x11" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.solaris.amd64" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.solaris.amd64" />
     </target>
-   
+
     <target name="c.configure.freebsd.x86" depends="c.configure.x11" if="isFreeBSDX86">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.freebsd.oculusvr" />
@@ -412,7 +412,7 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.macosx.oculusvr" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.macosx.oculusvr" />
     </target>
-    
+
     <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
@@ -536,18 +536,18 @@
           </targetfiles>
           <sequential>
             <!-- C Compilation -->
-            <cc outtype="static" 
-                objdir="${obj.oculusvr}" 
-                optimize="${c.compiler.optimise}" 
+            <cc outtype="static"
+                objdir="${obj.oculusvr}"
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}">
                 <patternset refid="c.src.files.oculusvr.c"/>
               </fileset>
-      
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -556,7 +556,7 @@
                 <includepath path="${stub.includes.inc}"/>
                 <includepath path="${stub.includes.ovr}"/>
                 <includepath path="${stub.includes.ovr}/CAPI"/>
-      
+
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
@@ -570,18 +570,18 @@
               </compiler>
             </cc>
             <!-- C++ Compilation -->
-            <cc outtype="static" 
-                objdir="${obj.oculusvr}" 
-                optimize="${c.compiler.optimise}" 
+            <cc outtype="static"
+                objdir="${obj.oculusvr}"
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}">
                 <patternset refid="c.src.files.oculusvr.cpp"/>
               </fileset>
-      
+
               <compiler extends="@{compiler.cfg.id}" >
                 <sysincludepath path="${java.includes.dir}"/>
                 <sysincludepath path="${java.includes.dir.platform}"/>
@@ -590,7 +590,7 @@
                 <includepath path="${stub.includes.inc}"/>
                 <includepath path="${stub.includes.ovr}"/>
                 <includepath path="${stub.includes.ovr}/CAPI"/>
-      
+
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${src.generated.c}" />
@@ -598,7 +598,7 @@
                 <compilerarg location="start" value="-ObjC++"                   if="isOSX"/>
                 <compilerarg location="start" value="-x"                        if="isCLANG" unless="isOSX"/>
                 <compilerarg location="start" value="c++"                       if="isCLANG" unless="isOSX"/>
-                <!-- 
+                <!--
                 <compilerarg location="start" value="-x"                        if="isCLANG"/>
                 <compilerarg location="start" value="c++"                       if="isCLANG"/>
                 -->
@@ -620,18 +620,18 @@
               </compiler>
             </cc>
             <!-- Linkage -->
-            <cc outtype="shared" 
-                objdir="${obj.oculusvr}" 
+            <cc outtype="shared"
+                objdir="${obj.oculusvr}"
                 outfile="${obj.oculusvr}/@{output.lib.name}"
-                optimize="${c.compiler.optimise}" 
+                optimize="${c.compiler.optimise}"
                 debug="${c.compiler.debug}"
-                multithreaded="true" 
-                exceptions="false" 
-                rtti="false">   
-      
+                multithreaded="true"
+                exceptions="false"
+                rtti="false">
+
               <fileset dir="${project.root}"
                 includes="${rootrel.obj.oculusvr}/*.o"/>
-      
+
               <linker extends="@{linker.cfg.id}">
                 <syslibset libs="setupapi, winmm"                              if="isWindows"/>
                 <syslibset libs="gdi32, kernel32"                              if="isWindows"/>
@@ -639,7 +639,7 @@
                 <syslibset libs="ws2_32"                                       if="isWindows"/>
 
                 <syslibset libs="X11 Xrandr udev m"                            if="isLinux" unless="isLinuxARMv6" />
-                <syslibset dir="${TARGET_PLATFORM_USRLIBS}" 
+                <syslibset dir="${TARGET_PLATFORM_USRLIBS}"
                            libs="X11 Xrandr udev m"                            if="isLinuxARMv6" />
 
                 <syslibset dir="/usr/local/lib" libs="X11 Xrandr udev m"       if="isFreeBSD"/>
@@ -651,7 +651,7 @@
                 <linkerarg location="start" value="-mmacosx-version-min=10.7"  if="isOSX"/>
 
                 <!-- syslibset libs="stdc++"
-                     Don't link dynamic 
+                     Don't link dynamic
                      Static link directive must be at the end! -->
                 <linkerarg location="end" value="-Wl,-Bstatic"                 if="isGCC" unless="isOSX"/>
                 <linkerarg location="end" value="-lstdc++"                                unless="isOSX"/>
@@ -660,7 +660,7 @@
 
               </linker>
             </cc>
-    
+
             <!-- this stripping may be called more than once on the same library dir,
                  but that should cause no harm, and doing it here inside outofdate
                  prevents the JARs from always being rebuilt even if no source code changes -->
@@ -671,7 +671,7 @@
           </sequential>
         </outofdate>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <target name="c.build" depends="c.configure" if="c.build.supported">
       <c.build output.lib.name="oculusvr"
@@ -736,15 +736,15 @@
     <!-- ================================================================== -->
     <!--
        - Build the Javadocs for the sources.
-       - NOTE:  these are not entirely correct as the javadocs targets depend 
-       -        on the platform specific build targets.  To circumvent any 
+       - NOTE:  these are not entirely correct as the javadocs targets depend
+       -        on the platform specific build targets.  To circumvent any
        -        errors, ensure that the source is built first.
       -->
     <target name="javadoc" depends="init">
         <javadoc packagenames="${javadoc.packagenames}"
-                 sourcepath="${src.java};${src.ovr.java};${src.generated.java}"        
+                 sourcepath="${src.java};${src.ovr.java};${src.generated.java}"
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
-                 overview="${javadoc.overview}" 
+                 overview="${javadoc.overview}"
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
@@ -771,13 +771,13 @@
     <!--
        - Build everything.
       -->
-    <target name="all" 
-            description="Build OculusVR JAR file(s) and native libraries." 
+    <target name="all"
+            description="Build OculusVR JAR file(s) and native libraries."
             depends="init" if="oculusvr.build.enabled">
         <antcall target="all.impl" inheritRefs="true" />
     </target>
-    <target name="all.impl" 
-            description="Build OculusVR JAR file(s) and native libraries." 
+    <target name="all.impl"
+            description="Build OculusVR JAR file(s) and native libraries."
             depends="java.compile,c.build,build-jars,generate.version.txt"/>
 
     <target name="generate.version.txt" depends="init">
