@@ -1830,7 +1830,7 @@
                      includes="${jogl.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
-    <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
+    <target name="build-jars" depends="build-jars-dependset,build-jars-native" />
 
     <target name="setup-manifestfile" depends="common.init">
         <property name="manifestfile" value="joglversion"/>
@@ -1976,6 +1976,16 @@
             <fileset dir="${classes}"
                      includes="${java.part.nv-cg}"/>
         </jar>
+    </target>
+
+    <target name="native.jar.deps" depends="build-jars-javase">
+      <uptodate property="native.jar.skip" targetfile="${build.jogl}/jogl-natives-${os.and.arch}.jar">
+        <srcfiles dir="${obj.jogl}" includes="*.${native.library.suffix}" />
+        <!-- srcfiles file="${build.jogl}/manifest-natives.mf"/ -->
+      </uptodate>
+    </target>
+
+    <target name="build-jars-native" depends="native.jar.deps" unless="native.jar.skip">
         <native.tag.jar objdir="${obj.jogl}"
                         nativejarfile="${build.jogl}/jogl-natives-${os.and.arch}.jar"
                         manifestfile="${build.jogl}/manifest-natives.mf"
@@ -1989,6 +1999,7 @@
                         module="cg"
                         includelibs="*jogl_cg.${native.library.suffix}" />
     </target>
+
 
     <!-- ================================================================== -->
     <!--

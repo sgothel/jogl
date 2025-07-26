@@ -170,6 +170,7 @@
                 </zips>
             </archives>
         </jar>
+        <touch file="${jogl-all-android.jar}"/>
     </target>
 
     <target name="one.jar.dir.awt" unless="setup.noAWT">
@@ -184,6 +185,7 @@
                 </zips>
             </archives>
         </jar>
+        <touch file="${jogl-all.jar}"/>
     </target>
     <target name="one.fat.jar" if="joal-jars.available" unless="isAndroid">
         <delete includeEmptyDirs="true" quiet="true" dir="${fat}/j2se" failonerror="false" />
@@ -203,6 +205,7 @@
             <fileset dir="${fat}/j2se/classes"/>
             <fileset dir="${fat}/j2se/lib"/>
         </jar>
+        <touch file="${jogl-fat.jar}"/>
     </target>
     <target name="one.fat.jar.android" if="isAndroid">
         <delete includeEmptyDirs="true" quiet="true" dir="${fat}/android" failonerror="false" />
@@ -223,6 +226,7 @@
             <fileset dir="${fat}/android/classes"/>
             <fileset dir="${fat}/android/lib"/>
         </jar>
+        <touch file="${jogl-fat.jar}"/>
     </target>
     <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
         <antcall target="one.jar.dir.awt" inheritRefs="true" inheritAll="true"/>
@@ -237,6 +241,7 @@
                 </zips>
             </archives>
         </jar>
+        <touch file="${jogl-all-noawt.jar}"/>
         <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-mobile.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
@@ -248,6 +253,7 @@
                 </zips>
             </archives>
         </jar>
+        <touch file="${jogl-all-mobile.jar}"/>
         <native.tag.jar objdir="${lib}"
                         nativejarfile="${jar}/jogl-all-natives-${os.and.arch}.jar"
                         manifestfile="${build}/manifest-all-natives.mf"
@@ -300,16 +306,20 @@
         <srcfiles dir="${lib}" includes="*.${native.library.suffix}" />
       </uptodate>
       <uptodate property="one.dir.skip.all" targetfile="${jogl-all.jar}">
+        <srcfiles dir="${build.gluegen}" includes="*.jar"/>
         <srcfiles dir="${build.nativewindow}" includes="*.jar"/>
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
         <srcfiles dir="${build.graphui}" includes="*.jar"/>
+        <srcfiles dir="${build.joal}/jar" includes="*.jar"/>
       </uptodate>
       <uptodate property="one.dir.skip.android" targetfile="${jogl-all-android.jar}">
+        <srcfiles dir="${build.gluegen}" includes="*.jar"/>
         <srcfiles dir="${build.nativewindow}" includes="*.jar"/>
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
         <srcfiles dir="${build.graphui}" includes="*.jar"/>
+        <srcfiles dir="${build.joal}/jar" includes="*.jar"/>
       </uptodate>
       <uptodate property="one.dir.skip.oculusvr" targetfile="${oculusvr.jar}">
         <srcfiles dir="${build.oculusvr}" includes="*.jar"/>
@@ -319,7 +329,7 @@
               <isset property="one.dir.skip.native"/>
               <isset property="one.dir.skip.all"/>
               <isset property="one.dir.skip.android"/>
-              <isset property="one.dir.skip.oculusvr"/>
+              <!-- isset property="one.dir.skip.oculusvr"/ -->
           </and>
       </condition>
     </target>

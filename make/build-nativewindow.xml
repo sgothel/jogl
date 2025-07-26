@@ -1020,7 +1020,7 @@
     <!--
        - Build the nativewindow.jar files.
       -->
-    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase" />
+    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-native" />
 
     <target name="setup-manifestfile">
         <property name="manifestfile" value="nativewindowversion"/>
@@ -1100,12 +1100,23 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-swt,build-jars-awt,build-jars-drm,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
+    <target name="build-jars-javase"
+            depends="setup-manifestfile,build-jars-swt,build-jars-awt,build-jars-drm,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.swt} ${java.part.awt} ${java.part.drm} ${java.part.x11} ${java.part.windows}"/>
         </jar>
+    </target>
+
+    <target name="native.jar.deps" depends="build-jars-javase">
+      <uptodate property="native.jar.skip" targetfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar">
+        <srcfiles dir="${obj.nativewindow}" includes="*.${native.library.suffix}" />
+        <!-- srcfiles file="${build.nativewindow}/manifest-natives.mf"/ -->
+      </uptodate>
+    </target>
+
+    <target name="build-jars-native" depends="native.jar.deps" unless="native.jar.skip">
         <native.tag.jar objdir="${obj.nativewindow}"
                         nativejarfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar"
                         manifestfile="${build.nativewindow}/manifest-natives.mf"

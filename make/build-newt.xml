@@ -1164,7 +1164,14 @@
         </jar>
     </target>
 
-    <target name="build-jars-native" depends="gluegen.cpptasks.detect.os,setup-manifestfile">
+    <target name="native.jar.deps" depends="build-jars-javase">
+      <uptodate property="native.jar.skip" targetfile="${build.newt}/newt-natives-${os.and.arch}.jar">
+        <srcfiles dir="${obj.newt}" includes="*.${native.library.suffix}" />
+        <!-- srcfiles file="${build.newt}/manifest-natives.mf"/ -->
+      </uptodate>
+    </target>
+
+    <target name="build-jars-native" depends="gluegen.cpptasks.detect.os,setup-manifestfile,native.jar.deps" unless="native.jar.skip">
         <native.tag.jar objdir="${obj.newt}"
                         nativejarfile="${build.newt}/newt-natives-${os.and.arch}.jar"
                         manifestfile="${build.newt}/manifest-natives.mf"
