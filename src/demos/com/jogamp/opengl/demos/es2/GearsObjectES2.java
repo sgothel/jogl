@@ -56,19 +56,6 @@ public class GearsObjectES2 extends GearsObject {
         associate(st);
     }
 
-    public GearsObjectES2(final GearsObjectES2 shared,
-                          final ShaderState st,
-                          final PMVMatrix pmvMatrix,
-                          final GLUniformData pmvMatrixUniform, final GLUniformData colorUniform)
-    {
-        super(shared);
-        this.pmvMatrix = pmvMatrix;
-        this.pmvMatrixUniform = pmvMatrixUniform;
-        this.colorUniform = colorUniform;
-        this.st = st;
-        associate(st);
-    }
-
     private void associate(final ShaderState st) {
         frontFace.associate(st, true);
         frontSide.associate(st, true);
@@ -94,7 +81,7 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     private void draw(final GL2ES2 gl, final GLArrayDataServer array, final int mode, final int face) {
-        if( !isShared || gl.glIsBuffer(array.getVBOName()) ) {
+        if( gl.glIsBuffer(array.getVBOName()) ) {
             if( validateBuffers ) {
                 array.bindBuffer(gl, true);
                 final int bufferTarget = array.getVBOTarget();

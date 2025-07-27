@@ -44,17 +44,14 @@ public abstract class GearsObject {
     public GLArrayDataServer backSide;
     public GLArrayDataServer outwardFace;
     public GLArrayDataServer insideRadiusCyl;
-    public boolean isShared;
     protected boolean validateBuffers = false;
 
     public abstract GLArrayDataServer createInterleaved(boolean useMappedBuffers, int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
     public abstract void draw(GL gl, float x, float y, float angle);
 
-    private GLArrayDataServer createInterleavedClone(final GLArrayDataServer ads) {
-      final GLArrayDataServer n = new GLArrayDataServer(ads);
-      n.setInterleavedOffset(0);
-      return n;
+    public void setColor(final float r, final float g, final float b, final float a) {
+        gearColor.put(0, r).put(1, g).put(2, b).put(3, a);
     }
 
     private void init(final GL gl, final GLArrayDataServer array) {
@@ -63,7 +60,7 @@ public abstract class GearsObject {
     }
 
     public void destroy(final GL gl) {
-        if(!isShared) {
+        {
             // could be already destroyed by shared configuration
             if(null != frontFace) {
                 frontFace.destroy(gl);
@@ -90,25 +87,6 @@ public abstract class GearsObject {
         backSide=null;
         outwardFace=null;
         insideRadiusCyl=null;
-        isShared = false;
-    }
-
-    public GearsObject ( final GearsObject shared ) {
-        isShared = true;
-        validateBuffers = shared.validateBuffers;
-        frontFace = createInterleavedClone(shared.frontFace);
-        addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = createInterleavedClone(shared.backFace);
-        addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = createInterleavedClone(shared.frontSide);
-        addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide= createInterleavedClone(shared.backSide);
-        addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = createInterleavedClone(shared.outwardFace);
-        addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = createInterleavedClone(shared.insideRadiusCyl);
-        addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
-        gearColor = shared.gearColor;
     }
 
     public GearsObject (
@@ -130,8 +108,8 @@ public abstract class GearsObject {
         // final int tris_per_tooth = 32;
 
         this.validateBuffers = validateBuffers;
-        this.isShared = false;
-        this.gearColor = gearColor;
+        this.gearColor = Buffers.newDirectFloatBuffer(4);
+        this.gearColor.put(gearColor).rewind(); gearColor.rewind();
 
         r0 = inner_radius;
         r1 = outer_radius - tooth_depth / 2.0f;
