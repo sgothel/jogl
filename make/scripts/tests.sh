@@ -197,6 +197,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker"
     #D_ARGS="-Djogl.debug.GLBufferObjectTracker -Djogl.debug.GLArrayData -Djogl.debug.TraceGL -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
@@ -245,9 +246,9 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLEventListenerState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.GLContext"
-    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
-    #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
@@ -337,9 +338,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
     #D_ARGS="-Djogl.debug.graph.curve"
-    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
-    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode"
-    #D_ARGS="-Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
     #D_ARGS="-Djogl.debug.graph.curve.triangulation.force.complexshape"
@@ -347,9 +346,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.font.Font"
     #D_ARGS="-Djogl.debug.graph.font.Font -Djogl.debug.graph.font.Renderer -Djogl.debug.graph.font.Renderer.Code"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
-    #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.graph.curve.instance -Djogl.debug.graph.curve"
-    #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
     #D_ARGS="-Djogamp.debug.IOUtil"
     #D_ARGS="-Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.debug.IOUtil"
@@ -1015,7 +1012,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
@@ -1054,9 +1051,13 @@ testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #
 # Basic (Demos)
 #
+#testnoawt com.jogamp.opengl.demos.es2.RedSquareES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.LandscapeES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.PointsDemoES2 $*
+#testnoawt com.jogamp.opengl.demos.es2.GearsFBO00 $*
+#testnoawt com.jogamp.opengl.demos.es2.GearsFBO01 $*
+testnoawt com.jogamp.opengl.demos.es2.GearsFBO02 $*
 
 #
 # Misc (junit)

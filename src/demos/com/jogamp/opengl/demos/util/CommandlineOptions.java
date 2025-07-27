@@ -186,6 +186,9 @@ public class CommandlineOptions {
     public GLProfile getGLProfile() {
         return GLProfile.get(glProfileName);
     }
+    public void setGLProfile(final String name) {
+        glProfileName = name;
+    }
     public GLCapabilities getGLCaps() {
         final GLProfile glp = getGLProfile();
         final GLCapabilities caps = new GLCapabilities(glp);
