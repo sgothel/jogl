@@ -142,8 +142,8 @@ public class LandscapeES2 implements GLEventListener {
 
         shaderState.useProgram(gl, true);
 
-        resolution[0] = drawable.getSurfaceWidth();
-        resolution[1] = drawable.getSurfaceHeight();
+        resolution[0] = width;
+        resolution[1] = height;
         shaderState.uniform(gl, resolutionUni);
 
         shaderState.useProgram(gl, false);
