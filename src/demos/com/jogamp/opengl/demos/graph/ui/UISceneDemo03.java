@@ -242,7 +242,7 @@ public class UISceneDemo03 {
             final GL gl = drawable.getGL();
             gl.glEnable(GL.GL_DEPTH_TEST);
             // gl.glDepthFunc(GL.GL_LEQUAL);
-            gl.glEnable(GL.GL_BLEND);
+            // gl.glEnable(GL.GL_BLEND);
             return true;
         });
 
