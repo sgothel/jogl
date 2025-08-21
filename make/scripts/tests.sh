@@ -1012,7 +1012,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
@@ -1057,7 +1057,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.es2.PointsDemoES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO00 $*
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO01 $*
-testnoawt com.jogamp.opengl.demos.es2.GearsFBO02 $*
+#testnoawt com.jogamp.opengl.demos.es2.GearsFBO02 $*
 
 #
 # Misc (junit)

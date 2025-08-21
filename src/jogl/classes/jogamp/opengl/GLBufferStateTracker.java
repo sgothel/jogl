@@ -114,21 +114,21 @@ public class GLBufferStateTracker {
 
 
   /**
-   *  GL_ARRAY_BUFFER​,
-   *  GL_ATOMIC_COUNTER_BUFFER​,
-   *  GL_COPY_READ_BUFFER​,
-   *  GL_COPY_WRITE_BUFFER​,
-   *  GL_DRAW_INDIRECT_BUFFER​,
-   *  GL_DISPATCH_INDIRECT_BUFFER​,
-   *  GL_ELEMENT_ARRAY_BUFFER​,
-   *  GL_PIXEL_PACK_BUFFER​,
-   *  GL_PIXEL_UNPACK_BUFFER​,
+   *  GL_ARRAY_BUFFER
+   *  GL_ATOMIC_COUNTER_BUFFER,
+   *  GL_COPY_READ_BUFFER,
+   *  GL_COPY_WRITE_BUFFER,
+   *  GL_DRAW_INDIRECT_BUFFER,
+   *  GL_DISPATCH_INDIRECT_BUFFER,
+   *  GL_ELEMENT_ARRAY_BUFFER,
+   *  GL_PIXEL_PACK_BUFFER,
+   *  GL_PIXEL_UNPACK_BUFFER,
    *  GL_QUERY_BUFFER,
-   *  GL_PARAMETER_BUFFER_ARB,
-   *  GL_SHADER_STORAGE_BUFFER​,
-   *  GL_TEXTURE_BUFFER​,
-   *  GL_TRANSFORM_FEEDBACK_BUFFER​ or
-   *  GL_UNIFORM_BUFFER​.
+   *  GL_PARAMETER_BUFFER,
+   *  GL_SHADER_STORAGE_BUFFER,
+   *  GL_TEXTURE_BUFFER,
+   *  GL_TRANSFORM_FEEDBACK_BUFFER or
+   *  GL_UNIFORM_BUFFER.
    *
    *  GL_VERTEX_ARRAY_BINDING
    *
@@ -145,7 +145,7 @@ public class GLBufferStateTracker {
         case GL2ES3.GL_PIXEL_PACK_BUFFER:         return GL2ES3.GL_PIXEL_PACK_BUFFER_BINDING;
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:       return GL2ES3.GL_PIXEL_UNPACK_BUFFER_BINDING;
         case GL4.GL_QUERY_BUFFER:                 return GL4.GL_QUERY_BUFFER_BINDING;
-        case GL4.GL_PARAMETER_BUFFER_ARB:         return GL4.GL_PARAMETER_BUFFER_BINDING_ARB; // ARB_indirect_parameters
+        case GL4.GL_PARAMETER_BUFFER:             return GL4.GL_PARAMETER_BUFFER_BINDING; // ARB_indirect_parameters
         case GL3ES3.GL_SHADER_STORAGE_BUFFER:     return GL3ES3.GL_SHADER_STORAGE_BUFFER_BINDING;
         case GL2ES3.GL_TEXTURE_BUFFER:            return GL2ES3.GL_TEXTURE_BINDING_BUFFER;
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
@@ -154,7 +154,7 @@ public class GLBufferStateTracker {
         case GL2ES3.GL_VERTEX_ARRAY_BINDING:      return GL2ES3.GL_VERTEX_ARRAY_BINDING;
 
         default:
-            throw new GLException(String.format("GL_INVALID_ENUM​: Invalid binding target 0x%X", target));
+            throw new GLException(String.format("GL_INVALID_ENUM: Invalid binding target 0x%X", target));
       }
   }
   private static final void checkTargetName(final int target) {
@@ -169,7 +169,7 @@ public class GLBufferStateTracker {
         case GL2ES3.GL_PIXEL_PACK_BUFFER:
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:
         case GL4.GL_QUERY_BUFFER:
-        case GL4.GL_PARAMETER_BUFFER_ARB:  // ARB_indirect_parameters
+        case GL4.GL_PARAMETER_BUFFER:  // ARB_indirect_parameters
         case GL3ES3.GL_SHADER_STORAGE_BUFFER:
         case GL2ES3.GL_TEXTURE_BUFFER:
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER:
@@ -179,7 +179,7 @@ public class GLBufferStateTracker {
             return;
 
         default:
-            throw new GLException(String.format("GL_INVALID_ENUM​: Invalid binding target 0x%X", target));
+            throw new GLException(String.format("GL_INVALID_ENUM: Invalid binding target 0x%X", target));
       }
   }
 

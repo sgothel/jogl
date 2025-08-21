@@ -4,6 +4,7 @@
 // Define GL_GLEXT_PROTOTYPES so that the OpenGL extension prototypes in
 // "gl2ext.h" are parsed.
 #define GL_GLEXT_PROTOTYPES
+#define GL_GLES_PROTOTYPES
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext-supplement.h>

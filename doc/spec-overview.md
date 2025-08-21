@@ -25,7 +25,7 @@ table, th, td {
 This specification, an optional set of packages, describes the Java(TM)
 bindings to the native OpenGL(R) 3D graphics library profiles:
 
--   OpenGL \[ 1.0 .. 4.5 \], compatibility- and core profiles
+-   OpenGL \[ 1.0 .. 4.6 \], compatibility- and core profiles
 -   OpenGL ES \[ 1.0 .. 3.2 \]
 -   EGL \[ 1.0 .. 1.5 \]
 
@@ -64,7 +64,7 @@ This binding has dependencies to the following:
 
 OpenGL today is not just a single set of functions, it offers many
 profiles for different purposes, e.g. ES1, ES2 and ES3 for mobile, GL \[
-3.1 .. 4.5 \] core for a programmable shader application, etc.
+3.1 .. 4.6 \] core for a programmable shader application, etc.
 
 JOGL reflects these profiles [with an OO abstraction model](http://jogamp.org/jogl/doc/uml/html/), 
 specifying interfaces encapsulating common subsets.
@@ -129,11 +129,11 @@ The packages defined by this specification include:
 
     -   {@link com.jogamp.opengl.GL4 com.jogamp.opengl.GL4} interface
 
-        This interface contains all OpenGL \[ 4.0 .. 4.5 \] *core*
+        This interface contains all OpenGL \[ 4.0 .. 4.6 \] *core*
         methods, as well as most of it\'s extensions defined at the time
         of this specification.
 
-        Note: OpenGL \[ 4.0 .. 4.5 \] core profile does not includes
+        Note: OpenGL \[ 4.0 .. 4.6 \] core profile does not includes
         fixed point functionality.
 
         Future extensions will be added with a [maintenance
@@ -141,11 +141,11 @@ The packages defined by this specification include:
 
     -   {@link com.jogamp.opengl.GL4bc com.jogamp.opengl.GL4bc} interface
 
-        This interface contains all OpenGL \[ 4.0 .. 4.5 \]
+        This interface contains all OpenGL \[ 4.0 .. 4.6 \]
         *compatibility* profile, as well as most of it\'s extensions
         defined at the time of this specification.
 
-        Note: OpenGL \[ 4.0 .. 4.5 \] compatibility profile does
+        Note: OpenGL \[ 4.0 .. 4.6 \] compatibility profile does
         includes fixed point functionality.
 
         Future extensions will be added with a [maintenance
@@ -648,16 +648,14 @@ The following is an excerpt of our [README](https://jogamp.org/cgit/jogl.git/abo
 - [Wiki](https://jogamp.org/wiki/)
 - [**Khronos Registry**](http://www.khronos.org/registry/)
   -   [ES 3.1 Ref Pages](http://www.khronos.org/opengles/sdk/docs/man31/)
-  -   [ES 3.1 Spec](http://www.khronos.org/registry/gles/specs/3.1/es_spec_3.1.withchanges.pdf)
-  -   [GLSL ES 3.10 Spec](http://www.khronos.org/registry/gles/specs/3.1/GLSL_ES_Specification_3.10.withchanges.pdf)
-  -   [ES 3.0 Ref Card](http://www.khronos.org/files/opengles3-quick-reference-card.pdf)
+  -   [ES 3.2 Spec](https://registry.khronos.org/OpenGL/specs/es/3.2/es_spec_3.2.withchanges.pdf)
+  -   [GLSL ES 3.20 Spec](https://registry.khronos.org/OpenGL/specs/es/3.2/GLSL_ES_Specification_3.20.pdf)
 - [**OpenGL Registry**](http://www.opengl.org/registry/)
   -   [GL 4 Ref Pages](http://www.opengl.org/sdk/docs/man4/)
   -   [GLSL Ref Pages](http://www.opengl.org/sdk/docs/manglsl/)
-  -   [GL 4.5 Core Spec](http://www.opengl.org/registry/doc/glspec45.core.withchanges.pdf)
-  -   [GL 4.5 Compat.  Spec](http://www.opengl.org/registry/doc/glspec45.compatibility.withchanges.pdf)
-  -   [GLSL 4.50 spec](http://www.opengl.org/registry/doc/GLSLangSpec.4.50.diff.pdf)
-  -   [GL 4.5 Ref Card](http://www.opengl.org/sdk/docs/reference_card/opengl45-reference-card.pdf)
+  -   [GL 4.6 Core Spec](http://www.opengl.org/registry/doc/glspec46.core.withchanges.pdf)
+  -   [GL 4.6 Compat.  Spec](http://www.opengl.org/registry/doc/glspec46.compatibility.withchanges.pdf)
+  -   [GLSL 4.60 spec](http://www.opengl.org/registry/doc/GLSLangSpec.4.60.diff.pdf)
 
 ## JogAmp History & Milestones
 Bottom line, too much work has been performed to be listed here.    

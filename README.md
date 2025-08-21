@@ -8,7 +8,7 @@ This project's canonical repositories is hosted on [JogAmp](https://jogamp.org/c
 ## Overview
 The [*JOGL project*](https://jogamp.org/jogl/www/) hosts the development of high-performance graphics binding for Java™, and is designed to provide hardware-supported 3D graphics and multimedia to applications written in Java™.
 
-JOGL provides full access to the APIs in the OpenGL® [ 1.0 .. 4.5 ], ES [ 1.0 .. 3.2 ] and EGL [ 1.0 .. 1.5 ] specification as well as nearly all vendor extensions.
+JOGL provides full access to the APIs in the OpenGL® [ 1.0 .. 4.6 ], ES [ 1.0 .. 3.2 ] and EGL [ 1.0 .. 1.5 ] specification as well as nearly all vendor extensions.
 [OpenGL Evolution & JOGL](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html) and this API Specification may give you a brief overview.
 
 JOGL also embraces multimedia technology and binds to FFMpeg as well as to other media libraries providing a unified access API with JOAL. Further, stereo devices are supported in a generic fashion as well as for early OculusVR.
