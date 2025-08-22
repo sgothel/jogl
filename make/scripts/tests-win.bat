@@ -196,6 +196,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlock %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
@@ -271,7 +272,7 @@ REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo10 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
 
-scripts\java-win.bat com.jogamp.opengl.demos.es2.GearsES2 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.es2.GearsES2 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.es2.LandscapeES2 %*
