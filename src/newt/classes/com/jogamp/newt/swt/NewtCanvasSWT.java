@@ -178,33 +178,6 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     }
 
     /**
-     * Set's the NEWT {@link Window}'s size using {@link Window#setSize(int, int)}.
-     * <p>
-     * For all non-native DPI autoscale platforms method uses {@link SWTAccessor#deviceZoomScaleUp(Point)},
-     * which multiplies the given {@link Rectangle} size with {@link SWTAccessor#getDeviceScalingFactor()}
-     * to emulate DPI scaling, see Bug 1422.
-     * </p>
-     * <p>
-     * Otherwise this method uses the given {@link Rectangle} as-is.
-     * </p>
-     * <p>
-     * Currently native DPI autoscale platforms are
-     * <ul>
-     *  <li>{@link SWTAccessor#isOSX}</li>
-     * </ul>
-     * hence the emulated DPI scaling is enabled for all other platforms.
-     * </p>
-     * @param r containing desired size
-     */
-    private final void setNewtChildSize(final org.eclipse.swt.graphics.Rectangle r) {
-        if( !SWTAccessor.isOSX ) {
-            final Point p = SWTAccessor.deviceZoomScaleUp(new Point(r.width, r.height));
-            newtChild.setSize(p.getX(), p.getY());
-        } else {
-            newtChild.setSize(r.width, r.height);
-        }
-    }
-    /**
      * Return scaled-up value {@code scaleUp} using {@link SWTAccessor#deviceZoomScaleUp(int)}
      * for all non-native DPI autoscale platforms, currently !{@link SWTAccessor#isOSX}.
      * <p>
@@ -236,7 +209,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 }
                 if( validateNative() && newtChildReady ) {
                     if( postSetSize ) {
-                        setNewtChildSize(clientAreaWindow);
+                        newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
                         postSetSize = false;
                     }
                     if( postSetPos ) {
@@ -406,9 +379,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
         if( sizeChanged ) {
+            newtChild.setSurfaceScale(pixelScale);
             if( newtChildReady ) {
-                setNewtChildSize(nClientAreaWindow);
-                newtChild.setSurfaceScale(pixelScale);
+                newtChild.setSize(nClientAreaWindow.width, nClientAreaWindow.height);
             } else {
                 postSetSize = true;
             }
@@ -596,7 +569,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 newtDisplay.setEDTUtil( edtUtil );
             }
 
-            setNewtChildSize(clientAreaWindow);
+            newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
             newtChild.reparentWindow(nativeWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
             newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
             newtChild.setVisible(true);
