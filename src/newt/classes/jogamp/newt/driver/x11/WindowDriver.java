@@ -173,6 +173,10 @@ public class WindowDriver extends WindowImpl {
         final int flags = getReconfigureMask(0, true) & STATE_MASK_CREATENATIVE;
         edtDevice.lock();
 
+        if( !hasSetPixelScale() ) {
+            updatePixelScaleByMonitor(getMainMonitor(), null, false /* setNativeWindow */);
+        }
+
         final int[] xy_pix = getPixelPosI();
         final int[] sz_pix = getPixelSizeI();
         try {
@@ -191,11 +195,7 @@ public class WindowDriver extends WindowImpl {
             javaWindowHandle = handles[1];
 
             last_monitor = getMainMonitor();
-            boolean changedPixelScale = hasSetPixelScale() && applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
-            if( !changedPixelScale ) {
-                changedPixelScale = updatePixelScaleByMonitor(last_monitor, null, true /* setNativeWindow */);
-            }
-            positionModified[0] = changedPixelScale;
+            positionModified[0] = hasSetPixelScale() && applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
 
         } finally {
             edtDevice.unlock();
