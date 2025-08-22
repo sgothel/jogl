@@ -181,7 +181,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      * Set's the NEWT {@link Window}'s size using {@link Window#setSize(int, int)}.
      * <p>
      * For all non-native DPI autoscale platforms method uses {@link SWTAccessor#deviceZoomScaleUp(Point)},
-     * which multiplies the given {@link Rectangle} size with {@link SWTAccessor#getDeviceZoomScalingFactor()}
+     * which multiplies the given {@link Rectangle} size with {@link SWTAccessor#getDeviceScalingFactor()}
      * to emulate DPI scaling, see Bug 1422.
      * </p>
      * <p>

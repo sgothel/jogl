@@ -157,6 +157,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
     #D_ARGS="-Dnativewindow.debug.OSXUtil -Dnativewindow.debug.JAWT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window -Djogl.debug.GLCanvas -Dnativewindow.debug.SWT"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.OSXUtil.MainThreadChecker"
     #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker"
@@ -842,7 +843,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
+testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
@@ -1012,7 +1013,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*

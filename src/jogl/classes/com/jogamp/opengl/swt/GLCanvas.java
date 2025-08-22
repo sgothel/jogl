@@ -395,14 +395,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                   displayIfNoAnimatorNoCheck();
                   break;
               case SWT.Resize:
-                  System.err.println(getThreadName()+": SWT.GLCanvas.Resize.0 "+toString());
+                  if (DEBUG) { System.err.println(getThreadName()+": SWT.GLCanvas.Resize.0 "+toString()); }
                   updateSizeCheck();
                   break;
               case SWT.ZoomChanged:
-                  System.err.println(getThreadName()+": SWT.GLCanvas.ZoomChanged.0 "+toString());
+                  if (DEBUG) { System.err.println(getThreadName()+": SWT.GLCanvas.ZoomChanged.0 "+toString()); }
                   updateSizeCheck();
                   break;
               case SWT.Dispose:
+                  if (DEBUG) { System.err.println(getThreadName()+": SWT.GLCanvas.Dispose.0 "+toString()); }
                   GLCanvas.this.dispose();
                   break;
               }
@@ -461,6 +462,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       final Rectangle oClientAreaPixels = clientAreaPixels;
       final Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
 
+      if(DEBUG) {
+          System.err.println(getThreadName()+": GLCanvas.sizeChanged: clientAreaPixels.o "+getClientArea());
+          System.err.println(getThreadName()+": GLCanvas.sizeChanged: clientAreaPixels.n "+nClientAreaPixels);
+      }
+
       if ( nClientAreaPixels != null &&
            ( nClientAreaPixels.width != oClientAreaPixels.width || nClientAreaPixels.height != oClientAreaPixels.height )
          ) {
@@ -469,7 +475,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
           final GLDrawableImpl _drawable = drawable;
           final boolean drawableOK = null != _drawable && _drawable.isRealized();
-          if(true || DEBUG) {
+          if(DEBUG) {
               final long dh = drawableOK ? _drawable.getHandle() : 0;
               System.err.println(getThreadName()+": GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+" - drawableHandle "+toHexString(dh));
           }

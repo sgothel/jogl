@@ -79,7 +79,6 @@ public class SWTAccessor {
     public static final boolean isWindows;
     public static final boolean isX11;
     public static final boolean isX11GTK;
-    public static final boolean useCairoAutoScale; // See SWT git commit 111b874343d65aaee4f13d74eda554bde1a740a7 (always true for GTK since version 4.36.0)
 
     // X11/GTK, Windows/GDI, ..
     private static final String str_handle = "handle";
@@ -311,7 +310,6 @@ public class SWTAccessor {
         OS_gdk_x11_window_get_xid = m9;
 
         isX11GTK = isX11 && null != OS_gtk_class;
-        useCairoAutoScale = isX11GTK;
         if( DEBUG ) {
             printInfo(System.err, null);
         }
@@ -422,37 +420,18 @@ public class SWTAccessor {
         out.println("SWT: Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
         out.println("SWT: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
         out.println("SWT: isOSX "+isOSX+", isWindows "+isWindows);
-        out.println("SWT: DeviceZoom: "+DPIUtil.getDeviceZoom()+", deviceZoomScalingFactor "+getDeviceZoomScalingFactor());
+        out.println("SWT: deviceZoom "+DPIUtil.getDeviceZoom()+", deviceScalingFactor "+getDeviceScalingFactor());
         final Point dpi = null != d ? d.getDPI() : null;
-        out.println("SWT: Display.DPI "+dpi+"; DPIUtil: autoScalingFactor "+
-                        getAutoScalingFactor()+" (use-swt "+(null != swt_dpiutil_getScalingFactor)+
-                        "), useCairoAutoScale "+useCairoAutoScale);
+        out.println("SWT: Display.DPI "+dpi);
+        out.println("SWT: swt_dpiutil_getScalingFactor "+(null != swt_dpiutil_getScalingFactor));
+        out.println("SWT: swt_scrollable_clientAreaInPixels "+(null != swt_scrollable_clientAreaInPixels));
     }
 
     //
-    // SWT DPIUtil Compatible auto-scale functionality
+    // SWT DPIUtil derived deviceZoom scale functionality,
+    // not considering the higher-toolkit's compensation like 'DPIUtil.useCairoAutoScale()'
     //
-    /**
-     * Returns SWT compatible auto scale-factor, used by {@link DPIUtil}
-     * <p>
-     * We need to keep track of SWT's implementation in this regard!
-     * </p>
-     */
-    public static float getAutoScalingFactor() throws NativeWindowException {
-        if( null != swt_dpiutil_getScalingFactor ) {
-            try {
-                return (float) swt_dpiutil_getScalingFactor.invoke(null);
-            } catch (final Throwable e) {
-                throw new NativeWindowException(e);
-            }
-        }
-        // Mimick original code ..
-        final int deviceZoom = DPIUtil.getDeviceZoom();
-        if ( 100 == deviceZoom || useCairoAutoScale ) {
-            return 1f;
-        }
-        return deviceZoom/100f;
-    }
+
     /**
      * Returns SWT auto scaled-up value {@code v}, compatible with {@link DPIUtil#autoScaleUp(int)}
      * <p>
@@ -461,7 +440,7 @@ public class SWTAccessor {
      */
     public static int autoScaleUp (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || useCairoAutoScale) {
+        if (100 == deviceZoom) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;
@@ -475,17 +454,37 @@ public class SWTAccessor {
      */
     public static int autoScaleDown (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || useCairoAutoScale) {
+        if (100 == deviceZoom) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;
         return Math.round (v / scaleFactor);
     }
 
-    //
-    // SWT DPIUtil derived deviceZoom scale functionality,
-    // not considering the higher-toolkit's compensation like 'DPIUtil.useCairoAutoScale()'
-    //
+    public static Rectangle autoScaleUp(final Rectangle rect) { return scaleUp(rect, DPIUtil.getDeviceZoom() ); }
+    public static Rectangle scaleUp(final Rectangle rect, final int zoom) {
+        if (zoom == 100 || rect == null) return rect;
+        final Rectangle scaledRect = new Rectangle(0,0,0,0);
+        final Point scaledTopLeft = scaleUp (new Point(rect.x, rect.y), zoom);
+        final Point scaledBottomRight = scaleUp (new Point(rect.x + rect.width, rect.y + rect.height), zoom);
+
+        scaledRect.x = scaledTopLeft.x;
+        scaledRect.y = scaledTopLeft.y;
+        scaledRect.width = scaledBottomRight.x - scaledTopLeft.x;
+        scaledRect.height = scaledBottomRight.y - scaledTopLeft.y;
+        return scaledRect;
+    }
+
+    public static Point autoScaleUp(final Point point) { return scaleUp(point, DPIUtil.getDeviceZoom() ); }
+    public static Point scaleUp(final Point point, final int zoom) {
+        if (zoom == 100 || point == null) return point;
+        final float scaleFactor = zoom <= 0 ? getDeviceScalingFactor() : zoom/100f;
+        final Point scaledPoint = new Point(0,0);
+        scaledPoint.x = Math.round (point.x * scaleFactor);
+        scaledPoint.y = Math.round (point.y * scaleFactor);
+        return scaledPoint;
+    }
+
     /**
      * Returns SWT derived scale-factor based on {@link DPIUtil#getDeviceZoom()}
      * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
@@ -497,13 +496,14 @@ public class SWTAccessor {
      * We need to keep track of SWT's implementation in this regard!
      * </p>
      */
-    public static float getDeviceZoomScalingFactor() {
+    public static float getDeviceScalingFactor() {
         final int deviceZoom = DPIUtil.getDeviceZoom();
         if ( 100 == deviceZoom ) {
             return 1f;
         }
         return deviceZoom/100f;
     }
+
     /**
      * Returns SWT derived scaled-up value {@code v}, based on {@link DPIUtil#getDeviceZoom()}
      * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
@@ -610,10 +610,14 @@ public class SWTAccessor {
      */
     public static Rectangle getClientAreaInPixels(final Scrollable s) throws NativeWindowException {
         if( null == swt_scrollable_clientAreaInPixels ) {
-            return DPIUtil.autoScaleUp(s.getClientArea());
+            return autoScaleUp(s.getClientArea());
         }
         try {
-            return (Rectangle) swt_scrollable_clientAreaInPixels.invoke(s);
+            final Rectangle r = (Rectangle) swt_scrollable_clientAreaInPixels.invoke(s);
+            if( isX11GTK ) {
+                return autoScaleUp(r); // for GTK, getClientAreaInPixels() is not scaled!
+            }
+            return r;
         } catch (final Throwable e) {
             throw new NativeWindowException(e);
         }
@@ -621,7 +625,7 @@ public class SWTAccessor {
 
     public static Point getLocationInPixels(final Control c) throws NativeWindowException {
         if( null == swt_control_locationInPixels ) {
-            return DPIUtil.autoScaleUp(c.getLocation());
+            return autoScaleUp(c.getLocation());
         }
         try {
             return (Point) swt_control_locationInPixels.invoke(c);
@@ -631,7 +635,7 @@ public class SWTAccessor {
     }
     public static Point getSizeInPixels(final Control c) throws NativeWindowException {
         if( null == swt_control_sizeInPixels ) {
-            return DPIUtil.autoScaleUp(c.getSize());
+            return autoScaleUp(c.getSize());
         }
         try {
             return (Point) swt_control_sizeInPixels.invoke(c);

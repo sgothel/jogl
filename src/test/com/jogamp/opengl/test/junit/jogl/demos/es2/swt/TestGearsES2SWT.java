@@ -106,6 +106,7 @@ public class TestGearsES2SWT extends UITestCase {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+                SWTAccessor.printInfo(System.err, display);
             }});
         display.syncExec(new Runnable() {
             @Override
