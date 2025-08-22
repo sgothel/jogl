@@ -395,6 +395,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                   displayIfNoAnimatorNoCheck();
                   break;
               case SWT.Resize:
+                  System.err.println(getThreadName()+": SWT.GLCanvas.Resize.0 "+toString());
+                  updateSizeCheck();
+                  break;
+              case SWT.ZoomChanged:
+                  System.err.println(getThreadName()+": SWT.GLCanvas.ZoomChanged.0 "+toString());
                   updateSizeCheck();
                   break;
               case SWT.Dispose:
@@ -464,7 +469,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
           final GLDrawableImpl _drawable = drawable;
           final boolean drawableOK = null != _drawable && _drawable.isRealized();
-          if(DEBUG) {
+          if(true || DEBUG) {
               final long dh = drawableOK ? _drawable.getHandle() : 0;
               System.err.println(getThreadName()+": GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+" - drawableHandle "+toHexString(dh));
           }

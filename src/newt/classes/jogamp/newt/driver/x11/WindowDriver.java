@@ -103,7 +103,7 @@ public class WindowDriver extends WindowImpl {
     /**
      * Essentially updates {@code hasPixelScale}
      */
-    private boolean updatePixelScaleByMonitor(final MonitorDevice md, final int[] move_diff, final boolean sendEvent, final boolean defer) {
+    private boolean updatePixelScaleByMonitor(final MonitorDevice md, final int[] move_diff, final boolean setNativeWindow) {
         boolean res = false;
         if( !hasSetPixelScale() && null != md ) {
             final float newPixelScale[] = { 0, 0 };
@@ -113,7 +113,7 @@ public class WindowDriver extends WindowImpl {
                 System.err.println("Window.updatePixelScaleByMonitor: monitor "+md);
                 System.err.println("Window.updatePixelScaleByMonitor: has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
             }
-            res = applySoftPixelScale(move_diff, sendEvent, defer, newPixelScale);
+            res = applySoftPixelScale(move_diff, newPixelScale, setNativeWindow);
         }
         return res;
     }
@@ -121,7 +121,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
         if( last_monitor == me.getMonitor() ) {
-            updatePixelScaleByMonitor(me.getMonitor(), null, false /* sendEvent*/, false /* defer */); // send reshape event itself
+            updatePixelScaleByMonitor(me.getMonitor(), null, true /* setNativeWindow */);
         }
     }
 
@@ -131,7 +131,7 @@ public class WindowDriver extends WindowImpl {
 
         boolean changed = false;
         if( isNativeValid() ) {
-            changed = applySoftPixelScale(null, true /* sendEvent */, false /* defer */, reqPixelScale);
+            changed = applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
         }
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("WindowDriver.setPixelScale: min["+minPixelScale[0]+", "+minPixelScale[1]+"], max["+
@@ -191,9 +191,9 @@ public class WindowDriver extends WindowImpl {
             javaWindowHandle = handles[1];
 
             last_monitor = getMainMonitor();
-            boolean changedPixelScale = applySoftPixelScale(null, true /* sendEvent */, false /* defer */, reqPixelScale);
+            boolean changedPixelScale = hasSetPixelScale() && applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
             if( !changedPixelScale ) {
-                changedPixelScale = updatePixelScaleByMonitor(last_monitor, null, true /* sendEvent */, false /* defer */);
+                changedPixelScale = updatePixelScaleByMonitor(last_monitor, null, true /* setNativeWindow */);
             }
             positionModified[0] = changedPixelScale;
 
@@ -344,7 +344,7 @@ public class WindowDriver extends WindowImpl {
                                            " - "+Thread.currentThread().getName());
                     }
                     last_monitor = new_monitor;
-                    updatePixelScaleByMonitor(new_monitor, move_diff, true /* sendEvent */, defer);
+                    updatePixelScaleByMonitor(new_monitor, move_diff, true /* setNativeWindow */);
                 }
             }
         }

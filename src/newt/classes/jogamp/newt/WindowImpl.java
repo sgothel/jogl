@@ -1393,14 +1393,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean waitForSz;
         boolean force;
 
-        private SetSizeAction(final int x, final int y, final boolean set_pos, final int w, final int h, final boolean waitForSz, final boolean disregardFS) {
+        private SetSizeAction(final int x, final int y, final boolean set_pos, final int w, final int h, final boolean waitForSz, final boolean force_) {
             this.x = x;
             this.y = y;
             this.set_pos = set_pos;
             this.width = w;
             this.height = h;
             this.waitForSz = waitForSz;
-            this.force = disregardFS;
+            this.force = force_;
         }
 
         @Override
@@ -2901,7 +2901,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private boolean applySoftPixelScaleImpl(final int[] move_diff, final boolean sendEvent, final boolean defer, final float[] newPixelScaleRaw) {
+    private boolean applySoftPixelScaleImpl(final int[] move_diff, final float[] newPixelScaleRaw, final boolean setNativeWindow) {
         boolean res = false;
         final float[] newPixelScale = new float[2];
         final float[] maxPixelScale = new float[2];
@@ -2955,8 +2955,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( DEBUG_IMPLEMENTATION ) {
                 System.err.println("Window.SoftPixelScale.2: Position: "+oldWindowPos[0]+"/"+oldWindowPos[1]+" -> "+newX+"/"+newY);
             }
-            setPosSizeImpl(newX, newY, windowSize[0], windowSize[1], false /* waitForSz */, true /* force */); // updates both, position and size according to new scale
-
+            if( setNativeWindow ) {
+                // updates both, position and size according to new scale
+                setPosSizeImpl(newX, newY, windowSize[0], windowSize[1], false /* waitForSz */, true /* force */);
+            } else {
+                if( !autoPosition() ) {
+                    defineWindowPosition(newX, newY);
+                }
+                defineWindowSize(windowSize[0], windowSize[1]);
+            }
             res = true;
         }
         return res;
@@ -2972,13 +2979,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param move_diff null if not called when moving to e.g. a new monitor, otherwise int[2] denoting the pixel-unit delta for both axis towards e.g. an entered monitor,
      * > 0 for left to right or top to down, < 0 for right to left and down to top and == 0 for no change.
      * See {@link MonitorDevice#getOrientationTo(MonitorDevice, int[])} to produce a proper move_diff pair.
-     *
-     * @param sendEvent true to send a resize event
-     * @param defer to defer a resize event
      * @param newPixelScale the new pixel scale
+     * @param setNativeWindow pass true to set the native window pos-size, otherwise only change stored values
      * @return true if a pixel scale change occured, otherwise false.
      */
-    protected boolean applySoftPixelScale(final int[] move_diff, final boolean sendEvent, final boolean defer, final float[] newPixelScale) {
+    protected boolean applySoftPixelScale(final int[] move_diff, final float[] newPixelScale, final boolean setNativeWindow) {
         boolean res = false;
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("Window.SoftPixelScale.0a: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
@@ -2986,7 +2991,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         synchronized( scaleLock ) {
             try {
-                res = applySoftPixelScaleImpl(move_diff, sendEvent, defer, newPixelScale);
+                res = applySoftPixelScaleImpl(move_diff, newPixelScale, setNativeWindow);
             } finally {
                 if( DEBUG_IMPLEMENTATION ) {
                     System.err.println("Window.SoftPixelScale.X: res "+res+", has "+hasPixelScale[0]+" - "+getThreadName());

@@ -74,12 +74,12 @@ public class WindowDriver extends WindowImpl {
     /**
      * Essentially updates {@code hasPixelScale}
      */
-    private boolean updatePixelScaleByMonitor(final long crt_handle, final int[] move_diff, final boolean sendEvent, final boolean defer) {
+    private boolean updatePixelScaleByMonitor(final long crt_handle, final int[] move_diff, final boolean setNativeWindow) {
         boolean res = false;
         if( !hasSetPixelScale() && 0 != crt_handle ) {
             final float newPixelScaleRaw[] = { 0, 0 };
             if( GDIUtil.GetMonitorPixelScale(crt_handle, newPixelScaleRaw) ) {
-                res = applySoftPixelScale(move_diff, sendEvent, defer, newPixelScaleRaw);
+                res = applySoftPixelScale(move_diff, newPixelScaleRaw, setNativeWindow);
             }
         }
         return res;
@@ -138,7 +138,7 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
         if( hmon == me.getMonitor().getHandle() ) {
-            updatePixelScaleByMonitor(me.getMonitor().getHandle(), null, false /* sendEvent*/, false /* defer */); // send reshape event itself
+            updatePixelScaleByMonitor(me.getMonitor().getHandle(), null, true /* setNativeWindow */);
         }
     }
 
@@ -148,7 +148,7 @@ public class WindowDriver extends WindowImpl {
 
         boolean changed = false;
         if( isNativeValid() ) {
-            changed = applySoftPixelScale(null, true /* sendEvent */, false /* defer */, reqPixelScale);
+            changed = applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
         }
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("WindowDriver.setPixelScale: min["+minPixelScale[0]+", "+minPixelScale[1]+"], max["+
@@ -180,6 +180,13 @@ public class WindowDriver extends WindowImpl {
             flags |= CHANGE_MASK_MAXIMIZED_VERT;
             maxCount++;
         }
+        if( !hasSetPixelScale() ) {
+            final int[] xy_win = getWindowPosI();
+            final int[] sz_win = getWindowSizeI();
+            final long hmon0 = GDIUtil.GetMonitorFromRect(xy_win[0], xy_win[1], sz_win[0], sz_win[1]);
+            updatePixelScaleByMonitor(hmon0, null, false /* setNativeWindow */);
+        }
+
         final int[] xy_pix = getPixelPosI();
         final int[] sz_pix = getPixelSizeI();
 
@@ -203,11 +210,7 @@ public class WindowDriver extends WindowImpl {
         }
 
         hmon = GDIUtil.GetMonitorFromWindow(_windowHandle);
-        boolean changedPixelScale = applySoftPixelScale(null, true /* sendEvent */, false /* defer */, reqPixelScale);
-        if( !changedPixelScale ) {
-            changedPixelScale = updatePixelScaleByMonitor(hmon, null, true /* sendEvent */, false /* defer */);
-        }
-        positionModified[0] = changedPixelScale;
+        positionModified[0] = hasSetPixelScale() && applySoftPixelScale(null, reqPixelScale, true /* setNativeWindow */);
 
         if(DEBUG_IMPLEMENTATION) {
             final Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
@@ -328,7 +331,10 @@ public class WindowDriver extends WindowImpl {
                                            " - "+Thread.currentThread().getName());
                     }
                     hmon = _hmon;
-                    updatePixelScaleByMonitor(_hmon, move_diff, true /* sendEvent */, defer);
+                    updatePixelScaleByMonitor(_hmon, move_diff, true /* setNativeWindow */);
+                } else {
+                    // always check on native sizePosInsetsFocusVisibleChanged
+                    updatePixelScaleByMonitor(_hmon, null, true /* setNativeWindow */);
                 }
             }
         }
