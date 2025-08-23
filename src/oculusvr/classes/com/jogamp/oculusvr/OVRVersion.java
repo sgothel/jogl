@@ -53,8 +53,8 @@ public class OVRVersion extends JogampVersion {
 
     protected static volatile OVRVersion jogampCommonVersionInfo;
 
-    protected OVRVersion(final String packageName, final Manifest mf) {
-        super(packageName, mf);
+    protected OVRVersion(final Manifest mf) {
+        super(mf);
     }
 
     public static OVRVersion getInstance() {
@@ -63,7 +63,7 @@ public class OVRVersion extends JogampVersion {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.oculusvr";
                     final Manifest mf = VersionUtil.getManifest(OVRVersion.class.getClassLoader(), packageName);
-                    jogampCommonVersionInfo = new OVRVersion(packageName, mf);
+                    jogampCommonVersionInfo = new OVRVersion(mf);
                 }
             }
         }

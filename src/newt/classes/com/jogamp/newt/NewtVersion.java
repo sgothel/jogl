@@ -38,8 +38,8 @@ public class NewtVersion extends JogampVersion {
 
     protected static volatile NewtVersion jogampCommonVersionInfo;
 
-    protected NewtVersion(final String packageName, final Manifest mf) {
-        super(packageName, mf);
+    protected NewtVersion(final Manifest mf) {
+        super(mf);
     }
 
     public static NewtVersion getInstance() {
@@ -48,8 +48,8 @@ public class NewtVersion extends JogampVersion {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName1 = "com.jogamp.newt"; // atomic packaging - and identity
                     final String packageName2 = "com.jogamp.opengl"; // all packaging
-                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 } );
-                    jogampCommonVersionInfo = new NewtVersion(packageName1, mf);
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 });
+                    jogampCommonVersionInfo = new NewtVersion(mf);
                 }
             }
         }

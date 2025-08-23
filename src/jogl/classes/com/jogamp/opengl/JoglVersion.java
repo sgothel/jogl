@@ -46,8 +46,8 @@ public class JoglVersion extends JogampVersion {
 
     protected static volatile JoglVersion jogampCommonVersionInfo;
 
-    protected JoglVersion(final String packageName, final Manifest mf) {
-        super(packageName, mf);
+    protected JoglVersion(final Manifest mf) {
+        super(mf);
     }
 
     public static JoglVersion getInstance() {
@@ -56,7 +56,7 @@ public class JoglVersion extends JogampVersion {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.opengl";
                     final Manifest mf = VersionUtil.getManifest(JoglVersion.class.getClassLoader(), packageName);
-                    jogampCommonVersionInfo = new JoglVersion(packageName, mf);
+                    jogampCommonVersionInfo = new JoglVersion(mf);
                 }
             }
         }

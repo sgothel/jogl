@@ -38,8 +38,8 @@ public class NativeWindowVersion extends JogampVersion {
 
     protected static volatile NativeWindowVersion jogampCommonVersionInfo;
 
-    protected NativeWindowVersion(final String packageName, final Manifest mf) {
-        super(packageName, mf);
+    protected NativeWindowVersion(final Manifest mf) {
+        super(mf);
     }
 
     public static NativeWindowVersion getInstance() {
@@ -48,8 +48,8 @@ public class NativeWindowVersion extends JogampVersion {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName1 = "com.jogamp.nativewindow"; // atomic packaging - and identity
                     final String packageName2 = "com.jogamp.opengl"; // all packaging
-                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 } );
-                    jogampCommonVersionInfo = new NativeWindowVersion(packageName1, mf);
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 });
+                    jogampCommonVersionInfo = new NativeWindowVersion(mf);
                 }
             }
         }
