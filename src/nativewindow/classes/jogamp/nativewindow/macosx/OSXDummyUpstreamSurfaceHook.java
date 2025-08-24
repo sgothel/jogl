@@ -7,6 +7,8 @@ import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 
+import jogamp.nativewindow.macosx.OSXUtil.WinAndView;
+
 public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize {
     long nsWindow;
 
@@ -26,11 +28,12 @@ public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     @Override
     public final void create(final ProxySurface s) {
         if(0 == nsWindow && 0 == s.getSurfaceHandle()) {
-            nsWindow = OSXUtil.CreateNSWindow(0, 0, 64, 64);
+            final WinAndView wv = OSXUtil.CreateNSWindow2(0, 0, 64, 64);
+            nsWindow = wv.win;
             if(0 == nsWindow) {
                 throw new NativeWindowException("Error NS window 0");
             }
-            final long nsView = OSXUtil.GetNSView(nsWindow);
+            final long nsView = wv.view;
             if(0 == nsView) {
                 throw new NativeWindowException("Error NS view 0");
             }

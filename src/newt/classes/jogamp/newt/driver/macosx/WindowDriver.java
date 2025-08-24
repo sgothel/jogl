@@ -834,39 +834,37 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 windowStyle = ws;
             }
             // Blocking initialization on main-thread!
-            final long[] newWin = { 0 };
-            OSXUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
-                    @Override
-                    public void run() {
-                        /**
-                         * Does everything at once, same as original code path:
-                         * 1) if oldWinHandle: changeContentView (detaching view) + close0(oldWindHandle)
-                         * 2) create new window
-                         * 3) create new view if previous didn't exist (oldWinHandle)
-                         * 4) changeContentView (attaching view) etc ..
-                         */
-                        final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
-                        newWin[0] = createWindow1( oldWinHandle, parentWinHandle, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                                   0 != ( STATE_MASK_FULLSCREEN & flags),
-                                                   windowStyle, NSBackingStoreBuffered,
-                                                   isOpaque,
-                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
-                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
-                                                   !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
-                                                   surfaceHandle);
-                        surfaceHandle = OSXUtil.GetNSView(newWin[0]);
+            final long newWin = OSXUtil.RunOnMainThreadLong(false /* kickNSApp */, () -> {
+                /**
+                 * Does everything at once, same as original code path:
+                 * 1) if oldWinHandle: changeContentView (detaching view) + close0(oldWindHandle)
+                 * 2) create new window
+                 * 3) create new view if previous didn't exist (oldWinHandle)
+                 * 4) changeContentView (attaching view) etc ..
+                 */
+                final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
+                final long newWin0 = createWindow1( oldWinHandle, parentWinHandle, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
+                                                    0 != ( STATE_MASK_FULLSCREEN & flags),
+                                                    windowStyle, NSBackingStoreBuffered,
+                                                    isOpaque,
+                                                    !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
+                                                    !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
+                                                    !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
+                                                    surfaceHandle);
+                surfaceHandle = OSXUtil.GetNSView(newWin0, false);
 
-                        if( offscreenInstance ) {
-                            orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
-                        } else {
-                            setTitle0(newWin[0], getTitle());
-                        }
-                    } });
+                if( offscreenInstance ) {
+                    orderOut0(0!=parentWinHandle ? parentWinHandle : newWin0);
+                } else {
+                    setTitle0(newWin0, getTitle());
+                }
+                return newWin0;
+            } );
 
-            if ( newWin[0] == 0 || 0 == surfaceHandle ) {
+            if ( newWin == 0 || 0 == surfaceHandle ) {
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
-            setWindowHandle( newWin[0] );
+            setWindowHandle( newWin );
         } catch (final Exception ie) {
             ie.printStackTrace();
         }

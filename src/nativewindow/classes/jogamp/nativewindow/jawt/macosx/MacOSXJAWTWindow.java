@@ -64,6 +64,7 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.macosx.OSXUtil.WinAndView;
 
 public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   /** May lead to deadlock, due to AWT pos comparison .. don't enable for Applets! */
@@ -308,11 +309,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
          */
         String errMsg = null;
         if(0 == drawable) {
-            windowHandle = OSXUtil.CreateNSWindow(0, 0, 64, 64);
+            final WinAndView wv = OSXUtil.CreateNSWindow2(0, 0, 64, 64);
+            windowHandle = wv.win;
             if(0 == windowHandle) {
               errMsg = "Unable to create dummy NSWindow (layered case)";
             } else {
-                drawable = OSXUtil.GetNSView(windowHandle);
+                drawable = wv.view;
                 if(0 == drawable) {
                   errMsg = "Null NSView of NSWindow "+toHexString(windowHandle);
                 }

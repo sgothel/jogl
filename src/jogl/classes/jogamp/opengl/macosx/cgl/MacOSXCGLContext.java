@@ -595,7 +595,7 @@ public class MacOSXCGLContext extends GLContextImpl
               } else if( isNSView ) {
                   nsViewHandle = drawableHandle;
               } else if( isNSWindow ) {
-                  nsViewHandle = OSXUtil.GetNSView(drawableHandle);
+                  nsViewHandle = OSXUtil.GetNSView(drawableHandle, false); // intentionally avoiding main-thread
               } else {
                   throw new GLException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }

@@ -33,6 +33,7 @@ import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 
 import java.security.PrivilegedAction;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.NativeLibrary;
@@ -156,20 +157,39 @@ public class OSXUtil implements ToolkitProperties {
       }
     }
 
+    /** Creates an NSWindow on the main-thread */
     public static long CreateNSWindow(final int x, final int y, final int width, final int height) {
-      final long res[] = { 0 };
-      RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
-          @Override
-          public void run() {
-              res[0] = CreateNSWindow0(x, y, width, height);
-          } } );
-      return res[0];
+      return RunOnMainThreadLong(false /* kickNSApp */, () -> { return CreateNSWindow0(x, y, width, height); });
     }
+    public static class WinAndView {
+        public final long win;
+        public final long view;
+        public WinAndView(final long w, final long v) { win = w; view = v; }
+    }
+    /** Creates an NSWindow and retrieves its NSView on the main-thread */
+    public static WinAndView CreateNSWindow2(final int x, final int y, final int width, final int height) {
+            final AtomicLong nsWin0 = new AtomicLong(0);
+            final AtomicLong nsView0 = new AtomicLong(0);
+
+            OSXUtil.RunOnMainThread(true, false /* kickNSApp */, () -> {
+                final long w = OSXUtil.CreateNSWindow0(0, 0, 64, 64);
+                if( 0 != w ) {
+                    nsWin0.set( w );
+                    nsView0.set( OSXUtil.GetNSView0(w) );
+                }
+            });
+            return new WinAndView(nsWin0.get(), nsView0.get());
+    }
+
     public static void DestroyNSWindow(final long nsWindow) {
       DestroyNSWindow0(nsWindow);
     }
-    public static long GetNSView(final long nsWindow) {
-      return GetNSView0(nsWindow);
+    public static long GetNSView(final long nsWindow, final boolean onMainThread) {
+      if( onMainThread ) {
+          return RunOnMainThreadLong(false /* kickNSApp */, () -> { return GetNSView0(nsWindow); });
+      } else {
+          return GetNSView0(nsWindow);
+      }
     }
     public static long GetNSWindow(final long nsView) {
       return GetNSWindow0(nsView);
@@ -328,6 +348,36 @@ public class OSXUtil implements ToolkitProperties {
             }
         }
     }
+    static public interface LongTask {
+        public long eval();
+    }
+    public static long RunOnMainThreadLong(final boolean kickNSApp, final LongTask task) {
+        if( IsMainThread() ) {
+            return task.eval(); // don't leave the JVM
+        } else {
+            // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
+            // otherwise we may freeze the OSX main thread.
+            final Object sync = new Object();
+            final AtomicLong result = new AtomicLong(0);
+            final Runnable task0 = () -> { result.set( task.eval() ); };
+            final RunnableTask rt = new RunnableTask( task0, sync, true, null);
+            synchronized(sync) {
+                RunOnMainThread0(kickNSApp, rt);
+                while( rt.isInQueue() ) {
+                    try {
+                        sync.wait();
+                    } catch (final InterruptedException ie) {
+                        throw new InterruptedRuntimeException(ie);
+                    }
+                    final Throwable throwable = rt.getThrowable();
+                    if(null!=throwable) {
+                        throw new RuntimeException(throwable);
+                    }
+                }
+            }
+            return result.get();
+        }
+    }
 
     /**
      * Run later on ..
@@ -371,32 +421,29 @@ public class OSXUtil implements ToolkitProperties {
      * 'waitUntilDone' is implemented on Java site via lock/wait on {@link FunctionTask} to not freeze OSX main thread.
      * </p>
      *
-     * @param waitUntilDone
      * @param kickNSApp if <code>true</code> issues {@link #KickNSApp()}
      * @param func
      */
-    public static <R,A> R RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Function<R,A> func, final A... args) {
+    public static <R,A> R RunOnMainThread(final boolean kickNSApp, final Function<R,A> func, final A... args) {
         if( IsMainThread() ) {
             return func.eval(args); // don't leave the JVM
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
             // otherwise we may freeze the OSX main thread.
             final Object sync = new Object();
-            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
+            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, sync, true, null);
             synchronized(sync) {
                 rt.setArgs(args);
                 RunOnMainThread0(kickNSApp, rt);
-                if( waitUntilDone ) {
-                    while( rt.isInQueue() ) {
-                        try {
-                            sync.wait();
-                        } catch (final InterruptedException ie) {
-                            throw new InterruptedRuntimeException(ie);
-                        }
-                        final Throwable throwable = rt.getThrowable();
-                        if(null!=throwable) {
-                            throw new RuntimeException(throwable);
-                        }
+                while( rt.isInQueue() ) {
+                    try {
+                        sync.wait();
+                    } catch (final InterruptedException ie) {
+                        throw new InterruptedRuntimeException(ie);
+                    }
+                    final Throwable throwable = rt.getThrowable();
+                    if(null!=throwable) {
+                        throw new RuntimeException(throwable);
                     }
                 }
             }
