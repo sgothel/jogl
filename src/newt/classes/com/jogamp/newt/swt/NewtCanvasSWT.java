@@ -210,6 +210,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 if( validateNative() && newtChildReady ) {
                     if( postSetSize ) {
                         newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+                        newtChild.setSurfaceScale(pixelScale);
                         postSetSize = false;
                     }
                     if( postSetPos ) {
@@ -379,9 +380,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
         if( sizeChanged ) {
-            newtChild.setSurfaceScale(pixelScale);
             if( newtChildReady ) {
                 newtChild.setSize(nClientAreaWindow.width, nClientAreaWindow.height);
+                newtChild.setSurfaceScale(pixelScale);
             } else {
                 postSetSize = true;
             }
