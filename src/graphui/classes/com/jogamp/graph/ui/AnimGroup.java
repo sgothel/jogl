@@ -67,6 +67,9 @@ public class AnimGroup extends Group {
     private volatile long tstart_us = 0;
     private volatile long tlast_us = 0;
     private volatile long tpause_us = 0;
+    private volatile float fixed_frame_period = 0f;
+    private volatile float duration_s = 0;
+
     private volatile boolean tickOnDraw = true;
     private volatile boolean tickPaused = false;
     private long frame_count = 0;
@@ -549,6 +552,7 @@ public class AnimGroup extends Group {
     public final void resetAnimation() {
         tstart_us = Clock.currentNanos() / 1000; // [us]
         tlast_us = tstart_us;
+        duration_s = 0;
         frame_count = 0;
     }
 
@@ -575,9 +579,24 @@ public class AnimGroup extends Group {
     }
 
     /**
+     * Allows setting a fixed frame period like 1f/60f. If zero (default),
+     * the actual time duration since start and delta of last frame is being used.
+     * @see #getDuration()
+     */
+    public final void setFixedPeriod(final float p) { fixed_frame_period = p; }
+
+    /**
+     * Returns either the actual duration between now-start, or the fixed frame duration increment.
+     * @see #setFixedPeriod(float)
+     */
+    public final float getDuration() { return duration_s; }
+
+    /**
      * Issues an animation tick, usually done at {@link #draw(GL2ES2, RegionRenderer)}.
      * @see #setTickOnDraw(boolean)
      * @see #setTickPaused(boolean)
+     * @see #getDuration()
+     * @see #setFixedPeriod(float)
      */
     public final void tick() {
         if( !tickPaused ) {
@@ -586,8 +605,16 @@ public class AnimGroup extends Group {
     }
     private final void tickImpl() {
         final long tnow_us = Clock.currentNanos() / 1000;
-        final float at_s = (tnow_us - tstart_us) / 1e6f;
-        final float dt_s = (tnow_us - tlast_us) / 1e6f;
+        final float dt_s, at_s;
+        if( FloatUtil.isZero(fixed_frame_period) ) {
+            dt_s = (tnow_us - tlast_us) / 1e6f;
+            at_s = (tnow_us - tstart_us) / 1e6f;
+            duration_s = at_s;
+        } else {
+            dt_s = fixed_frame_period;
+            duration_s += dt_s;
+            at_s = duration_s;
+        }
         tlast_us = tnow_us;
         for(final Set as : animSets) {
             if( as.isAnimationActive() ) {
