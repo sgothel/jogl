@@ -322,6 +322,7 @@
         <srcfiles                          file="${gluegen-rt.jar}" />
         <srcfiles                          dir="${src}/nativewindow" />
         <srcfiles                          dir="${src}/jogl" />
+        <srcfiles                          dir="${src}/graphui" />
         <srcfiles                          dir="${src}/newt" />
         <mapper type="merge" to="${jogl-test.jar.path}"/>
       </uptodate>
