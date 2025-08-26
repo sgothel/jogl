@@ -1241,7 +1241,8 @@
       <compiler id="compiler.cfg.freebsd.jogl" extends="compiler.cfg.freebsd">
         <!-- Need to force X11R6 headers on to include path after stub_includes -->
         <includepath path="stub_includes/opengl"/>
-        <includepath path="/usr/local/include" />
+        <compilerarg value="-idirafter" />
+        <compilerarg value="/usr/local/include" />
       </compiler>
 
       <compiler id="compiler.cfg.linux.armv6.jogl.x11" extends="compiler.cfg.linux.armv6">
