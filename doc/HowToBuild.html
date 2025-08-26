@@ -64,17 +64,39 @@
                             </ul>
                         </li>
 
-                        <li> <b><a href="https://www.freebsd.org/">FreeBSD</a></b> x86, 32- and 64-bit, ...
+                        <li> <b><a href="https://www.freebsd.org/">FreeBSD</a></b> x86_64, ...
                             <ul>
-                                <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 12 or later <i>(todo: test)</i>
+                                <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 14 or later
                                     <ul>
-                                        <li>openjdk17</li>
+                                        <li>openjdk21</li>
                                         <li>ant</li>
                                         <li>git</li>
-                                        <li>awk</li>
-                                        <li>p7zip-full ???</li>
-                                        <li>gcc</li>
-                                        <li>cmake</li>
+                                        <li>7-zip</li>
+                                        <li>clang</li>
+                                        <li>doxygen</li>
+                                        <li>bash</li>
+                                        <li>xorg</li>
+                                    </ul>
+                                    Commandline:
+                                    <ul>
+                                      <li><b>FreeBSD </b> 14.3
+                                      <pre>
+pkg install git doxygen bash openjdk21 junit 7-zip xorg
+ln -s /usr/local/bin/bash /bin/bash
+                                      </pre>
+                                      Add the following to your /etc/fstab
+                                      <pre>
+fdesc   /dev/fd         fdescfs         rw      0       0
+proc    /proc           procfs          rw      0       0
+                                      </pre>
+                                      Install apache-ant-1.10.5-bin.zip to /opt-share
+                                      <pre>
+mkdir -p /opt-share
+cd /opt-share
+unzip ~/apache-ant-1.10.5-bin.zip
+ln -s apache-ant-1.10.5 apache-ant
+                                      </pre>
+                                      </li>
                                     </ul>
                             </ul>
                         </li>
@@ -272,7 +294,7 @@ ln -s libudev.so.1 libudev.so
                     </ul>
 
                     <p>
-                        Additional platforms such as FreeBSD and HP/UX are handled by the
+                        Additional platforms such as HP/UX are handled by the
                         build system, but are not officially supported.
                     </p>
 
