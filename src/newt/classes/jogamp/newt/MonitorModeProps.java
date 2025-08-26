@@ -150,10 +150,13 @@ public class MonitorModeProps {
      */
     public static final int MIN_MONITOR_DEVICE_PROPERTIES = 17;
 
-    public static final int IDX_MONITOR_DEVICE_VIEWPORT =   1 // count
+    public static final int IDX_MONITOR_DEVICE_SIZEMM   =   1 // count
                                                           + 1 // native mode
                                                           + 1 // isClone
                                                           + 1 // isPrimary
+                                                          ;
+
+    public static final int IDX_MONITOR_DEVICE_VIEWPORT = IDX_MONITOR_DEVICE_SIZEMM
                                                           + MonitorModeProps.NUM_RESOLUTION_PROPERTIES // sizeMM
                                                           ;
 
@@ -170,7 +173,21 @@ public class MonitorModeProps {
     }
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
+    private static DimensionImmutable streamInSizeMM(final int[] sizeMMProperties, int offset) {
+        if( 0 >= sizeMMProperties[offset] || 0 >= sizeMMProperties[offset+1] ) {
+            sizeMMProperties[offset+0] = MonitorDevice.DEFAULT_SCREEN_WIDTH_MM;
+            sizeMMProperties[offset+1] = MonitorDevice.DEFAULT_SCREEN_HEIGHT_MM;
+        }
+        final Dimension resolution = new Dimension(sizeMMProperties[offset++], sizeMMProperties[offset++]);
+        return resolution;
+    }
+
+    /** WARNING: must be synchronized with ScreenMode.h, native implementation */
     private static DimensionImmutable streamInResolution(final int[] resolutionProperties, int offset) {
+        if( 0 >= resolutionProperties[offset] || 0 >= resolutionProperties[offset+1] ) {
+            resolutionProperties[offset+0] = MonitorDevice.DEFAULT_MODE_WIDTH_PX;
+            resolutionProperties[offset+1] = MonitorDevice.DEFAULT_MODE_HEIGHT_PX;
+        }
         final Dimension resolution = new Dimension(resolutionProperties[offset++], resolutionProperties[offset++]);
         return resolution;
     }
@@ -182,6 +199,9 @@ public class MonitorModeProps {
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
     private static MonitorMode.SizeAndRRate streamInSizeAndRRate(final SurfaceSize surfaceSize, final int[] sizeAndRRateProperties, int offset) {
+        if( 0 >= sizeAndRRateProperties[offset] ) {
+            sizeAndRRateProperties[offset] = MonitorDevice.DEFAULT_MODE_REFRESH * 100;
+        }
         final float refreshRate = sizeAndRRateProperties[offset++]/100.0f;
         final int flags = sizeAndRRateProperties[offset++];
         return new MonitorMode.SizeAndRRate(surfaceSize, refreshRate, flags);
@@ -301,7 +321,7 @@ public class MonitorModeProps {
         final int id = monitorProperties[offset++];
         final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
         final boolean isPrimary = 0 == monitorProperties[offset++] ? false : true;
-        final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
+        final DimensionImmutable sizeMM = streamInSizeMM(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         if( invscale_wuviewport && null != pixelScale ) {
@@ -394,7 +414,7 @@ public class MonitorModeProps {
         final int monitor_id = monitorProperties[offset++];
         final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
         final boolean isPrimary = 0 == monitorProperties[offset++] ? false : true;
-        final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
+        final DimensionImmutable sizeMM = streamInSizeMM(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         if( invscale_wuviewport && null != pixelScale ) {

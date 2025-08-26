@@ -74,6 +74,17 @@ public abstract class MonitorDevice {
     protected MonitorMode currentMode;
     protected boolean modeChanged;
 
+    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
+    public static final int DEFAULT_MODE_WIDTH_PX = 1920;
+    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
+    public static final int DEFAULT_MODE_HEIGHT_PX = 1080;
+    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
+    public static final int DEFAULT_MODE_REFRESH = 60;
+    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
+    public static final int DEFAULT_SCREEN_WIDTH_MM = 421;
+    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
+    public static final int DEFAULT_SCREEN_HEIGHT_MM = 237;
+
     public static enum Orientation {
         clone(0),
         right_of(1),
