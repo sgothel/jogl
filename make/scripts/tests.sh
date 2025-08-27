@@ -117,7 +117,7 @@ function jrun() {
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
 
-    #D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90"
+    #D_ARGS="-Dnewt.monitor.mmwidth=600 -Dnewt.monitor.mmheight=300 -Dnewt.monitor.pxwidth=3555 -Dnewt.monitor.pxheight=2000 -Dnewt.monitor.refresh=61 -Dnewt.monitor.bpp=40"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Djogl.debug.GLProfile"
@@ -404,7 +404,7 @@ function jrun() {
     elif [ $mobileon -eq 1 ] ; then
         export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
-        D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90 $D_ARGS"
+        D_ARGS="-Dnewt.monitor.mmwidth=150 -Dnewt.monitor.mmheight=90 $D_ARGS"
     else
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH

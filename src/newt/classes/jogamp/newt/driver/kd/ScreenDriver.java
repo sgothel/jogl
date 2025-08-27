@@ -71,8 +71,8 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = cachedWidth; // width
         props[i++] = cachedHeight; // height
-        props[i++] = ScreenImpl.default_sm_bpp; // FIXME
-        props[i++] = ScreenImpl.default_sm_rate * 100; // FIXME
+        props[i++] = MonitorDevice.DEFAULT_MODE_BPP;
+        props[i++] = MonitorDevice.DEFAULT_MODE_REFRESH * 100;
         props[i++] = 0; // flags
         props[i++] = 0; // mode_idx
         props[i++] = 0; // rotation
@@ -85,13 +85,8 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = crt_id;
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
-        if( null != usrMonitorMMSize ) {
-            props[i++] = usrMonitorMMSize.getWidth();
-            props[i++] = usrMonitorMMSize.getHeight();
-        } else {
-            props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
-            props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
-        }
+        props[i++] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getWidth();
+        props[i++] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getHeight();
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
         props[i++] = cachedWidth; // rotated viewport width pixel-units

@@ -156,9 +156,9 @@ class RandR11 implements RandR {
 
         int rate = nrates[nres_index][nrate_index];
         if(0>=rate) {
-            rate = ScreenImpl.default_sm_rate;
+            rate = MonitorDevice.DEFAULT_MODE_REFRESH;
             if(DEBUG) {
-                System.err.println("Invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length+", using default: "+ScreenImpl.default_sm_rate);
+                System.err.println("Invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length+", using default: "+MonitorDevice.DEFAULT_MODE_REFRESH);
             }
         }
 
@@ -167,7 +167,7 @@ class RandR11 implements RandR {
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = res[0]; // width
         props[i++] = res[1]; // height
-        props[i++] = ScreenImpl.default_sm_bpp; // bpp n/a in RandR11
+        props[i++] = MonitorDevice.DEFAULT_MODE_BPP; // bpp n/a in RandR11
         props[i++] = rate*100;  // rate (Hz*100)
         props[i++] = 0; // flags;
         props[i++] = nres_index;
@@ -314,7 +314,7 @@ class RandR11 implements RandR {
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = res[0]; // width
         props[i++] = res[1]; // height
-        props[i++] = ScreenImpl.default_sm_bpp;
+        props[i++] = MonitorDevice.DEFAULT_MODE_BPP;
         props[i++] = rate*100;  // rate (Hz*100)
         props[i++] = 0; // flags;
         props[i++] = nres_idx; // mode_idx;

@@ -40,7 +40,6 @@ import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
-import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.common.os.Clock;
@@ -63,12 +62,6 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         DEBUG_TEST_SCREENMODE_DISABLED = PropertyAccess.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
     }
 
-    public static final int default_sm_bpp = 32;
-    public static final int default_sm_widthmm = 519;
-    public static final int default_sm_heightmm = 324;
-    public static final int default_sm_rate = 60;
-    public static final int default_sm_rotation = 0;
-
     static {
         DisplayImpl.initSingleton();
     }
@@ -84,9 +77,6 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected int refCount; // number of Screen references by Window
     protected Rectangle virtViewportPU = new Rectangle(0, 0, 0, 0); // virtual rotated viewport in pixel units
     protected Rectangle virtViewportWU = new Rectangle(0, 0, 0, 0); // virtual rotated viewport in window units
-    protected static Dimension usrScreenPixelSize = null; // property values: newt.ws.swidth and newt.ws.sheight
-    protected static Dimension usrMonitorMMSize = null; // property values: newt.ws.mmwidth and newt.ws.mmheight
-    protected static volatile boolean usrValuesQueried = false;
     private final ArrayList<MonitorModeListener> refMonitorModeListener = new ArrayList<MonitorModeListener>();
 
     private long tCreated; // creationTime
@@ -98,25 +88,6 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
 
     public static Screen create(final Display display, int idx) {
         try {
-            if(!usrValuesQueried) {
-                synchronized (Screen.class) {
-                    if(!usrValuesQueried) {
-                        usrValuesQueried = true;
-                        final int px_w = PropertyAccess.getIntProperty("newt.ws.swidth", true, 0);
-                        final int px_h = PropertyAccess.getIntProperty("newt.ws.sheight", true, 0);
-                        if(px_w>0 && px_h>0) {
-                            usrScreenPixelSize = new Dimension(px_w, px_h);
-                            System.err.println("User screen size "+usrScreenPixelSize+" [pixel]");
-                        }
-                        final int mm_w = PropertyAccess.getIntProperty("newt.ws.mmwidth", true, 0);
-                        final int mm_h = PropertyAccess.getIntProperty("newt.ws.mmheight", true, 0);
-                        if(mm_w>0 && mm_h>0) {
-                            usrMonitorMMSize = new Dimension(mm_w, mm_h);
-                            System.err.println("User monitor size "+usrMonitorMMSize+" [mm]");
-                        }
-                    }
-                }
-            }
             synchronized(screenList) {
                 final Class<?> screenClass = getScreenClass(display.getType());
                 ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
@@ -299,17 +270,9 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      * Updates the <b>rotated</b> virtual viewport, may use native impl.
      */
     protected void updateVirtualScreenOriginAndSize() {
-        if(null != usrScreenPixelSize ) {
-            virtViewportPU.set(0, 0, usrScreenPixelSize.getWidth(), usrScreenPixelSize.getHeight());
-            virtViewportWU.set(0, 0, usrScreenPixelSize.getWidth(), usrScreenPixelSize.getHeight());
-            if(DEBUG) {
-                System.err.println("Update user virtual screen viewport @ "+Thread.currentThread().getName()+": "+virtViewportPU);
-            }
-        } else {
-            calcVirtualScreenOriginAndSize(virtViewportPU, virtViewportWU);
-            if(DEBUG) {
-                System.err.println("Updated virtual screen viewport @ "+Thread.currentThread().getName()+": "+virtViewportPU+" [pixel], "+virtViewportWU+" [window]");
-            }
+        calcVirtualScreenOriginAndSize(virtViewportPU, virtViewportWU);
+        if(DEBUG) {
+            System.err.println("Updated virtual screen viewport @ "+Thread.currentThread().getName()+": "+virtViewportPU+" [pixel], "+virtViewportWU+" [window]");
         }
     }
 
@@ -486,11 +449,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
         props[i++] = getWidth();  // width
         props[i++] = getHeight(); // height
-        props[i++] = default_sm_bpp;
-        props[i++] = default_sm_rate * 100;
+        props[i++] = MonitorDevice.DEFAULT_MODE_BPP;
+        props[i++] = MonitorDevice.DEFAULT_MODE_REFRESH * 100;
         props[i++] = 0; // flags
         props[i++] = modeId;
-        props[i++] = default_sm_rotation;
+        props[i++] = 0;
         if( MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL != i ) {
             throw new InternalError("XX");
         }
@@ -511,14 +474,14 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         props[i++] = monitorId;
         props[i++] = 0; // is-clone
         props[i++] = 0 == monitorId ? 1 : 0; // is-primary
-        props[i++] = default_sm_widthmm;
-        props[i++] = default_sm_heightmm;
-        props[i++] = 0; // rotated viewport x pixel-units
-        props[i++] = 0; // rotated viewport y pixel-units
+        props[i++] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getWidth();
+        props[i++] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getHeight();
+        props[i++] = 0;                              // rotated viewport x pixel-units
+        props[i++] = 0;                              // rotated viewport y pixel-units
         props[i++] = currentMode.getRotatedWidth();  // rotated viewport width pixel-units
         props[i++] = currentMode.getRotatedHeight(); // rotated viewport height pixel-units
-        props[i++] = 0; // rotated viewport x window-units
-        props[i++] = 0; // rotated viewport y window-units
+        props[i++] = 0;                              // rotated viewport x window-units
+        props[i++] = 0;                              // rotated viewport y window-units
         props[i++] = currentMode.getRotatedWidth();  // rotated viewport width window-units
         props[i++] = currentMode.getRotatedHeight(); // rotated viewport height window-units
         props[i++] = currentMode.getId(); // current mode id

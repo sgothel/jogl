@@ -174,9 +174,9 @@ public class MonitorModeProps {
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
     private static DimensionImmutable streamInSizeMM(final int[] sizeMMProperties, int offset) {
-        if( 0 >= sizeMMProperties[offset] || 0 >= sizeMMProperties[offset+1] ) {
-            sizeMMProperties[offset+0] = MonitorDevice.DEFAULT_SCREEN_WIDTH_MM;
-            sizeMMProperties[offset+1] = MonitorDevice.DEFAULT_SCREEN_HEIGHT_MM;
+        if( MonitorDevice.DEFAULT_SCREEN_MM_SIZE_OVERRIDE || 0 >= sizeMMProperties[offset] || 0 >= sizeMMProperties[offset+1] ) {
+            sizeMMProperties[offset+0] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getWidth();
+            sizeMMProperties[offset+1] = MonitorDevice.DEFAULT_SCREEN_MM_SIZE.getHeight();
         }
         final Dimension resolution = new Dimension(sizeMMProperties[offset++], sizeMMProperties[offset++]);
         return resolution;
@@ -184,9 +184,9 @@ public class MonitorModeProps {
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
     private static DimensionImmutable streamInResolution(final int[] resolutionProperties, int offset) {
-        if( 0 >= resolutionProperties[offset] || 0 >= resolutionProperties[offset+1] ) {
-            resolutionProperties[offset+0] = MonitorDevice.DEFAULT_MODE_WIDTH_PX;
-            resolutionProperties[offset+1] = MonitorDevice.DEFAULT_MODE_HEIGHT_PX;
+        if( MonitorDevice.DEFAULT_MODE_PIXEL_SIZE_OVERRIDE || 0 >= resolutionProperties[offset] || 0 >= resolutionProperties[offset+1] ) {
+            resolutionProperties[offset+0] = MonitorDevice.DEFAULT_MODE_PIXEL_SIZE.getWidth();
+            resolutionProperties[offset+1] = MonitorDevice.DEFAULT_MODE_PIXEL_SIZE.getHeight();
         }
         final Dimension resolution = new Dimension(resolutionProperties[offset++], resolutionProperties[offset++]);
         return resolution;
@@ -199,7 +199,7 @@ public class MonitorModeProps {
 
     /** WARNING: must be synchronized with ScreenMode.h, native implementation */
     private static MonitorMode.SizeAndRRate streamInSizeAndRRate(final SurfaceSize surfaceSize, final int[] sizeAndRRateProperties, int offset) {
-        if( 0 >= sizeAndRRateProperties[offset] ) {
+        if( MonitorDevice.DEFAULT_MODE_REFRESH_OVERRIDE || 0 >= sizeAndRRateProperties[offset] ) {
             sizeAndRRateProperties[offset] = MonitorDevice.DEFAULT_MODE_REFRESH * 100;
         }
         final float refreshRate = sizeAndRRateProperties[offset++]/100.0f;

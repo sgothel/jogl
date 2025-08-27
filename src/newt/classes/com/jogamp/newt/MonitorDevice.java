@@ -32,10 +32,12 @@ import java.util.List;
 
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.nativewindow.util.SurfaceSize;
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.common.util.PropertyAccess;
 
 /**
  * Visual output device, i.e. a CRT, LED ..consisting of it's components:<br>
@@ -57,6 +59,15 @@ import com.jogamp.common.util.ArrayHashSet;
  * <p>
  * All values of this interface are represented in pixel units, if not stated otherwise.
  * </p>
+ *
+ * Default monitor properties: 1920x1080 32bpp @ 60Hz, size 421x237 mm, dpi 93.60 x 93.62
+ * - Pixel size of via property `newt.monitor.pxwidth` and `newt.monitor.pxheight`
+ * - Refresh rate via property `newt.monitor.refresh`
+ * - Bits per pixel via property `newt.monitor.bpp`
+ * - Display size in millimeter via property `newt.monitor.mmwidth`
+ *
+ * The defaults are being used either if value could not be retrieved by the driver
+ * or if they are overridden via properties.
  */
 public abstract class MonitorDevice {
     protected final Screen screen; // backref
@@ -74,16 +85,63 @@ public abstract class MonitorDevice {
     protected MonitorMode currentMode;
     protected boolean modeChanged;
 
-    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
-    public static final int DEFAULT_MODE_WIDTH_PX = 1920;
-    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
-    public static final int DEFAULT_MODE_HEIGHT_PX = 1080;
-    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
-    public static final int DEFAULT_MODE_REFRESH = 60;
-    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
-    public static final int DEFAULT_SCREEN_WIDTH_MM = 421;
-    /** Default Monitor 1920x1080 @ 60Hz, size 421x237 mm, dpi 115.84 x 115.75 */
-    public static final int DEFAULT_SCREEN_HEIGHT_MM = 237;
+    /** Pixel size of default Monitor 1920x1080 32bpp @ 60Hz, size 421x237 mm, dpi 93.60 x 93.62. Customizable via property `newt.monitor.pxwidth` and `newt.monitor.pxheight`. */
+    public static final DimensionImmutable DEFAULT_MODE_PIXEL_SIZE;
+    /** True if DEFAULT_MODE_PIXEL_SIZE is set by properties. */
+    public static final boolean DEFAULT_MODE_PIXEL_SIZE_OVERRIDE;
+
+    /** Refresh rate of default Monitor 1920x1080 32bpp @ 60Hz, size 421x237 mm, dpi 93.60 x 93.62. Customizable via property `newt.monitor.refresh`. */
+    public static final int DEFAULT_MODE_REFRESH;
+    /** True if DEFAULT_MODE_REFRESH is set by properties. */
+    public static final boolean DEFAULT_MODE_REFRESH_OVERRIDE;
+
+    /** Bits per pixel of default Monitor 1920x1080 32bpp @ 60Hz, size 421x237 mm, dpi 93.60 x 93.62. Customizable via property `newt.monitor.bpp`. */
+    public static final int DEFAULT_MODE_BPP;
+    /** True if DEFAULT_MODE_BPP is set by properties. */
+    public static final boolean DEFAULT_MODE_BPP_OVERRIDE;
+
+    /** Display size in millimeter of default Monitor 1920x1080 32bpp @ 60Hz, size 421x237 mm, dpi 93.60 x 93.62. Customizable via property `newt.monitor.mmwidth`. */
+    public static final DimensionImmutable DEFAULT_SCREEN_MM_SIZE;
+    /** True if DEFAULT_SCREEN_MM_SIZE_OVERRIDE is set by properties. */
+    public static final boolean DEFAULT_SCREEN_MM_SIZE_OVERRIDE;
+
+    static {
+        final int mode_px_width = PropertyAccess.getIntProperty("newt.monitor.pxwidth", true, 1920);
+        final int mode_px_height = PropertyAccess.getIntProperty("newt.monitor.pxheight", true, 1080);
+        final int mode_refresh = PropertyAccess.getIntProperty("newt.monitor.refresh", true, 60);
+        final int mode_bpp = PropertyAccess.getIntProperty("newt.monitor.bpp", true, 32);
+        final int screen_mm_width = PropertyAccess.getIntProperty("newt.monitor.mmwidth", true, 521);
+        final int screen_mm_height = PropertyAccess.getIntProperty("newt.monitor.mmheight", true, 293);
+
+        if( mode_px_width > 0 && mode_px_height > 0 ) {
+            DEFAULT_MODE_PIXEL_SIZE = new Dimension(mode_px_width, mode_px_height);
+            DEFAULT_MODE_PIXEL_SIZE_OVERRIDE = true;
+        } else {
+            DEFAULT_MODE_PIXEL_SIZE = new Dimension(1920, 1080);
+            DEFAULT_MODE_PIXEL_SIZE_OVERRIDE = false;
+        }
+        if( mode_refresh > 0 ) {
+            DEFAULT_MODE_REFRESH = mode_refresh;
+            DEFAULT_MODE_REFRESH_OVERRIDE = true;
+        } else {
+            DEFAULT_MODE_REFRESH = 60;
+            DEFAULT_MODE_REFRESH_OVERRIDE = false;
+        }
+        if( mode_bpp > 0 ) {
+            DEFAULT_MODE_BPP = mode_refresh;
+            DEFAULT_MODE_BPP_OVERRIDE = true;
+        } else {
+            DEFAULT_MODE_BPP = 32;
+            DEFAULT_MODE_BPP_OVERRIDE = false;
+        }
+        if( screen_mm_width > 0 && screen_mm_height > 0 ) {
+            DEFAULT_SCREEN_MM_SIZE = new Dimension(screen_mm_width, screen_mm_height);
+            DEFAULT_SCREEN_MM_SIZE_OVERRIDE = true;
+        } else {
+            DEFAULT_SCREEN_MM_SIZE = new Dimension(521, 293);
+            DEFAULT_SCREEN_MM_SIZE_OVERRIDE = false;
+        }
+    }
 
     public static enum Orientation {
         clone(0),
