@@ -106,12 +106,12 @@ public abstract class MonitorDevice {
     public static final boolean DEFAULT_SCREEN_MM_SIZE_OVERRIDE;
 
     static {
-        final int mode_px_width = PropertyAccess.getIntProperty("newt.monitor.pxwidth", true, 1920);
-        final int mode_px_height = PropertyAccess.getIntProperty("newt.monitor.pxheight", true, 1080);
-        final int mode_refresh = PropertyAccess.getIntProperty("newt.monitor.refresh", true, 60);
-        final int mode_bpp = PropertyAccess.getIntProperty("newt.monitor.bpp", true, 32);
-        final int screen_mm_width = PropertyAccess.getIntProperty("newt.monitor.mmwidth", true, 521);
-        final int screen_mm_height = PropertyAccess.getIntProperty("newt.monitor.mmheight", true, 293);
+        final int mode_px_width = PropertyAccess.getIntProperty("newt.monitor.pxwidth", true, 0);
+        final int mode_px_height = PropertyAccess.getIntProperty("newt.monitor.pxheight", true, 0);
+        final int mode_refresh = PropertyAccess.getIntProperty("newt.monitor.refresh", true, 0);
+        final int mode_bpp = PropertyAccess.getIntProperty("newt.monitor.bpp", true, 0);
+        final int screen_mm_width = PropertyAccess.getIntProperty("newt.monitor.mmwidth", true, 0);
+        final int screen_mm_height = PropertyAccess.getIntProperty("newt.monitor.mmheight", true, 0);
 
         if( mode_px_width > 0 && mode_px_height > 0 ) {
             DEFAULT_MODE_PIXEL_SIZE = new Dimension(mode_px_width, mode_px_height);
