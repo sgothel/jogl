@@ -31,9 +31,13 @@
                 <div id="text" class="fill">
 
                     <h2>Platform and Component Requirements</h2>
-                    <hr/>
+                    Please also check <a href="https://jogamp.org/gluegen/doc/HowToBuild.html">GlueGen's HowToBuild</a>
+                    and <a href="https://jogamp.org/gluegen/doc/JogAmpPlatforms.html">JogAmp's Supported Platforms</a>.
+
+                    <p>
                     Here is a list of platforms and components, we were able to build JOGL on,<br/>
-                    if not stated otherwise.<br/>
+                    if not stated otherwise.
+                    </p>
 
                     <ul>
                         <li> <b>Java</b><br/>
@@ -69,7 +73,7 @@
                                 <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 14 or later
                                     <ul>
                                         <li>openjdk21</li>
-                                        <li>ant</li>
+                                        <li>apache-ant</li>
                                         <li>git</li>
                                         <li>7-zip</li>
                                         <li>clang</li>
@@ -81,20 +85,13 @@
                                     <ul>
                                       <li><b>FreeBSD </b> 14.3
                                       <pre>
-pkg install git doxygen bash openjdk21 junit 7-zip xorg
+pkg install git doxygen bash openjdk21 junit 7-zip apache-ant xorg
 ln -s /usr/local/bin/bash /bin/bash
                                       </pre>
                                       Add the following to your /etc/fstab
                                       <pre>
 fdesc   /dev/fd         fdescfs         rw      0       0
 proc    /proc           procfs          rw      0       0
-                                      </pre>
-                                      Install apache-ant-1.10.5-bin.zip to /opt-share
-                                      <pre>
-mkdir -p /opt-share
-cd /opt-share
-unzip ~/apache-ant-1.10.5-bin.zip
-ln -s apache-ant-1.10.5 apache-ant
                                       </pre>
                                       </li>
                                     </ul>
@@ -109,7 +106,7 @@ ln -s apache-ant-1.10.5 apache-ant
                                         <li>openjdk-17-jre</li>
                                         <li>openjdk-17-jdk</li>
                                         <li>libopenjfx-java</li>
-                                        <li>ant</li>
+                                        <li>apache-ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
                                         <li>p7zip-full</li>
@@ -167,7 +164,7 @@ ln -s libudev.so.1 libudev.so
                                 <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>
                                         <li>java-17-openjdk</li>
-                                        <li>ant</li>
+                                        <li>apache-ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
                                         <li>p7zip-full</li>
@@ -182,7 +179,7 @@ ln -s libudev.so.1 libudev.so
                                 <li> <b>CentOS 7 / Red Hat Enterprise Linux 7.6</b> or later<br/>
                                     <ul>
                                         <li>java-17-openjdk</li>
-                                        <li>ant</li>
+                                        <li>apache-ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
                                         <li>p7zip-full</li>
