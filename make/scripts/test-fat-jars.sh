@@ -9,7 +9,7 @@ folder=${version}
 MOSX=0
 uname -a | grep -i Darwin && MOSX=1
 
-MODULE_ARGS="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
+MODULE_ARGS="--enable-native-access=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
 # D_ARGS="-Djogl.debug.GLMediaPlayer"
 
 USE_CLASSPATH=jogamp-fat.jar:jogl-demos.jar

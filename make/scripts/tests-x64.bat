@@ -31,15 +31,13 @@ set LIB_DIR=
 set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_DIR%\jar\jogl-test.jar;%BLD_DIR%\jar\jogl-demos.jar;..\..\joal\%BLD_SUB%\jar\joal.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\%BLD_SUB%\gluegen-test-util.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt.jar
 echo CP_ALL %CP_ALL%
 
-REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
-REM set X_ARGS="-Xcheck:jni" "-verbose:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
-REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
+REM set X_ARGS="-Xcheck:jni" "-verbose:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true"
+REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true"
 
 REM If using a custom opengl32.dll (see MESA3D_LIB), java2d can't load system32's opengl32.dll
-REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
-set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false" %MODULE_ARGS%
+REM set X_ARGS="-Dsun.java2d.noddraw=true"
+set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false"
 
 scripts\tests-win.bat %*
 

@@ -9,6 +9,8 @@ export DYLD_LIBRARY_PATH=/opt/homebrew/Cellar/ffmpeg/6.0/lib:$DYLD_LIBRARY_PATH
 #JAVA_HOME=`/usr/libexec/java_home -version 1.8`
 #JAVA_HOME=`/usr/libexec/java_home -version 11`
 JAVA_HOME=`/usr/libexec/java_home -version 21`
+#JAVA_HOME=`/usr/libexec/java_home -version 24`
+#JAVA_HOME=`/usr/libexec/java_home -version 25`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 

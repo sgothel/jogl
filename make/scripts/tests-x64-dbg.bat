@@ -108,16 +108,13 @@ REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=true" "-Dsun.awt
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.d3d=false" "-Dsun.java2d.ddoffscreen=false" "-Dsun.java2d.gdiblit=false" "-Dsun.java2d.opengl=false" "-Dsun.awt.noerasebackground=true" "-Xms512m" "-Xmx1024m"
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.d3d=false" "-Dsun.java2d.ddoffscreen=false" "-Dsun.java2d.gdiblit=false" "-Dsun.java2d.opengl=true" "-Dsun.awt.noerasebackground=true" "-Xms512m" "-Xmx1024m"
 
-REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-
-REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
-REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
-REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
+REM set X_ARGS="-Dsun.java2d.noddraw=true"
+REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true"
 
 REM If using a custom opengl32.dll (see MESA3D_LIB), java2d can't load system32's opengl32.dll
-REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
-set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false" %MODULE_ARGS%
+REM set X_ARGS="-Dsun.java2d.noddraw=true"
+set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.java2d.opengl=false"
 
 scripts\tests-win.bat %*
 
