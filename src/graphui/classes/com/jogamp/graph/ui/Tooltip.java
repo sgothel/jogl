@@ -40,7 +40,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-/** A HUD tooltip for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
+/** A HUD tooltip for {@link Shape}, see {@link Shape#setTooltip(Tooltip)}. */
 public abstract class Tooltip {
 
     /** Default tooltip delay is {@value}ms */
@@ -85,7 +85,7 @@ public abstract class Tooltip {
     }
     /* pp */ final void setTool(final Shape tool) { this.tool = tool; }
 
-    /** Returns {@link Shape} 'tool' owning this tooltip, set after {@link Shape#setToolTip(Tooltip)}. */
+    /** Returns {@link Shape} 'tool' owning this tooltip, set after {@link Shape#setTooltip(Tooltip)}. */
     public final Shape getTool() {
         return tool;
     }

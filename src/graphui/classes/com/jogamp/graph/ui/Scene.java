@@ -138,8 +138,8 @@ public final class Scene implements Container, GLEventListener {
     private final List<Shape> renderedShapesB2 = new ArrayList<Shape>();
     private volatile List<Shape> renderedShapes = renderedShapesB1;
     private int renderedShapesIdx = 1;
-    private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
-    private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
+    private final AtomicReference<Tooltip> tooltipActive = new AtomicReference<Tooltip>();
+    private final AtomicReference<Shape> tooltipHUD = new AtomicReference<Shape>();
     private final List<Group> topLevel = new ArrayList<Group>();
 
     private boolean doFrustumCulling = false;
@@ -542,9 +542,9 @@ public final class Scene implements Container, GLEventListener {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
         }
-        final Tooltip tt = toolTipActive.get();
+        final Tooltip tt = tooltipActive.get();
         if( null != tt ) {
-            activateTooltipImpl(drawable, pmv, tt);
+            tickTooltip(drawable, pmv, tt);
         }
     }
 
@@ -968,7 +968,7 @@ public final class Scene implements Container, GLEventListener {
     private final class SBCGestureListener implements GestureHandler.GestureListener {
         @Override
         public void gestureDetected(final GestureEvent gh) {
-            clearToolTip();
+            clearTooltip();
             if( null != activeShape ) {
                 // gesture .. delegate to active shape!
                 final InputEvent orig = gh.getTrigger();
@@ -1268,7 +1268,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseDragged(final MouseEvent e) {
-            clearToolTip();
+            clearTooltip();
             // drag activeShape, if no gesture-activity, only on 1st pointer
             if( null != activeShape && activeShape.isInteractive() && !pinchToZoomGesture.isWithinGesture() && e.getPointerId(0) == lId ) {
                 lx = e.getX();
@@ -1284,7 +1284,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
-            clearToolTip();
+            clearTooltip();
             // flip to GL window coordinates
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
@@ -1302,22 +1302,20 @@ public final class Scene implements Container, GLEventListener {
                 ly = e.getY();
                 lId = e.getPointerId(0);
             }
-            clearToolTip();
+            clearTooltip();
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
             final Shape s = dispatchPickShape(e, glWinX, glWinY);
             if( null != s ) {
                 mouseOver = true;
-                synchronized( toolTipActive ) {
-                    toolTipActive.set( s.startToolTip(true /* lookupParents */) );
-                }
+                setTooltipActive( s.startTooltip(true /* lookupParents */) );
             }
         }
         @Override
         public void mouseEntered(final MouseEvent e) { }
         @Override
         public void mouseExited(final MouseEvent e) {
-            clearToolTip();
+            clearTooltip();
             releaseActiveShape();
             clear();
         }
@@ -1338,20 +1336,21 @@ public final class Scene implements Container, GLEventListener {
         }
     }
 
-    private void setToolTip(final Shape hud) {
-        addShape( hud );
-        toolTipHUD.set( hud );
+    private void setTooltipActive(final Tooltip tt) {
+        synchronized( tooltipActive ) {
+            tooltipActive.set( tt );
+        }
     }
 
-    private void clearToolTip() {
+    private void clearTooltip() {
         final Tooltip tt;
-        synchronized( toolTipActive ) {
-            tt = toolTipActive.get();
+        synchronized( tooltipActive ) {
+            tt = tooltipActive.get();
             if( null != tt && tt.stop(false) ) {
-                toolTipActive.set(null);
+                tooltipActive.set(null);
             }
         }
-        final Shape s = toolTipHUD.getAndSet(null);
+        final Shape s = tooltipHUD.getAndSet(null);
         if( null != s ) {
             invoke(false, (final GLAutoDrawable drawable) -> {
                 if( null != tt ) {
@@ -1365,15 +1364,20 @@ public final class Scene implements Container, GLEventListener {
             });
         }
     }
-    private void activateTooltipImpl(final GLAutoDrawable drawable, final PMVMatrix4f pmv, final Tooltip tt) {
-        if( null == toolTipHUD.get() ) {
+
+    private void setTooltipHUD(final Shape hud) {
+        addShape( hud );
+        tooltipHUD.set( hud );
+    }
+    private void tickTooltip(final GLAutoDrawable drawable, final PMVMatrix4f pmv, final Tooltip tt) {
+        if( null == tooltipHUD.get() ) {
             final Shape[] hud = { null };
             if( tt.tick() && TreeTool.forOne(this, pmv, tt.getTool(), () -> {
                     final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
                     hud[0] = tt.createTip(Scene.this, toolMvBounds);
                 }) )
             {
-                setToolTip( hud[0] );
+                setTooltipHUD( hud[0] );
             }
         }
     }

@@ -424,7 +424,7 @@ public abstract class Shape {
      */
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         synchronized ( dirtySync ) {
-            stopToolTip();
+            stopTooltip();
             clearImpl0(gl, renderer);
             resetState();
         }
@@ -455,7 +455,7 @@ public abstract class Shape {
      * @param renderer {@link RegionRenderer} used to release GPU resources
      */
     public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
-        removeToolTip();
+        removeTooltip();
         destroyImpl0(gl, renderer);
         resetState();
     }
@@ -1650,7 +1650,7 @@ public abstract class Shape {
      * to receive the mouse-over signal, i.e. being picked.
      * </p>
      */
-    public Tooltip setToolTip(final Tooltip newTooltip) {
+    public Tooltip setTooltip(final Tooltip newTooltip) {
         final Tooltip oldTT = this.tooltip;
         this.tooltip = null;
         if( null != oldTT ) {
@@ -1660,7 +1660,7 @@ public abstract class Shape {
         this.tooltip = newTooltip;
         return newTooltip;
     }
-    public void removeToolTip() {
+    public void removeTooltip() {
         final Tooltip tt = tooltip;
         tooltip = null;
         if( null != tt ) {
@@ -1668,13 +1668,13 @@ public abstract class Shape {
             tt.setTool(null);
         }
     }
-    private void stopToolTip() {
+    private void stopTooltip() {
         final Tooltip tt = tooltip;
         if( null != tt ) {
             tt.stop(true);
         }
     }
-    /* pp */ Tooltip startToolTip(final boolean lookupParents) {
+    /* pp */ Tooltip startTooltip(final boolean lookupParents) {
         Tooltip tt = tooltip;
         if( null != tt ) {
             tt.start();
@@ -1682,7 +1682,7 @@ public abstract class Shape {
         } else if( lookupParents ) {
             Shape p = getParent();
             while( null != p ) {
-                tt = p.startToolTip(false);
+                tt = p.startTooltip(false);
                 if( null != tt ) {
                     return tt;
                 } else {

@@ -38,7 +38,7 @@ import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.opengl.GLProfile;
 
-/** A round {@link Button HUD text} {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
+/** A round {@link Button HUD text} {@link Tooltip} for {@link Shape}, see {@link Shape#setTooltip(Tooltip)}. */
 public class TooltipText extends Tooltip {
     /** Text of this tooltip */
     private final CharSequence tipText;

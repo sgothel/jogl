@@ -43,7 +43,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.graph.ui.TreeTool;
 
-/** A HUD {@link Shape} {@link Tooltip} for client {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
+/** A HUD {@link Shape} {@link Tooltip} for client {@link Shape}, see {@link Shape#setTooltip(Tooltip)}. */
 public class TooltipShape extends Tooltip {
     /**
      * Optional HUD tip {@link #destroy(TooltipShape, GL2ES2, RegionRenderer, Shape) destroy callback}
