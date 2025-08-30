@@ -49,10 +49,15 @@ public class OSXDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
             if( 0 == nsWindow || 0 == s.getSurfaceHandle() ) {
                 throw new InternalError("Owns upstream surface, but no OSX view/window: "+s+", nsWindow 0x"+Long.toHexString(nsWindow));
             }
-            OSXUtil.DestroyNSWindow(nsWindow);
+            final long _nsWindow = nsWindow;
             nsWindow = 0;
             s.setSurfaceHandle(0);
             s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
+            OSXUtil.RunOnMainThread(false /* wait */, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        OSXUtil.DestroyNSWindow(_nsWindow);
+                    } } );
         }
     }
 
