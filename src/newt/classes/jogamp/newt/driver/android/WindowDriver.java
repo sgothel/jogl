@@ -239,10 +239,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         androidView.setOnTouchListener(eventTranslator);
         androidView.setOnKeyListener(eventTranslator);
         androidView.setOnFocusChangeListener(eventTranslator);
-        if(AndroidVersion.SDK_INT >= 12) { // API Level 12
-            Log.d(MD.TAG, "setupInputListener - enable GenericMotionListener - "+Thread.currentThread().getName());
-            androidView.setOnGenericMotionListener(eventTranslator);
-        }
+        androidView.setOnGenericMotionListener(eventTranslator);
         if( enable ) {
             androidView.post(new Runnable() {
                 @Override
@@ -692,7 +689,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     class MSurfaceView extends SurfaceView {
         public MSurfaceView (final Context ctx) {
             super(ctx);
-            setBackgroundDrawable(null);
+            setBackground(null);
             // setBackgroundColor(Color.TRANSPARENT);
         }
 

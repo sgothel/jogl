@@ -28,20 +28,15 @@
 
 package jogamp.newt.driver.android.event;
 
-import jogamp.newt.Debug;
 import android.view.MotionEvent;
 
-import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.NEWTEvent;
 
 public class AndroidNewtEventFactory {
-    private static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Android.MouseEvent");
-    private static final boolean DEBUG_KEY_EVENT = Debug.debug("Android.KeyEvent");
-
-    /** API Level 12: {@link android.view.MotionEvent#ACTION_SCROLL} = {@value} */
-    private static final int ACTION_SCROLL = 8;
+    private static final boolean DEBUG_MOUSE_EVENT = Window.DEBUG_MOUSE_EVENT;
+    private static final boolean DEBUG_KEY_EVENT = Window.DEBUG_KEY_EVENT;
 
     private static final com.jogamp.newt.event.MouseEvent.PointerType aToolType2PointerType(final int aToolType) {
         switch( aToolType ) {
@@ -55,28 +50,6 @@ public class AndroidNewtEventFactory {
             default:
                 return com.jogamp.newt.event.MouseEvent.PointerType.Undefined;
         }
-    }
-
-    private static final short aMotionEventType2Newt(final int aType) {
-        switch( aType ) {
-            case android.view.MotionEvent.ACTION_DOWN:
-            case android.view.MotionEvent.ACTION_POINTER_DOWN:
-                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
-            case android.view.MotionEvent.ACTION_UP:
-            case android.view.MotionEvent.ACTION_POINTER_UP:
-            case android.view.MotionEvent.ACTION_CANCEL:
-                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED;
-            case android.view.MotionEvent.ACTION_MOVE:
-                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED;
-            case android.view.MotionEvent.ACTION_OUTSIDE:
-                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED;
-            // case ACTION_HOVER_MOVE
-            case ACTION_SCROLL:  // API Level 12 !
-                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
-            // case ACTION_HOVER_ENTER
-            // case ACTION_HOVER_EXIT
-        }
-        return (short)0;
     }
 
     private static final short aAccessibilityEventType2Newt(final int aType) {
@@ -270,6 +243,49 @@ public class AndroidNewtEventFactory {
         }
     }
 
+    private static class NEWTPtrIdxButton {
+        final int index;
+        final short button;
+        NEWTPtrIdxButton(final int pIndex, final short button) { this.index = pIndex; this.button = button; }
+    }
+    private NEWTPtrIdxButton getNEWTPtrIdxButton(final android.view.MotionEvent event) {
+        final int pIndex = event.getActionIndex();
+        final short button;
+        final int b = event.getPointerId(pIndex) + 1; // FIXME: Assumption that Pointer-ID starts w/ 0 !
+        if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
+            button = (short)b;
+        } else {
+            button = com.jogamp.newt.event.MouseEvent.BUTTON1;
+        }
+        return new NEWTPtrIdxButton(pIndex, button);
+    }
+
+    private static final short aMotionEventType2Newt(final int aType) {
+        switch( aType ) {
+            // On View.onTouchEvent(MotionEvent)
+            case android.view.MotionEvent.ACTION_DOWN:
+            case android.view.MotionEvent.ACTION_POINTER_DOWN:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
+            case android.view.MotionEvent.ACTION_UP:
+            case android.view.MotionEvent.ACTION_POINTER_UP:
+            case android.view.MotionEvent.ACTION_CANCEL:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED;
+            case android.view.MotionEvent.ACTION_MOVE:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED;
+
+            //  On View.onGenericMotionEvent(MotionEvent)
+            case android.view.MotionEvent.ACTION_SCROLL:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
+            case android.view.MotionEvent.ACTION_HOVER_ENTER:
+            case android.view.MotionEvent.ACTION_HOVER_MOVE:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED;
+            case android.view.MotionEvent.ACTION_OUTSIDE:
+            case android.view.MotionEvent.ACTION_HOVER_EXIT:
+                return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_EXITED;
+        }
+        return (short)0;
+    }
+
     public boolean sendPointerEvent(final boolean enqueue, final boolean wait, final boolean setFocusOnDown, final boolean isOnTouchEvent,
                                     final android.view.MotionEvent event, final jogamp.newt.driver.android.WindowDriver newtSource) {
         if(DEBUG_MOUSE_EVENT) {
@@ -292,42 +308,43 @@ public class AndroidNewtEventFactory {
             int modifiers = 0;
 
             //
-            // Determine SDK 12 SCROLL, newt-button and whether dedicated pointer is pressed
+            // Determine event details, i.e. newt-button and whether dedicated pointer is pressed
             //
-            final int pIndex;
-            final short button;
+            final NEWTPtrIdxButton pIdxButton;
             switch( aType ) {
+                // On View.onTouchEvent(MotionEvent)
+                case android.view.MotionEvent.ACTION_DOWN:
                 case android.view.MotionEvent.ACTION_POINTER_DOWN:
-                case android.view.MotionEvent.ACTION_POINTER_UP: {
-                        pIndex = event.getActionIndex();
-                        final int b = event.getPointerId(pIndex) + 1; // FIXME: Assumption that Pointer-ID starts w/ 0 !
-                        if( com.jogamp.newt.event.MouseEvent.BUTTON1 <= b && b <= com.jogamp.newt.event.MouseEvent.BUTTON_COUNT ) {
-                            button = (short)b;
-                        } else {
-                            button = com.jogamp.newt.event.MouseEvent.BUTTON1;
-                        }
-                    }
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_POINTER_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:
+                case android.view.MotionEvent.ACTION_MOVE:
+                    pIdxButton = getNEWTPtrIdxButton(event);
                     break;
 
-                case ACTION_SCROLL:
-                    if( AndroidVersion.SDK_INT >= 12 ) { // API Level 12
-                        rotationXYZ[0] = event.getAxisValue(android.view.MotionEvent.AXIS_X) / rotationScale;
-                        rotationXYZ[1] = event.getAxisValue(android.view.MotionEvent.AXIS_Y) / rotationScale;
+                //  On View.onGenericMotionEvent(MotionEvent)
+                case android.view.MotionEvent.ACTION_SCROLL:
+                    rotationXYZ[0] = event.getAxisValue(android.view.MotionEvent.AXIS_X) / rotationScale;
+                    rotationXYZ[1] = event.getAxisValue(android.view.MotionEvent.AXIS_Y) / rotationScale;
 
-                        if( rotationXYZ[0]*rotationXYZ[0] > rotationXYZ[1]*rotationXYZ[1] ) {
-                            // Horizontal
-                            modifiers |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
-                        }
-                        if(DEBUG_MOUSE_EVENT) {
-                            System.err.println("createMouseEvent: SDK-12 Scroll "+rotationXYZ[0]+"/"+rotationXYZ[1]+", "+rotationScale+", mods "+modifiers);
-                        }
+                    if( rotationXYZ[0]*rotationXYZ[0] > rotationXYZ[1]*rotationXYZ[1] ) {
+                        // Horizontal
+                        modifiers |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
                     }
-                    // Fall through intended!
+                    if(DEBUG_MOUSE_EVENT) {
+                        System.err.println("createMouseEvent: SDK-12 Scroll "+rotationXYZ[0]+"/"+rotationXYZ[1]+", "+rotationScale+", mods "+modifiers);
+                    }
+                    pIdxButton = new NEWTPtrIdxButton(0, com.jogamp.newt.event.MouseEvent.BUTTON1);
+                    break;
+                case android.view.MotionEvent.ACTION_HOVER_ENTER:
+                case android.view.MotionEvent.ACTION_HOVER_MOVE:
+                case android.view.MotionEvent.ACTION_OUTSIDE:
+                case android.view.MotionEvent.ACTION_HOVER_EXIT:
+                    pIdxButton = getNEWTPtrIdxButton(event);
+                    break;
 
-                default: {
-                        pIndex = 0;
-                        button = com.jogamp.newt.event.MouseEvent.BUTTON1;
-                    }
+                default:
+                    pIdxButton = new NEWTPtrIdxButton(0, com.jogamp.newt.event.MouseEvent.BUTTON1);
             }
             final int pCount = event.getPointerCount(); // all
 
@@ -350,12 +367,12 @@ public class AndroidNewtEventFactory {
             final MouseEvent.PointerType[] pointerTypes = new MouseEvent.PointerType[pCount];
             if( 0 < pCount ) {
                 if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("createMouseEvent: collect ptr-data [0.."+(pCount-1)+", count "+pCount+", action "+pIndex+"], aType "+aType+", button "+button);
+                    System.err.println("createMouseEvent: collect ptr-data [0.."+(pCount-1)+", count "+pCount+", action "+pIdxButton.index+"], aType "+aType+", button "+pIdxButton.button);
                 }
                 collectPointerData(event, pCount, x, y, pressure, pointerIds, pointerTypes);
             }
             newtSource.doPointerEvent(enqueue, wait, pointerTypes, nType, modifiers,
-                                      pIndex, pointerIds, button, x, y, pressure, maxPressure, rotationXYZ, rotationScale);
+                                      pIdxButton.index, pointerIds, pIdxButton.button, x, y, pressure, maxPressure, rotationXYZ, rotationScale);
             return true;
         }
         return false; // no mapping ..
