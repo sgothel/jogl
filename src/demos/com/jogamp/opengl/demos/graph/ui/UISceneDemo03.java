@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2025 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -59,7 +59,11 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -74,42 +78,43 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
+import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
 import jogamp.graph.ui.TreeTool;
 
 /**
  * Res independent Shape, Scene attached to GLWindow showing multiple animated shape movements.
- * <p>
+ *
+ * This UISceneDemo* implements as a GLEventListener, capable to be used with any GLAutoDrawable.
+ *
  * This variation of {@link UISceneDemo00} shows
- * <ul>
- *   <li>Two repetitive steady scrolling text lines. One text shorter than the line-width and one longer.</li>
- *   <li>One line of animated rectangles, rotating around their z-axis and accelerating towards their target.</li>
- *   <li>A text animation assembling one line of text,
- *       each glyph coming from from a random 3D point moving to its destination all at once including rotation.</li>
- *   <li>One line of text with sine wave animation flattening and accelerating towards its target.</li>
- * </ul>
- * </p>
- * <p>
+ * - Two repetitive steady scrolling text lines. One text shorter than the line-width and one longer.
+ * - One line of animated rectangles, rotating around their z-axis and accelerating towards their target.
+ * - A text animation assembling one line of text,
+ *   each glyph coming from from a random 3D point moving to its destination all at once including rotation.
+ * - One line of text with sine wave animation flattening and accelerating towards its target.
+ *
  * Blog entry: https://jausoft.com/blog/2023/08/27/graphui_animation_animgroup/
- * </p>
- * <p>
+ *
+ * Commandline options
  * - Pass '-keep' to main-function to keep running.
  * - Pass '-aspeed' to vary velocity
  * - Pass '-rspeed <float>' angular velocity in radians/s
  * - Pass '-no_anim_box' to not show a visible and shrunken box around the AnimGroup
  * - Pass '-audio <uri or file-path>' to play audio (only)
- * </p>
  */
-public class UISceneDemo03 {
+public class UISceneDemo03 implements GLEventListener  {
     static final boolean DEBUG = false;
 
     static final String[] originalTexts = {
@@ -119,29 +124,8 @@ public class UISceneDemo03 {
             " Linux, Android, Windows, MacOS; iOS, embedded, etc on demand"
     };
 
-    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
-    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 0, 4);
-    static float frame_velocity = 5f / 1e3f; // [m]/[s]
-    static float velocity = 30 / 1e3f; // [m]/[s]
-    static float ang_velo = velocity * 60f; // [radians]/[s]
-    static int autoSpeed = -1;
-
-    static Uri audioUri = null;
-    static GLMediaPlayer mPlayer = null;
-
-    static final int[] manualScreenShorCount = { 0 };
-
-    static void setVelocity(final float v) {
-        velocity = v; // Math.max(1/1e3f, v);
-        ang_velo = velocity * 60f;
-        autoSpeed = 0;
-    }
-
     public static void main(final String[] args) throws IOException {
-        setVelocity(80/1000f);
-        autoSpeed = -1;
-        options.keepRunning = true;
-        boolean showAnimBox = true;
+        final UISceneDemo03 demo = new UISceneDemo03(0);
 
         if (0 != args.length) {
             final int[] idx = { 0 };
@@ -150,75 +134,208 @@ public class UISceneDemo03 {
                     continue;
                 } else if (args[idx[0]].equals("-v")) {
                     ++idx[0];
-                    setVelocity(MiscUtils.atoi(args[idx[0]], (int) velocity * 1000) / 1000f);
+                    demo.setVelocity(MiscUtils.atoi(args[idx[0]], (int) demo.velocity * 1000) / 1000f);
                 } else if(args[idx[0]].equals("-aspeed")) {
-                    setVelocity(80/1000f);
-                    autoSpeed = -1;
-                    options.keepRunning = true;
+                    demo.setVelocity(80/1000f);
+                    demo.autoSpeed = -1;
                 } else if(args[idx[0]].equals("-rspeed")) {
                     ++idx[0];
-                    ang_velo = MiscUtils.atof(args[idx[0]], ang_velo);
+                    demo.ang_velo = MiscUtils.atof(args[idx[0]], demo.ang_velo);
                 } else if(args[idx[0]].equals("-no_anim_box")) {
-                    showAnimBox = false;
+                    demo.showAnimBox = false;
                 } else if(args[idx[0]].equals("-audio")) {
                     ++idx[0];
                     try {
-                        audioUri = Uri.cast( args[idx[0]] );
+                        demo.audioUri = Uri.cast( args[idx[0]] );
                     } catch (final URISyntaxException e1) {
                         System.err.println(e1);
-                        audioUri = null;
+                        demo.audioUri = null;
                     }
                 }
             }
         }
         System.err.println(JoglVersion.getInstance().toString());
-        // renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
         System.err.println(options);
 
-        final GLCapabilities reqCaps = options.getGLCaps();
-        System.out.println("Requested: " + reqCaps);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        System.err.println(VersionUtil.getPlatformInfo());
+        // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
-        //
-        // Resolution independent, no screen size
-        //
-        final Font font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        // final Font font = FontFactory.get(IOUtil.getResource("jogamp/graph/font/fonts/ubuntu/Ubuntu-R.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        System.err.println("Font FreeSerif: " + font.getFullFamilyName());
-        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        System.err.println("Font Status: " + fontStatus.getFullFamilyName());
+        final GLCapabilities caps = options.getGLCaps();
+        System.out.println("Requested: " + caps);
 
-        final Scene scene = new Scene(options.graphAASamples);
+        final GLWindow window = GLWindow.create(screen, caps);
+        if( 0 == options.sceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
+        }
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle(UISceneDemo03.class.getSimpleName() + ": " + window.getSurfaceWidth() + " x " + window.getSurfaceHeight());
+
+        window.addGLEventListener(demo);
+
+        final Animator animator = new Animator(0 /* w/o AWT */);
+        animator.setUpdateFPSFrames(5*60, null);
+        animator.add(window);
+        animator.setExclusiveContext(options.exclusiveContext);
+
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDestroyed(final WindowEvent e) {
+                animator.stop();
+            }
+        });
+
+        if( options.wait_to_start ) {
+            System.err.println("Press enter to continue");
+            MiscUtils.waitForKey("Start");
+        }
+
+        window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
+
+        animator.start();
+    }
+
+    public static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    // public static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 0, 4);
+
+    boolean showAnimBox = true;
+    float frame_velocity = 5f / 1e3f; // [m]/[s]
+    float velocity = 30 / 1e3f; // [m]/[s]
+    float ang_velo = velocity * 60f; // [radians]/[s]
+    int autoSpeed = -1;
+
+    Uri audioUri = null;
+    GLMediaPlayer mPlayer = null;
+
+    final int[] manualScreenShotCount = { 0 };
+
+    private boolean debug = false;
+    private boolean trace = false;
+
+    private final Font fontButtons, fontSymbols, font, fontStatus;
+    private float dpiV = 96;
+    private float pixPerMM;
+    private float monitorRefresh = 60;
+
+    private final Scene scene;
+    private final AABBox sceneBox;
+    private float top_ypos = 0;
+    private final AnimGroup animGroup;
+    private final AABBox animBox;
+    private final AnimGroup.Set[] dynAnimSet = { null, null, null };
+    private boolean firstReshape = true;
+    private boolean z_only = true;
+    private int txt_idx = 0;
+    private int m_state = -1;
+    private long t0_us = 0;
+    private long t1_pause_us = 0;
+
+    /**
+     * @param renderModes
+     */
+    public UISceneDemo03(final int renderModes) {
+        this(null, renderModes, false, false);
+    }
+
+    private UISceneDemo03(final String fontfilename, final int renderModes, final boolean debug, final boolean trace) {
+        setVelocity(80/1000f);
+        autoSpeed = -1;
+
+        this.debug = debug;
+        this.trace = trace;
+
+        options.renderModes = renderModes;
+
+        try {
+            fontButtons = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            fontSymbols = FontFactory.get(FontFactory.SYMBOLS).getDefault();
+            font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+            // final Font font = FontFactory.get(IOUtil.getResource("jogamp/graph/font/fonts/ubuntu/Ubuntu-R.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+            System.err.println("Font FreeSerif: " + font.getFullFamilyName());
+            fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+            System.err.println("Font Status: " + fontStatus.getFullFamilyName());
+        } catch (final IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+
+        scene = new Scene(options.graphAASamples);
+        sceneBox = new AABBox();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.getRenderer().setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
-        final AnimGroup animGroup = new AnimGroup(null);
+        animGroup = new AnimGroup(null);
+        animBox = new AABBox();
         scene.addShape(animGroup);
 
         scene.setPMvCullingEnabled(true);
         animGroup.setPMvCullingEnabled(true);
+    }
 
-        final Animator animator = new Animator(0 /* w/o AWT */);
-        animator.setUpdateFPSFrames(1 * 60, null); // System.err);
+    void setVelocity(final float v) {
+        velocity = v; // Math.max(1/1e3f, v);
+        ang_velo = velocity * 60f;
+        autoSpeed = 0;
+    }
 
-        final GLWindow window = GLWindow.create(reqCaps);
-        window.invoke(false, (final GLAutoDrawable glad) -> {
-            glad.getGL().setSwapInterval(options.swapInterval);
-            return true;
-        } );
-        window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(UISceneDemo03.class.getSimpleName() + ": " + window.getSurfaceWidth() + " x " + window.getSurfaceHeight());
-        window.setVisible(true);
-        System.out.println("Chosen: " + window.getChosenGLCapabilities());
 
-        window.addGLEventListener(scene);
-        scene.attachInputListenerTo(window);
+    /**
+     * Rotate the shape while avoiding 90 degree position
+     * @param shape the shape to rotate
+     * @param angle the angle in radians
+     * @param axis 0 for X-, 1 for Y- and 2 for Z-axis
+     */
+    public static void rotateShape(final Shape shape, float angle, final int axis) {
+        final Quaternion rot = shape.getRotation().copy();
+        final Vec3f euler = rot.toEuler(new Vec3f());
+        final Vec3f eulerOld = euler.copy();
 
-        final float pixPerMM, dpiV;
-        {
-            final float[] tmp = window.getPixelsPerMM(new float[2]);
-            pixPerMM = tmp[1]; // [px]/[mm]
-            MonitorDevice.mmToInch( tmp );
-            dpiV = tmp[1];
+        final float eps = FloatUtil.adegToRad(5f);
+        final float sign = angle >= 0f ? 1f : -1f;
+        final float v;
+        switch( axis ) {
+            case 0: v = euler.x(); break;
+            case 1: v = euler.y(); break;
+            case 2: v = euler.z(); break;
+            default: return;
+        }
+        final float av = Math.abs(v);
+        if( 1f*FloatUtil.HALF_PI - eps <= av && av <= 1f*FloatUtil.HALF_PI + eps ||
+            3f*FloatUtil.HALF_PI - eps <= av && av <= 3f*FloatUtil.HALF_PI + eps) {
+            angle = 2f * eps * sign;
+        }
+        switch( axis ) {
+            case 0: euler.add(angle, 0, 0); break;
+            case 1: euler.add(0, angle, 0); break;
+            case 2: euler.add(0, 0, angle); break;
+        }
+        System.err.println("Rot: angleDelta "+angle+" (eps "+eps+"): "+eulerOld+" -> "+euler);
+        shape.setRotation( rot.setFromEuler(euler) );
+    }
+
+    @Override
+    public void init(final GLAutoDrawable glad) {
+        // Resolution independent, no screen size
+        //
+        final Object upObj = glad.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            final Window win = (Window)upObj;
+            final MonitorDevice monitor = win.getMainMonitor();
+            final float[] monitorDPI = MonitorDevice.mmToInch( monitor.getPixelsPerMM(new float[2]) );
+            final float[] pixPerXY = win.getPixelsPerMM(new float[2]);
+            pixPerMM = pixPerXY[1]; // [px]/[mm]
+            final float[] dpiXY = MonitorDevice.mmToInch(new float[2], pixPerXY);
+            dpiV = dpiXY[1];
+            monitorRefresh = monitor.getCurrentMode().getRefreshRate();
+            System.err.println("Monitor detected: "+monitor);
+            System.err.println("Monitor dpi: "+monitorDPI[0]+" x "+monitorDPI[1]);
+            System.err.println("Surface scale: native "+Arrays.toString(win.getMaximumSurfaceScale(new float[2]))+", current "+Arrays.toString(win.getCurrentSurfaceScale(new float[2])));
+            System.err.println("Surface dpi "+dpiXY[0]+" x "+dpiXY[1]+", refresh "+monitorRefresh+" Hz");
+        } else {
+            pixPerMM = MonitorDevice.inchToMM(dpiV); // [px]/[mm]
+            monitorRefresh = 60f;
+            System.err.println("Using default DPI of "+dpiV+", refresh "+monitorRefresh+" Hz");
         }
         {
             final int o = options.fixDefaultAARenderModeWithDPIThreshold(dpiV);
@@ -226,40 +343,76 @@ public class UISceneDemo03 {
                                ", mode "+Region.getRenderModeString(o)+" -> "+
                                Region.getRenderModeString(options.renderModes));
         }
+        if(glad instanceof GLWindow) {
+            System.err.println("FontView01: init (1.1)");
+            final GLWindow glw = (GLWindow) glad;
+            scene.attachInputListenerTo(glw);
+        } else {
+            System.err.println("FontView01: init (1.0)");
+        }
 
-        animator.add(window);
-        animator.setExclusiveContext(options.exclusiveContext);
-        animator.start();
+        GL2ES2 gl = glad.getGL().getGL2ES2();
+        if(debug) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, gl, null) ).getGL2ES2();
+        }
+        if(trace) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
+        }
+        System.err.println(JoglVersion.getGLInfo(gl, null, false /* withCapsAndExts */).toString());
+        System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
+        System.err.println("Chosen: "+glad.getChosenGLCapabilities());
+        MSAATool.dump(glad);
+
+        gl.setSwapInterval(1);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        // gl.glDepthFunc(GL.GL_LEQUAL);
+        // gl.glEnable(GL.GL_BLEND);
+
+        scene.setAAQuality(options.graphAAQuality);
+        scene.init(glad);
 
         //
-        // After initial display we can use screen resolution post initial
-        // Scene.reshape(..)
-        // However, in this example we merely use the resolution to
-        // - Compute the animation values with DPI
-        scene.waitUntilDisplayed();
-
-        window.invoke(true, (drawable) -> {
-            final GL gl = drawable.getGL();
-            gl.glEnable(GL.GL_DEPTH_TEST);
-            // gl.glDepthFunc(GL.GL_LEQUAL);
-            // gl.glEnable(GL.GL_BLEND);
-            return true;
-        });
-
-        final GLProfile hasGLP = window.getChosenGLCapabilities().getGLProfile();
-        final AABBox sceneBox = scene.getBounds();
-        final float sceneBoxFrameWidth;
-        {
-            sceneBoxFrameWidth = sceneBox.getWidth() * 0.0025f;
-            final GraphShape r = new Rectangle(options.renderModes, sceneBox, sceneBoxFrameWidth);
-            if( showAnimBox ) {
-                r.setColor(0.45f, 0.45f, 0.45f, 0.9f);
-            } else {
-                r.setColor(0f, 0f, 0f, 0f);
-            }
-            r.setInteractive(false);
-            animGroup.addShape( r );
+        // Optional Audio
+        //
+        if( null != audioUri ) {
+            mPlayer = GLMediaPlayerFactory.createDefault();
+            mPlayer.addEventListener( new MyGLMediaEventListener() );
+            mPlayer.playStream(audioUri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+        } else {
+            mPlayer = null;
         }
+
+        firstReshape = true;
+    }
+
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
+        animGroup.destroy(drawable.getGL().getGL2ES2(), scene.getRenderer());
+        scene.dispose(drawable);
+        if(null != mPlayer) {
+            mPlayer.destroy(drawable.getGL());
+            mPlayer = null;
+        }
+    }
+
+    @Override
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
+        scene.reshape(glad, x, y, width, height);
+        if( !firstReshape ) {
+            return; // done
+        }
+
+        sceneBox.set( scene.getBounds() );
+        final float sceneBoxFrameWidth = sceneBox.getWidth() * 0.0025f;
+        final GraphShape r = new Rectangle(options.renderModes, sceneBox, sceneBoxFrameWidth);
+        if( showAnimBox ) {
+            r.setColor(0.45f, 0.45f, 0.45f, 0.9f);
+        } else {
+            r.setColor(0f, 0f, 0f, 0f);
+        }
+        r.setInteractive(false);
+        animGroup.addShape( r );
+
         animGroup.setRotationPivot(0, 0, 0);
         if( showAnimBox ) {
             animGroup.scale(0.85f, 0.85f, 1f);
@@ -268,6 +421,7 @@ public class UISceneDemo03 {
         } else {
             animGroup.scale(1.0f, 1.0f, 1f);
         }
+        final GLProfile hasGLP = glad.getChosenGLCapabilities().getGLProfile();
         animGroup.validate(hasGLP);
         animGroup.setInteractive(false);
         animGroup.setToggleable(true);
@@ -289,228 +443,183 @@ public class UISceneDemo03 {
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
             scene.addShape(statusLabel);
         }
-        sub01SetupWindowListener(window, scene, animGroup, statusLabel, dpiV);
-
-        {
-            final StringBuilder sb = new StringBuilder();
-            for(final String s : originalTexts) {
-                sb.append(s).append("\n");
-            }
-            final Label l = new Label(options.renderModes, font, sb.toString()); // originalTexts[0]);
-            l.validate(hasGLP);
-            final float scale = sceneBox.getWidth() / l.getBounds().getWidth();
-            l.setScale(scale, scale, 1f);
-            l.setColor(0.1f, 0.1f, 0.1f, 1.0f);
-            l.moveTo(sceneBox.getMinX(), 0f, 0f);
-            scene.addShape(l);
-
-            if( options.wait_to_start ) {
-                statusLabel.setText("Press enter to continue");
-                MiscUtils.waitForKey("Start");
-            }
-
-            window.invoke(true, (drawable) -> {
-                final GL2ES2 gl = drawable.getGL().getGL2ES2();
-                scene.screenshot(gl, scene.nextScreenshotFile(null, UISceneDemo03.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
-                scene.removeShape(gl, l);
-                return true;
-            });
+        if(glad instanceof GLWindow) {
+            System.err.println("UISceneDemo20: init (1.1)");
+            final GLWindow glw = (GLWindow) glad;
+            sub01SetupWindowListener(glw, scene, animGroup, statusLabel, dpiV);
         }
-
-        //
         // HUD UI
-        //
-        sub02AddUItoScene(scene, animGroup, 2, window);
+        sub02AddUItoScene(scene, animGroup, 2, glad);
 
         //
         // Setup the moving glyphs
         //
-        final boolean[] z_only = { true };
-        int txt_idx = 0;
-
-        final AABBox animBox = new AABBox( animGroup.getBounds() );
-        final float g_w = animBox.getWidth();
+        animBox.set( animGroup.getBounds() );
         System.err.println("AnimBox " + animBox);
         System.err.println("AnimGroup.1 " + animGroup);
 
-        final float[] top_ypos = { 0 };
-        window.invoke(true, (drawable) -> {
-            final float fontScale2;
-            {
-                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp. XXXXXXXXXXXXXXXXXXXXXXXXXXX";
-                final AABBox fbox = font.getGlyphBounds(vs);
-                fontScale2 = g_w / fbox.getWidth();
-                System.err.println("FontScale2: " + fontScale2 + " = " + g_w + " / " + fbox.getWidth());
-            }
-            final AABBox clippedBox = new AABBox(animBox).resizeWidth(-sceneBoxFrameWidth, -sceneBoxFrameWidth);
-            top_ypos[0] = clippedBox.getMaxY();
-            // AnimGroup.Set 1:
-            // Circular short scrolling text (right to left) without rotation, no acceleration
-            {
-                final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp.";
-                top_ypos[0] -= fontScale2 * 1.5f;
-                animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
-                        font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
-                        50 / 1e3f /* velocity */, clippedBox, top_ypos[0]);
-            }
-            // AnimGroup.Set 2:
-            // Circular long scrolling text (right to left) without rotation, no acceleration
-            {
-                final String vs = VersionUtil.getPlatformInfo().replace(Platform.getNewline(), "; ").replace(VersionUtil.SEPERATOR, "  ***  ").replaceAll("\\s+", " ");
-                top_ypos[0] -= fontScale2 * 1.2f;
-                animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
-                        font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
-                        30 / 1e3f /* velocity */, clippedBox, top_ypos[0]);
-            }
-            return true;
-        });
-
-        //
-        // Optional Audio
-        //
-        if( null != audioUri ) {
-            mPlayer = GLMediaPlayerFactory.createDefault();
-            mPlayer.addEventListener( new MyGLMediaEventListener() );
-            mPlayer.playStream(audioUri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
-        } else {
-            mPlayer = null;
+        top_ypos = 0;
+        final float fontScale2;
+        {
+            final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp. XXXXXXXXXXXXXXXXXXXXXXXXXXX";
+            final AABBox fbox = font.getGlyphBounds(vs);
+            fontScale2 = animBox.getWidth() / fbox.getWidth();
+            System.err.println("FontScale2: " + fontScale2 + " = " + animBox.getWidth() + " / " + fbox.getWidth());
+        }
+        final AABBox clippedBox = new AABBox(animBox).resizeWidth(-sceneBoxFrameWidth, -sceneBoxFrameWidth);
+        top_ypos = clippedBox.getMaxY();
+        // AnimGroup.Set 1:
+        // Circular short scrolling text (right to left) without rotation, no acceleration
+        {
+            final String vs = "Welcome to Göthel Software ***  Jausoft  ***  https://jausoft.com *** We do software ...  Check out Gamp.";
+            top_ypos -= fontScale2 * 1.5f;
+            animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
+                    font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
+                    50 / 1e3f /* velocity */, clippedBox, top_ypos);
+        }
+        // AnimGroup.Set 2:
+        // Circular long scrolling text (right to left) without rotation, no acceleration
+        {
+            final String vs = VersionUtil.getPlatformInfo().replace(Platform.getNewline(), "; ").replace(VersionUtil.SEPERATOR, "  ***  ").replaceAll("\\s+", " ");
+            top_ypos -= fontScale2 * 1.2f;
+            animGroup.addGlyphSetHorizScroll01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(), options.renderModes,
+                    font, vs, fontScale2, new Vec4f(0.1f, 0.1f, 0.1f, 0.9f),
+                    30 / 1e3f /* velocity */, clippedBox, top_ypos);
         }
 
-        do {
-            System.err.println();
-            System.err.println("Next animation loop ...");
+        firstReshape = false;
+    }
+
+    @Override
+    public void display(final GLAutoDrawable drawable) {
+        final boolean hadActiveAnimSet = null != dynAnimSet[0] && dynAnimSet[0].isAnimationActive();
+        if ( 0 == m_state && !hadActiveAnimSet && !animGroup.getTickPaused() ) {
             //
             // Setup new animation sequence
             // - Flush all AnimGroup.Set entries
             // - Add newly created AnimGroup.Set entries
             //
-            final String curText = originalTexts[txt_idx];
-            final float fontScale;
-            final AnimGroup.Set[] dynAnimSet = { null, null, null };
-            {
-                final AABBox fbox = font.getGlyphBounds(curText);
-                fontScale = g_w / fbox.getWidth();
-                System.err.println("FontScale: " + fontScale + " = " + g_w + " / " + fbox.getWidth());
-            }
-            z_only[0] = !z_only[0];
-            window.invoke(true, (drawable) -> {
-                // AnimGroup.Set 3: This `mainAnimSet[0]` is controlling overall animation duration
-                // Rotating animated text moving to target (right to left) + slight acceleration on rotation
-                dynAnimSet[0] = animGroup.addGlyphSetRandom01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
-                        options.renderModes, font, curText, fontScale, new Vec4f(0.1f, 0.1f, 0.1f, 1f),
-                        0f /* accel */, velocity, FloatUtil.PI/20f /* ang_accel */, ang_velo,
-                        animBox, z_only[0], new Random(), new AnimGroup.TargetLerp(Vec3f.UNIT_Y));
-
-                // AnimGroup.Set 4:
-                // Sine animated text moving to target (right to left) with sine amplitude alternating on Z- and Y-axis + acceleration
-                {
-                    final GL gl = drawable.getGL();
-                    final GLContext ctx = gl.getContext();
-                    final String vs = "JogAmp Version "+JoglVersion.getInstance().getImplementationVersion()+
-                                      ", GL "+ctx.getGLVersionNumber().getVersionString()+
-                                      ", GLSL "+ctx.getGLSLVersionNumber().getVersionString() +
-                                      " by "+gl.glGetString(GL.GL_VENDOR);
-                    final float fontScale2;
-                    {
-                        final AABBox fbox = font.getGlyphBounds(vs);
-                        fontScale2 = g_w / fbox.getWidth() * 0.6f;
-                    }
-                    // Translation : We use velocity as acceleration (good match) and pass only velocity/10 as starting velocity
-                    dynAnimSet[1] = animGroup.addGlyphSet(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
-                            options.renderModes, font, 'X', vs, fontScale2,
-                            velocity /* accel */, velocity/10f, 0f /* ang_accel */, 2*FloatUtil.PI /* 1-rotation/s */,
-                            new AnimGroup.SineLerp(z_only[0] ? Vec3f.UNIT_Z : Vec3f.UNIT_Y, 1.618f, 1.618f),
-                            (final AnimGroup.Set as, final int idx, final AnimGroup.ShapeData sd) -> {
-                                sd.shape.setColor(0.1f, 0.1f, 0.1f, 0.9f);
-
-                                sd.targetPos.add(
-                                        animBox.getMinX() + as.refShape.getScaledWidth() * 1.0f,
-                                        animBox.getMinY() + as.refShape.getScaledHeight() * 2.0f, 0f);
-
-                                sd.startPos.set( sd.targetPos.x() + animBox.getWidth(),
-                                                 sd.targetPos.y(), sd.targetPos.z());
-                                sd.shape.moveTo( sd.startPos );
-                            } );
-                }
-                // AnimGroup.Set 5:
-                // 3 animated Shapes moving to target (right to left) while rotating around z-axis + acceleration on translation
-                {
-                    final float size2 = fontScale/2;
-                    final float yscale = 1.1f;
-                    final GraphShape refShape = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f );
-                    dynAnimSet[2] = animGroup.addAnimSet(
-                                pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
-                                velocity /* accel */, velocity/10f, 0f /* ang_accel */, 2*FloatUtil.PI /* 1-rotation/s */,
-                                new AnimGroup.TargetLerp(Vec3f.UNIT_Z), refShape);
-                    final AnimGroup.ShapeSetup shapeSetup = (final AnimGroup.Set as, final int idx, final AnimGroup.ShapeData sd) -> {
-                            sd.targetPos.add(animBox.getMinX() + as.refShape.getScaledWidth() * 1.0f,
-                                             top_ypos[0] - as.refShape.getScaledHeight() * 1.5f, 0f);
-
-                            sd.startPos.set( sd.targetPos.x() + animBox.getWidth(),
-                                             sd.targetPos.y(), sd.targetPos.z());
-                            sd.shape.moveTo( sd.startPos );
-                        };
-                    refShape.setColor(1.0f, 0.0f, 0.0f, 0.9f);
-                    refShape.setRotation( refShape.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI) );
-                    dynAnimSet[2].addShape(animGroup, refShape, shapeSetup);
-                    {
-                        final Shape s = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f ).validate(hasGLP);
-                        s.setColor(0.0f, 1.0f, 0.0f, 0.9f);
-                        s.move(refShape.getScaledWidth() * 1.5f * 1, 0, 0);
-                        dynAnimSet[2].addShape(animGroup, s, shapeSetup);
-                    }
-                    {
-                        final Shape s = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f ).validate(hasGLP);
-                        s.setColor(0.0f, 0.0f, 1.0f, 0.9f);
-                        s.move(refShape.getScaledWidth() * 1.5f * 2, 0, 0);
-                        s.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI);
-                        dynAnimSet[2].addShape(animGroup, s, shapeSetup);
-                    }
-                }
-                return true;
-            });
-            scene.setAAQuality(options.graphAAQuality);
-
-            final long t0_us = Clock.currentNanos() / 1000; // [us]
-            while ( ( null == dynAnimSet[0] || dynAnimSet[0].isAnimationActive() || animGroup.getTickPaused() ) && window.isNativeValid() ) {
-                try { Thread.sleep(250); } catch (final InterruptedException e1) { }
-            }
-            if( window.isNativeValid() ) {
-                final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
+            if( null != dynAnimSet[0] ) {
+                // Print stats and set pause 1.5s
+                final long t1_us = Clock.currentNanos() / 1000;
+                final float has_dur_s = (t1_us - t0_us) / 1e6f; // [us]
+                final String curText = originalTexts[txt_idx];
                 System.err.printf("Text travel-duration %.3f s, %d chars%n", has_dur_s, curText.length());
-                if( scene.getScreenshotCount() - manualScreenShorCount[0] < 1 + originalTexts.length ) {
-                    scene.screenshot(true, scene.nextScreenshotFile(null, UISceneDemo03.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
-                }
-                try { Thread.sleep(1500); } catch (final InterruptedException e1) { }
-                while ( animGroup.getTickPaused() && window.isNativeValid() ) {
-                    try { Thread.sleep(250); } catch (final InterruptedException e1) { }
-                }
-                if( autoSpeed > 0 ) {
-                    if( velocity < 60/1000f ) {
-                        setVelocity(velocity + 9/1000f);
-                    } else {
-                        setVelocity(velocity - 9/1000f);
-                        autoSpeed = -1;
-                    }
-                } else  if( autoSpeed < 0 ) {
-                    if( velocity > 11/1000f ) {
-                        setVelocity(velocity - 9/1000f);
-                    } else {
-                        setVelocity(velocity + 9/1000f);
-                        autoSpeed = 1;
-                    }
-                }
-                txt_idx = ( txt_idx + 1 ) % originalTexts.length;
+                m_state = 1;
+                t1_pause_us = t1_us + 1500 * 1000;
             }
-            if( window.isNativeValid() ) {
-                window.invoke(true, (drawable) -> {
-                    animGroup.removeAnimSets(drawable.getGL().getGL2ES2(), scene.getRenderer(), Arrays.asList(dynAnimSet));
-                    return true;
-                } );
+        } else if( 1 == m_state && t1_pause_us <= Clock.currentNanos() / 1000 ) {
+            // Flush all AnimGroup.Set entries and prep param for next cycle
+            animGroup.removeAnimSets(drawable.getGL().getGL2ES2(), scene.getRenderer(), Arrays.asList(dynAnimSet));
+            if( autoSpeed > 0 ) {
+                if( velocity < 60/1000f ) {
+                    setVelocity(velocity + 9/1000f);
+                } else {
+                    setVelocity(velocity - 9/1000f);
+                    autoSpeed = -1;
+                }
+            } else  if( autoSpeed < 0 ) {
+                if( velocity > 11/1000f ) {
+                    setVelocity(velocity - 9/1000f);
+                } else {
+                    setVelocity(velocity + 9/1000f);
+                    autoSpeed = 1;
+                }
             }
-        } while (options.keepRunning && window.isNativeValid());
-        if (!options.stayOpen) {
-            MiscUtils.destroyWindow(window);
+            txt_idx = ( txt_idx + 1 ) % originalTexts.length;
+            z_only = !z_only;
+            m_state = -1;
+            System.err.println("Next animation loop ...");
+        } else if( -1 == m_state ) {
+            // Add newly created AnimGroup.Set entries
+            createAnimSets(drawable.getGL());
+            t0_us = Clock.currentNanos();
+            m_state = 0;
+        }
+        scene.display(drawable);
+    }
+
+    private void createAnimSets(final GL gl) {
+        final GLProfile hasGLP = gl.getGLProfile();
+        final String curText = originalTexts[txt_idx];
+        final float fontScale;
+        {
+            final AABBox fbox = font.getGlyphBounds(curText);
+            fontScale = animBox.getWidth() / fbox.getWidth();
+            System.err.println("FontScale: " + fontScale + " = " + animBox.getWidth() + " / " + fbox.getWidth());
+        }
+
+        // AnimGroup.Set 3: This `mainAnimSet[0]` is controlling overall animation duration
+        // Rotating animated text moving to target (right to left) + slight acceleration on rotation
+        dynAnimSet[0] = animGroup.addGlyphSetRandom01(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
+                options.renderModes, font, curText, fontScale, new Vec4f(0.1f, 0.1f, 0.1f, 1f),
+                0f /* accel */, velocity, FloatUtil.PI/20f /* ang_accel */, ang_velo,
+                animBox, z_only, new Random(), new AnimGroup.TargetLerp(Vec3f.UNIT_Y));
+
+        // AnimGroup.Set 4:
+        // Sine animated text moving to target (right to left) with sine amplitude alternating on Z- and Y-axis + acceleration
+        {
+            final GLContext ctx = gl.getContext();
+            final String vs = "JogAmp Version "+JoglVersion.getInstance().getImplementationVersion()+
+                              ", GL "+ctx.getGLVersionNumber().getVersionString()+
+                              ", GLSL "+ctx.getGLSLVersionNumber().getVersionString() +
+                              " by "+gl.glGetString(GL.GL_VENDOR);
+            final float fontScale2;
+            {
+                final AABBox fbox = font.getGlyphBounds(vs);
+                fontScale2 = animBox.getWidth() / fbox.getWidth() * 0.6f;
+            }
+            // Translation : We use velocity as acceleration (good match) and pass only velocity/10 as starting velocity
+            dynAnimSet[1] = animGroup.addGlyphSet(pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
+                    options.renderModes, font, 'X', vs, fontScale2,
+                    velocity /* accel */, velocity/10f, 0f /* ang_accel */, 2*FloatUtil.PI /* 1-rotation/s */,
+                    new AnimGroup.SineLerp(z_only ? Vec3f.UNIT_Z : Vec3f.UNIT_Y, 1.618f, 1.618f),
+                    (final AnimGroup.Set as, final int idx, final AnimGroup.ShapeData sd) -> {
+                        sd.shape.setColor(0.1f, 0.1f, 0.1f, 0.9f);
+
+                        sd.targetPos.add(
+                                animBox.getMinX() + as.refShape.getScaledWidth() * 1.0f,
+                                animBox.getMinY() + as.refShape.getScaledHeight() * 2.0f, 0f);
+
+                        sd.startPos.set( sd.targetPos.x() + animBox.getWidth(),
+                                         sd.targetPos.y(), sd.targetPos.z());
+                        sd.shape.moveTo( sd.startPos );
+                    } );
+        }
+        // AnimGroup.Set 5:
+        // 3 animated Shapes moving to target (right to left) while rotating around z-axis + acceleration on translation
+        {
+            final float size2 = fontScale/2;
+            final float yscale = 1.1f;
+            final GraphShape refShape = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f );
+            dynAnimSet[2] = animGroup.addAnimSet(
+                        pixPerMM, hasGLP, scene.getMatrix(), scene.getViewport(),
+                        velocity /* accel */, velocity/10f, 0f /* ang_accel */, 2*FloatUtil.PI /* 1-rotation/s */,
+                        new AnimGroup.TargetLerp(Vec3f.UNIT_Z), refShape);
+            final AnimGroup.ShapeSetup shapeSetup = (final AnimGroup.Set as, final int idx, final AnimGroup.ShapeData sd) -> {
+                    sd.targetPos.add(animBox.getMinX() + as.refShape.getScaledWidth() * 1.0f,
+                                     top_ypos - as.refShape.getScaledHeight() * 1.5f, 0f);
+
+                    sd.startPos.set( sd.targetPos.x() + animBox.getWidth(),
+                                     sd.targetPos.y(), sd.targetPos.z());
+                    sd.shape.moveTo( sd.startPos );
+                };
+            refShape.setColor(1.0f, 0.0f, 0.0f, 0.9f);
+            refShape.setRotation( refShape.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI) );
+            dynAnimSet[2].addShape(animGroup, refShape, shapeSetup);
+            {
+                final Shape s = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f ).validate(hasGLP);
+                s.setColor(0.0f, 1.0f, 0.0f, 0.9f);
+                s.move(refShape.getScaledWidth() * 1.5f * 1, 0, 0);
+                dynAnimSet[2].addShape(animGroup, s, shapeSetup);
+            }
+            {
+                final Shape s = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f ).validate(hasGLP);
+                s.setColor(0.0f, 0.0f, 1.0f, 0.9f);
+                s.move(refShape.getScaledWidth() * 1.5f * 2, 0, 0);
+                s.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI);
+                dynAnimSet[2].addShape(animGroup, s, shapeSetup);
+            }
         }
     }
 
@@ -519,7 +628,7 @@ public class UISceneDemo03 {
      * @param window
      * @param animGroup
      */
-    static void sub01SetupWindowListener(final GLWindow window, final Scene scene, final AnimGroup animGroup, final Label statusLabel, final float dpiV) {
+    void sub01SetupWindowListener(final GLWindow window, final Scene scene, final AnimGroup animGroup, final Label statusLabel, final float dpiV) {
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
@@ -610,15 +719,10 @@ public class UISceneDemo03 {
      * Add a HUD UI to the scene
      * @param scene
      * @param animGroup
-     * @param window
-     * @throws IOException
+     * @param glad
      */
-    static void sub02AddUItoScene(final Scene scene, final AnimGroup animGroup, final int mainAnimSetIdx, final GLWindow window) throws IOException {
-        final AABBox sceneBox = scene.getBounds();
+    void sub02AddUItoScene(final Scene scene, final AnimGroup animGroup, final int mainAnimSetIdx, final GLAutoDrawable glad) {
         final Group buttonsRight = new Group();
-
-        final Font fontButtons = FontFactory.get(FontFactory.UBUNTU).getDefault();
-        final Font fontSymbols = FontFactory.get(FontFactory.SYMBOLS).getDefault();
 
         final float buttonWidth = sceneBox.getWidth() * 0.09f;
         final float buttonHeight = buttonWidth / 3.0f;
@@ -626,7 +730,7 @@ public class UISceneDemo03 {
         final Vec2f fixedSymSize = new Vec2f(0.0f, 1.0f);
         final Vec2f symSpacing = new Vec2f(0f, 0.2f);
 
-        buttonsRight.setLayout(new GridLayout(buttonWidth, buttonHeight, Alignment.Fill, new Gap(buttonHeight*0.50f, buttonWidth*0.10f), 7));
+        buttonsRight.setLayout(new GridLayout(buttonWidth, buttonHeight, Alignment.Fill, new Gap(buttonHeight*0.50f, buttonWidth*0.10f), 8));
         {
             final Button button = new Button(options.renderModes, fontSymbols,
                         fontSymbols.getUTF16String("play_arrow"),  fontSymbols.getUTF16String("pause"),
@@ -714,13 +818,22 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
+            final Button button = new Button(options.renderModes, fontButtons, "increment",  "realtime", buttonWidth, buttonHeight, buttonZOffset);
+            button.onToggle((final Shape s) -> {
+                animGroup.setFixedPeriod( s.isToggleOn() ? 0 : 1f/monitorRefresh );
+                System.err.println("Realtime/Incr "+s+", period "+animGroup.getFixedPeriod());
+            });
+            button.setToggle(true); // on == realtime
+            buttonsRight.addShape(button);
+        }
+        {
             final Button button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("camera"), buttonWidth, buttonHeight, buttonZOffset); // snapshot (camera)
             button.setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    scene.screenshot(false, scene.nextScreenshotFile(null, UISceneDemo03.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
-                    manualScreenShorCount[0]++;
+                    scene.screenshot(false, scene.nextScreenshotFile(null, UISceneDemo03.class.getSimpleName(), options.renderModes, glad.getChosenGLCapabilities(), null));
+                    manualScreenShotCount[0]++;
                 } } );
             buttonsRight.addShape(button);
         }
@@ -731,12 +844,12 @@ public class UISceneDemo03 {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    MiscUtils.destroyWindow(window);
+                    MiscUtils.destroyWindow(glad);
                 } } );
             buttonsRight.addShape(button);
         }
         TreeTool.forAll(buttonsRight, (final Shape s) -> { s.setDragAndResizable(false); return false; });
-        buttonsRight.validate(window.getChosenGLCapabilities().getGLProfile());
+        buttonsRight.validate(glad.getChosenGLCapabilities().getGLProfile());
         buttonsRight.moveTo(sceneBox.getWidth()/2f  - buttonsRight.getScaledWidth()*1.02f,
                             sceneBox.getHeight()/2f - buttonsRight.getScaledHeight()*1.02f, 0f);
         scene.addShape(buttonsRight);
@@ -749,41 +862,7 @@ public class UISceneDemo03 {
         }
     }
 
-    /**
-     * Rotate the shape while avoiding 90 degree position
-     * @param shape the shape to rotate
-     * @param angle the angle in radians
-     * @param axis 0 for X-, 1 for Y- and 2 for Z-axis
-     */
-    public static void rotateShape(final Shape shape, float angle, final int axis) {
-        final Quaternion rot = shape.getRotation().copy();
-        final Vec3f euler = rot.toEuler(new Vec3f());
-        final Vec3f eulerOld = euler.copy();
-
-        final float eps = FloatUtil.adegToRad(5f);
-        final float sign = angle >= 0f ? 1f : -1f;
-        final float v;
-        switch( axis ) {
-            case 0: v = euler.x(); break;
-            case 1: v = euler.y(); break;
-            case 2: v = euler.z(); break;
-            default: return;
-        }
-        final float av = Math.abs(v);
-        if( 1f*FloatUtil.HALF_PI - eps <= av && av <= 1f*FloatUtil.HALF_PI + eps ||
-            3f*FloatUtil.HALF_PI - eps <= av && av <= 3f*FloatUtil.HALF_PI + eps) {
-            angle = 2f * eps * sign;
-        }
-        switch( axis ) {
-            case 0: euler.add(angle, 0, 0); break;
-            case 1: euler.add(0, angle, 0); break;
-            case 2: euler.add(0, 0, angle); break;
-        }
-        System.err.println("Rot: angleDelta "+angle+" (eps "+eps+"): "+eulerOld+" -> "+euler);
-        shape.setRotation( rot.setFromEuler(euler) );
-    }
-
-    static class MyGLMediaEventListener implements GLMediaEventListener {
+    class MyGLMediaEventListener implements GLMediaEventListener {
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MediaPlayer.1 AttributesChanges: "+eventMask+", when "+when);
@@ -839,5 +918,6 @@ public class UISceneDemo03 {
                     mPlayer = null;
                 }
             }
-        };
+        }
+
 }

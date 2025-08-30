@@ -30,6 +30,7 @@ package com.jogamp.opengl.demos.graph.ui;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -37,10 +38,10 @@ import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -63,6 +64,8 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
@@ -70,54 +73,48 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
-import com.jogamp.opengl.GLEventAdapter;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
+import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
 /**
  * This may become a little font viewer application, having FontForge as its role model.
- * <p>
+ *
+ * This UISceneDemo* implements as a GLEventListener, capable to be used with any GLAutoDrawable.
+ *
  * Notable: The actual {@link GlyphShape} created for the glyph-grid {@link Group}
  * is reused as-is in the top-right info-box as well as in the {@link TooltipShape}.
- * </p>
- * <p>
+ *
  * This is possible only when not modifying the scale or position of the {@link GlyphShape},
  * achieved by simply wrapping it in a {@link Group}.
  * The latter gets scaled and translated when dropped
  * into each target {@link Group} with a {@link Group.Layout}.<br/>
- * </p>
- * <p>
+ *
  * This is also good example using GraphUI with a Directed Acyclic Graph (DAG) arrangement.
- * </p>
  */
-public class FontView01 {
-    private static final float GlyphGridWidth = 3/4f; // FBO AA: 3/4f = 0.75f dropped fine grid lines @ 0.2f thickness; 0.70f OK
-    private static final float GlyphGridBorderThickness = 0.02f; // thickness 0.2f dropping
-    private static final Vec4f GlyphGridBorderColorComplex = new Vec4f(0.2f, 0.2f, 0.2f, 1);
-    private static final Vec4f GlyphGridBorderColorSimple = new Vec4f(0.2f, 0.2f, 0.7f, 1);
-
+public class FontView01 implements GLEventListener  {
     // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.MSAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4);
-    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
-    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, 0, 0, 8);
-
-    static int max_glyph_count = 10000;
-
-    private static boolean VERBOSE_GLYPHS = false;
-    private static boolean VERBOSE_UI = false;
+    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, 0, 0, 8);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
-        float mmPerCell = 8f;
-        String fontFilename = null;
-        int gridColumns = -1;
         boolean showUnderline = false;
         boolean showLabel = false;
         boolean perfanal = false;
+        float mmPerCell = 8f;
+        String fontFilename = null;
+        int gridColumns = -1;
 
         if( 0 != args.length ) {
             final int[] idx = { 0 };
@@ -145,36 +142,32 @@ public class FontView01 {
                 }
             }
         }
+        System.err.println(JoglVersion.getInstance().toString());
         System.err.println(options);
 
-        Font font;
-        if( null == fontFilename ) {
-            font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
-                                   FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        } else {
-            font = FontFactory.get( new File( fontFilename ) );
+        final FontView01 demo = new FontView01(fontFilename, options.renderModes, false, false);
+        demo.showUnderline = showUnderline;
+        demo.showLabel = showLabel;
+        demo.mmPerCell = mmPerCell;
+        demo.gridColumns = gridColumns;
+
+        final GLCapabilities caps = options.getGLCaps();
+        System.out.println("Requested: " + caps);
+
+        final GLWindow window = GLWindow.create(caps);
+        if( 0 == options.sceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
         }
-        System.err.println("Font "+font.getFullFamilyName());
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle(FontView01.class.getSimpleName()+": "+demo.font.getFullFamilyName()+", "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
 
-        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        final Font fontInfo = FontFactory.get(FontFactory.UBUNTU).getDefault();
-        System.err.println("Status Font "+fontStatus.getFullFamilyName());
-        System.err.println("Info Font "+fontInfo.getFullFamilyName());
-
-        final GLCapabilities reqCaps = options.getGLCaps();
-        System.out.println("Requested: " + reqCaps);
+        window.addGLEventListener(demo);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
-        animator.setUpdateFPSFrames(1*60, null); // System.err);
-        final GLWindow window = GLWindow.create(reqCaps);
-        window.invoke(false, (final GLAutoDrawable glad) -> {
-            glad.getGL().setSwapInterval(options.swapInterval);
-            return true;
-        } );
-        window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(FontView01.class.getSimpleName()+": "+font.getFullFamilyName()+", "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        window.setVisible(true);
-        System.out.println("Chosen: " + window.getChosenGLCapabilities());
+        animator.setUpdateFPSFrames(5*60, null);
+        animator.add(window);
+        animator.setExclusiveContext(options.exclusiveContext);
+
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
@@ -185,47 +178,210 @@ public class FontView01 {
                 animator.stop();
             }
         });
-        animator.add(window);
 
-        final Scene scene = new Scene(options.graphAASamples);
+        if( options.wait_to_start ) {
+            System.err.println("Press enter to continue");
+            MiscUtils.waitForKey("Start");
+        }
+
+        window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
+
+        animator.start();
+    }
+
+    private static final float GlyphGridWidth = 3/4f; // FBO AA: 3/4f = 0.75f dropped fine grid lines @ 0.2f thickness; 0.70f OK
+    private static final float GlyphGridBorderThickness = 0.02f; // thickness 0.2f dropping
+    private static final Vec4f GlyphGridBorderColorComplex = new Vec4f(0.2f, 0.2f, 0.2f, 1);
+    private static final Vec4f GlyphGridBorderColorSimple = new Vec4f(0.2f, 0.2f, 0.7f, 1);
+
+    private static int max_glyph_count = 10000;
+
+    private static boolean VERBOSE_GLYPHS = false;
+    private static boolean VERBOSE_UI = false;
+
+    private boolean showUnderline = false;
+    private boolean showLabel = false;
+    private boolean debug = false;
+    private boolean trace = false;
+    private final Font font, fontStatus, fontInfo;
+    private float dpiY = 96;
+    private float pixPerMMY;
+
+    private final Scene scene;
+
+    private int maxGlyphCount = Integer.MAX_VALUE;
+    private float mmPerCell = 8f;
+    private int gridColumns = -1;
+    private boolean firstReshape = true;
+
+    Group mainView = null;
+    Label infoLabel = null;
+    int lastCodepoint = 0;
+
+    /**
+     * @param renderModes
+     */
+    public FontView01(final int renderModes) {
+        this(null, renderModes, false, false);
+    }
+
+    private FontView01(final String fontFilename, final int renderModes, final boolean debug, final boolean trace) {
+        this.debug = debug;
+        this.trace = trace;
+
+        FontView01.options.renderModes = renderModes;
+
+        try {
+            if( null == fontFilename ) {
+                font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
+                                       FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+            } else {
+                font = FontFactory.get( new File( fontFilename ) );
+            }
+            System.err.println("Font "+font.getFullFamilyName());
+
+            fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+            fontInfo = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            System.err.println("Status Font "+fontStatus.getFullFamilyName());
+            System.err.println("Info Font "+fontInfo.getFullFamilyName());
+        } catch (final IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+
+        scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setPMvCullingEnabled(true);
+        scene.getRenderer().setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+    }
 
-        scene.attachInputListenerTo(window);
-        window.addGLEventListener(scene);
+    public float getMMPerCell() { return mmPerCell; }
+    public void setMMPerCell(final float v) { mmPerCell = v; }
 
-        final float dpiV;
+    public int getMaxGlyphCount() { return maxGlyphCount; }
+    public void setMaxGlyphCount(final int v) { maxGlyphCount = v; }
+
+    @Override
+    public void init(final GLAutoDrawable glad) {
+        // Resolution independent, no screen size
+        //
         final int glyphGridRowsPerPage;
-        {
-            final float[] ppmm = window.getPixelsPerMM(new float[2]);
-            final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
-            System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
-            dpiV = dpi[1];
 
-            final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
+        final Object upObj = glad.getUpstreamWidget();
+        final float[] pixPerMMXY, dpiXY;
+        if( upObj instanceof Window ) {
+            final Window win = (Window)upObj;
+            win.addMouseListener( new Shape.MouseGestureAdapter() {
+                @Override
+                public void mouseWheelMoved(final MouseEvent e) {
+                    if( null == mainView || e.getX() >= win.getSurfaceWidth() / 2f ) {
+                        return;
+                    }
+                    if( e.isControlDown() ) {
+                        // Scale and move back to center
+                        final float[] rot = e.getRotation();
+                        final float r = e.isShiftDown() ? rot[0] : rot[1];
+                        final float s = 1f+r/200f;
+                        final AABBox b0 = mainView.getBounds();
+                        final AABBox bs = new AABBox(b0).scale(s, s, 1);
+                        final float dw = b0.getWidth() - bs.getWidth();
+                        final float dh = b0.getHeight() - bs.getHeight();
+                        mainView.scale(s, s, 1);
+                        final Vec3f s1 = mainView.getScale();
+                        mainView.move(s1.x()*dw/2f, s1.y()*dh/2f, 0);
+                        System.err.println("scale +"+s+" = "+s1);
+                        e.setConsumed(true);
+                    } else {
+                        final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
+                        // swap axis for onscreen rotation matching natural feel
+                        final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
+                        mainView.setRotation( mainView.getRotation().rotateByEuler( rot.scale( 2f ) ) );
+                        e.setConsumed(true);
+                    }
+                } } );
+            win.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyReleased(final KeyEvent e) {
+                    final short keySym = e.getKeySymbol();
+                    if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
+                        MiscUtils.destroyWindow(glad);
+                    } else if( keySym == KeyEvent.VK_S ) {
+                        printScreenOnGLThread(scene, glad.getChosenGLCapabilities(), font, lastCodepoint);
+                    }
+                }
+            });
+            final MonitorDevice monitor = win.getMainMonitor();
+            final float[] monitorDPI = MonitorDevice.mmToInch( monitor.getPixelsPerMM(new float[2]) );
+            pixPerMMXY = win.getPixelsPerMM(new float[2]);
+            pixPerMMY = pixPerMMXY[1]; // [px]/[mm]
+            dpiXY = MonitorDevice.mmToInch(new float[2], pixPerMMXY);
+            dpiY = dpiXY[1];
+            final float[] hasSurfacePixelScale1 = win.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-            System.err.println("mmPerCell "+mmPerCell);
-            glyphGridRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
-            if( 0 >= gridColumns ) {
-                gridColumns = (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell );
-            }
+            System.err.println("Monitor detected: "+monitor);
+            System.err.println("Monitor dpi: "+monitorDPI[0]+" x "+monitorDPI[1]);
+            System.err.println("Surface scale: native "+Arrays.toString(win.getMaximumSurfaceScale(new float[2]))+", current "+Arrays.toString(win.getCurrentSurfaceScale(new float[2])));
+            System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+        } else {
+            dpiY = 96;
+            dpiXY = new float[] { dpiY, dpiY };
+            pixPerMMY = MonitorDevice.inchToMM(dpiY); // [px]/[mm]
+            pixPerMMXY = new float[] { pixPerMMY, pixPerMMY };
+            System.err.println("Using default DPI of "+dpiY);
         }
+        glyphGridRowsPerPage = (int)( ( glad.getSurfaceHeight() / pixPerMMXY[1] ) / mmPerCell );
+        if( 0 >= gridColumns ) {
+            gridColumns = (int)( ( glad.getSurfaceWidth() * GlyphGridWidth / pixPerMMXY[0] ) / mmPerCell );
+        }
+
+        System.err.println("Surface "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight());
+        System.err.println("Surface dpi "+dpiXY[0]+" x "+dpiXY[1]);
+        System.err.println("Surface pixPerMM: "+pixPerMMXY[0]+" x "+pixPerMMXY[1]);
+        System.err.println("mmPerCell "+mmPerCell+", glyphGridRowsPerPage "+glyphGridRowsPerPage+", gridColumns "+gridColumns);
+
+        {
+            final int o = options.fixDefaultAARenderModeWithDPIThreshold(dpiY);
+            System.err.println("AUTO RenderMode: dpi "+dpiY+", threshold "+options.noAADPIThreshold+
+                               ", mode "+Region.getRenderModeString(o)+" -> "+
+                               Region.getRenderModeString(options.renderModes));
+        }
+        if(glad instanceof GLWindow) {
+            System.err.println("FontView01: init (1.1)");
+            final GLWindow glw = (GLWindow) glad;
+            scene.attachInputListenerTo(glw);
+        } else {
+            System.err.println("FontView01: init (1.0)");
+        }
+
+        GL2ES2 gl = glad.getGL().getGL2ES2();
+        if(debug) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, gl, null) ).getGL2ES2();
+        }
+        if(trace) {
+            gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
+        }
+        System.err.println(JoglVersion.getGLInfo(gl, null, false /* withCapsAndExts */).toString());
+        System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
+        System.err.println("Chosen: "+glad.getChosenGLCapabilities());
+        MSAATool.dump(glad);
+
+        gl.setSwapInterval(1);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        // gl.glDepthFunc(GL.GL_LEQUAL);
+        // gl.glEnable(GL.GL_BLEND);
+
         final float glyphGridCellSize = GlyphGridWidth / gridColumns;
         final Vec2f glyphGridSize = new Vec2f(GlyphGridWidth, glyphGridRowsPerPage * glyphGridCellSize);
 
-        if( perfanal ) {
-            MiscUtils.waitForKey("Start");
-        }
         final long t0 = Clock.currentNanos();
 
-        final GridDim gridDim = new GridDim(font, gridColumns, glyphGridRowsPerPage, 1);
+        final GridDim gridDim = new GridDim(font, gridColumns, glyphGridRowsPerPage, 1, maxGlyphCount);
         final Vec2f glyphGridTotalSize = new Vec2f(glyphGridSize.x(), gridDim.rows * glyphGridCellSize);
         System.err.println(gridDim);
         System.err.println("GlyphGrid[pgsz "+glyphGridSize+", totsz "+glyphGridTotalSize+", cellSz "+glyphGridCellSize+"]");
 
-        final int[] lastCodepoint = { gridDim.contourChars.get(0) };
-        final Group mainView;
-        final Shape.PointerListener glyphPointerListener;
+        lastCodepoint = gridDim.contourChars.get(0);
+        final Shape.PointerListener glyphHoverListener;
         {
             final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.01f) ) );
             final Group glyphShapeHolder = new Group();
@@ -239,8 +395,8 @@ public class FontView01 {
             glyphInfoBox.addShape(glyphInfo);
             glyphInfoBox.setRelayoutOnDirtyShapes(false); // avoid group re-validate on info text changes
 
-            glyphPointerListener = (final Shape s, final Vec3f pos, final MouseEvent e) -> {
-                // System.err.println("ShapeEvent "+shapeEvent);
+            glyphHoverListener = (final Shape s, final Vec3f pos, final MouseEvent e) -> {
+                System.err.println("XXX: Hover: "+s+", event "+e);
                 final GlyphShape g0 = getGlyphShape(s);
 
                 e.setConsumed(true);
@@ -266,18 +422,19 @@ public class FontView01 {
                     // New Glyph
                     glyphShapeHolder.addShape(g0);
                     setGlyphInfo(fontStatus, glyphInfo, g0.getGlyph());
-                    lastCodepoint[0] = g0.getGlyph().getCodepoint();
+                    lastCodepoint = g0.getGlyph().getCodepoint();
                     return true;
                 });
             };
 
+            final GLCapabilitiesImmutable reqCaps = glad.getRequestedGLCapabilities();
             final Group glyphInfoView = new Group(new GridLayout(2, 0f, 0f, Alignment.None));
             {
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
                 final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter,
                                                   new Gap(glyphGridCellSize*0.1f)));
                 glyphGrid.setInteractive(true).setDragAndResizable(false).setToggleable(false).setName("GlyphGrid");
-                addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphPointerListener);
+                addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphHoverListener);
                 glyphGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
                 if( VERBOSE_UI ) {
                     glyphGrid.validate(reqCaps.getGLProfile());
@@ -340,51 +497,16 @@ public class FontView01 {
                                         "Key-Up/Down or Slider-Mouse-Scroll to move through glyphs.\n"+
                                         "Page-Up/Down or Control + Slider-Mouse-Scroll to page faster.\n"+
                                         "Mouse-Scroll over left-half of Window rotates and holding control zooms.";
-                final Label infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
+                infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
                 infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
-                infoLabel.setToolTip(new TooltipText(infoHelp, fontInfo, 8f));
+                infoLabel.setTooltip(new TooltipText(infoHelp, fontInfo, 8f));
 
                 final float h = glyphGridCellSize * 0.4f;
                 final Group labelBox = new Group(new BoxLayout(1.0f, h, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
                                                                new Margin(0, 0.005f)));
                 labelBox.addShape(infoLabel);
-                scene.addGLEventListener(new GLEventAdapter() {
-                    @Override
-                    public void display(final GLAutoDrawable drawable) {
-                        infoLabel.setText( scene.getStatusText(drawable, options.renderModes, dpiV) + " (Hover over 1s for help)" );
-                    }
-                });
                 mainView.addShape(labelBox);
             }
-            window.addMouseListener( new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseWheelMoved(final MouseEvent e) {
-                    if( e.getX() >= window.getSurfaceWidth() / 2f ) {
-                        return;
-                    }
-                    if( e.isControlDown() ) {
-                        // Scale and move back to center
-                        final float[] rot = e.getRotation();
-                        final float r = e.isShiftDown() ? rot[0] : rot[1];
-                        final float s = 1f+r/200f;
-                        final AABBox b0 = mainView.getBounds();
-                        final AABBox bs = new AABBox(b0).scale(s, s, 1);
-                        final float dw = b0.getWidth() - bs.getWidth();
-                        final float dh = b0.getHeight() - bs.getHeight();
-                        mainView.scale(s, s, 1);
-                        final Vec3f s1 = mainView.getScale();
-                        mainView.move(s1.x()*dw/2f, s1.y()*dh/2f, 0);
-                        System.err.println("scale +"+s+" = "+s1);
-                        e.setConsumed(true);
-                    } else {
-                        final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
-                        // swap axis for onscreen rotation matching natural feel
-                        final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                        mainView.setRotation( mainView.getRotation().rotateByEuler( rot.scale( 2f ) ) );
-                        e.setConsumed(true);
-                    }
-                }
-            });
             if( VERBOSE_UI ) {
                 mainView.validate(reqCaps.getGLProfile());
                 System.err.println("MainView "+mainView);
@@ -393,23 +515,38 @@ public class FontView01 {
         }
         scene.addShape(mainView);
         scene.setAAQuality(options.graphAAQuality);
+        scene.init(glad);
 
-        window.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(final KeyEvent e) {
-                final short keySym = e.getKeySymbol();
-                if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
-                    MiscUtils.destroyWindow(window);
-                } else if( keySym == KeyEvent.VK_S ) {
-                    printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, lastCodepoint[0]);
-                }
-            }
-        });
+        firstReshape = true;
 
-        animator.start();
-        scene.waitUntilDisplayed();
         {
+            final long t1 = Clock.currentNanos();
+            final long total = t1 - t0;
+            final float nsPerGlyph = total / gridDim.glyphCount;
+            System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
+        }
+        // printScreenOnGLThread(scene, glad.getChosenGLCapabilities(), font, lastCodepoint);
+
+        // stay open ..
+        OutlineShape.printPerf(System.err);
+    }
+
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
+        mainView.destroy(drawable.getGL().getGL2ES2(), scene.getRenderer());
+        mainView = null;
+        infoLabel = null;
+
+        scene.dispose(drawable);
+    }
+
+    @Override
+    public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
+        scene.reshape(glad, x, y, width, height);
+        if( firstReshape ) {
+            firstReshape = false;
             final AABBox sceneBox = scene.getBounds();
+            mainView.validate(glad.getGL().getGL2ES2());
             final AABBox mainViewBox = mainView.getBounds();
             final float sx = sceneBox.getWidth() / mainViewBox.getWidth();
             final float sy = sceneBox.getHeight() / mainViewBox.getHeight();
@@ -418,14 +555,13 @@ public class FontView01 {
             System.err.println("MainViewBox "+mainViewBox);
             System.err.println("scale sx "+sx+", sy "+sy+", sxy "+sxy);
             mainView.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
-            final long t1 = Clock.currentNanos();
-            final long total = t1 - t0;
-            final float nsPerGlyph = total / gridDim.glyphCount;
-            System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
         }
-        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, lastCodepoint[0]);
-        // stay open ..
-        OutlineShape.printPerf(System.err);
+    }
+
+    @Override
+    public void display(final GLAutoDrawable drawable) {
+        infoLabel.setText( scene.getStatusText(drawable, options.renderModes, dpiY) + " (Hover over 1s for help)" );
+        scene.display(drawable);
     }
 
     static void printScreenOnGLThread(final Scene scene, final GLCapabilitiesImmutable caps, final Font font, final int codepoint) {
@@ -444,9 +580,9 @@ public class FontView01 {
         int complexGlyphCount;
         int maxNameLen;
 
-        public GridDim(final Font font, final int columns, final int rowsPerPage, final int xReserved) {
+        public GridDim(final Font font, final int columns, final int rowsPerPage, final int xReserved, final int maxGlyphCount) {
             this.contourChars = new ArrayList<Character>();
-            this.glyphCount = scanContourGlyphs(font);
+            this.glyphCount = Math.min(maxGlyphCount, scanContourGlyphs(font));
             this.columns = columns;
             this.columnsNet = columns - xReserved;
             this.rows = (int)Math.ceil((double)glyphCount / (double)columnsNet);
@@ -502,7 +638,7 @@ public class FontView01 {
      */
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
                           final GridDim gridDim, final boolean showUnderline, final boolean showLabel,
-                          final Font fontStatus, final Font fontInfo, final Shape.PointerListener glyphPointerListener) {
+                          final Font fontStatus, final Font fontInfo, final Shape.PointerListener hoverHandler) {
         final AABBox tmpBox = new AABBox();
         final long t0 = Clock.currentNanos();
 
@@ -531,14 +667,19 @@ public class FontView01 {
             }
 
             c1.addShape( c0 );
-            c1.onHover(glyphPointerListener);
+            c1.onHover(hoverHandler);
             sink.receiveKeyEvents(c1);
             // sink.receiveMouseEvents(c1);
             c1.setToolTip( new TooltipShape(new Vec4f(1, 1, 1, 1), new Vec4f(0, 0, 0, 1), 0.01f,
                                             new Padding(0.05f), new Vec2f(14,14), 0, options.renderModes,
                                             g, TooltipShape.NoOpDtor) );
             c1.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
-                c1.getTooltip().now();
+                System.err.println("XXX: Clicked: "+s+", event "+e);
+                if( e.getPointerType(0).getPointerClass() == MouseEvent.PointerClass.Onscreen ) {
+                    hoverHandler.run(s, pos, e);
+                } else {
+                    c1.getTooltip().now();
+                }
             });
 
             if( 0 < gridDim.reserverColumns() && 0 == idx % gridDim.columnsNet ) {

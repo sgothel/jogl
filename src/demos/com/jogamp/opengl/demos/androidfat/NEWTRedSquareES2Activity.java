@@ -76,7 +76,7 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        glWindow.setVisible(true);
 
-       animator.setUpdateFPSFrames(60, System.err);
+       animator.setUpdateFPSFrames(60, null);
        animator.resetFPSCounter();
        glWindow.resetFPSCounter();
 

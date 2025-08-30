@@ -127,6 +127,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.opengl.demos.androidfat.NEWTGraphUIFontView01"
+                  android:label="@string/activity_graphuifontview01"
+                  android:description="@string/activity_graphuifontview01_descr"
+                  android:exported="true"
+                  android:finishOnTaskLaunch="false"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation|screenLayout"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <!--
         <activity android:name="jogamp.android.launcher.ActivityLauncher"
                   android:finishOnTaskLaunch="false"

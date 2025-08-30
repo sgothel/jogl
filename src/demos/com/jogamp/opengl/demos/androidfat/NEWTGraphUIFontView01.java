@@ -30,7 +30,7 @@ package com.jogamp.opengl.demos.androidfat;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.android.LauncherUtil.OrderedProperties;
-import com.jogamp.opengl.demos.graph.ui.UISceneDemo20;
+import com.jogamp.opengl.demos.graph.ui.FontView01;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
@@ -42,28 +42,19 @@ import com.jogamp.opengl.util.Animator;
 import android.os.Bundle;
 import android.util.Log;
 
-public class NEWTGraphUISceneDemo20Activity1p extends NewtBaseActivity {
-   static String TAG = "NEWTGraphUISceneDemo20Activity1p";
+public class NEWTGraphUIFontView01 extends NewtBaseActivity {
+   static String TAG = "NEWTGraphUIFontView01";
 
    public void initProperties() {
        final OrderedProperties props = new OrderedProperties();
-       // props.setProperty("jogamp.debug.JNILibLoader", "true");
-       // props.setProperty("jogamp.debug.NativeLibrary", "true");
-       // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       // props.setProperty("jogamp.debug.IOUtil", "true");
-       // props.setProperty("nativewindow.debug", "all");
-       // props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
-       // props.setProperty("jogl.debug", "all");
        // props.setProperty("jogl.debug.GLProfile", "true");
        // props.setProperty("jogl.debug.GLDrawable", "true");
        // props.setProperty("jogl.debug.GLContext", "true");
-       props.setProperty("jogl.debug.GLSLCode", "true");
-       // props.setProperty("jogl.debug.CapabilitiesChooser", "true");
+       // props.setProperty("jogl.debug.GLSLCode", "true");
        // props.setProperty("jogl.debug.GLSLState", "true");
        // props.setProperty("jogl.debug.DebugGL", "true");
        // props.setProperty("jogl.debug.TraceGL", "true");
        // props.setProperty("newt.debug", "all");
-       // props.setProperty("newt.debug.Window", "true");
        // props.setProperty("newt.debug.Window.MouseEvent", "true");
        // props.setProperty("newt.debug.Window.KeyEvent", "true");
        props.setSystemProperties();
@@ -72,9 +63,7 @@ public class NEWTGraphUISceneDemo20Activity1p extends NewtBaseActivity {
    @Override
    public void onCreate(final Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - 0");
-
        initProperties();
-
        super.onCreate(savedInstanceState);
 
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
@@ -87,7 +76,10 @@ public class NEWTGraphUISceneDemo20Activity1p extends NewtBaseActivity {
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
 
-       glWindow.addGLEventListener(new UISceneDemo20(0));
+       final FontView01 demo = new FontView01(0);
+       // demo.setMMPerCell(16);
+       demo.setMaxGlyphCount(0x2ff); // don't consume too much memory on this device
+       glWindow.addGLEventListener(demo);
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
            public void monitorModeChangeNotify(final MonitorEvent me) { }

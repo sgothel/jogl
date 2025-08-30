@@ -29,7 +29,7 @@ package com.jogamp.opengl.demos.androidfat;
 
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.graph.ui.UISceneDemo03b;
+import com.jogamp.opengl.demos.graph.ui.UISceneDemo03;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
@@ -59,7 +59,7 @@ public class NEWTGraphUISceneDemo03Activity1p extends NewtBaseActivity {
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
 
-       glWindow.addGLEventListener(new UISceneDemo03b(0));
+       glWindow.addGLEventListener(new UISceneDemo03(0));
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
            public void monitorModeChangeNotify(final MonitorEvent me) { }
@@ -71,7 +71,7 @@ public class NEWTGraphUISceneDemo03Activity1p extends NewtBaseActivity {
        glWindow.setVisible(true);
        final Animator animator = new Animator(glWindow);
 
-       animator.setUpdateFPSFrames(60, System.err);
+       animator.setUpdateFPSFrames(60, null);
        animator.resetFPSCounter();
        glWindow.resetFPSCounter();
 

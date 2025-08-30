@@ -329,8 +329,18 @@ public abstract class MonitorDevice {
     }
 
     /**
+     * Converts [1/mm] to [1/inch] from ppmm into result.
+     * @param ppmm float[2] [1/mm] value, unmodified
+     * @return return result w/ [1/inch] value
+     */
+    public static float[/*2*/] mmToInch(final float[/*2*/] result, final float[/*2*/] ppmm) {
+        result[0] = ppmm[0] * 25.4f;
+        result[1] = ppmm[1] * 25.4f;
+        return result;
+    }
+    /**
      * Converts [1/mm] to [1/inch] in place
-     * @param ppmm float[2] [1/mm] value
+     * @param ppmm float[2] [1/mm] value, modified
      * @return return [1/inch] value
      */
     public static float[/*2*/] mmToInch(final float[/*2*/] ppmm) {
@@ -343,14 +353,23 @@ public abstract class MonitorDevice {
      * @param ppmm [1/mm] value
      * @return return [1/inch] value
      */
-    public static float mmToInch(float ppmm) {
-        ppmm *= 25.4f;
-        return ppmm;
+    public static float mmToInch(final float ppmm) {
+        return ppmm * 25.4f;
     }
 
     /**
      * Converts [1/inch] to [1/mm] in place
-     * @param ppinch float[2] [1/inch] value
+     * @param ppinch float[2] [1/inch] value, unmodified
+     * @return return [1/mm] value
+     */
+    public static float[/*2*/] inchToMM(final float[/*2*/] result, final float[/*2*/] ppinch) {
+        result[0] = ppinch[0] / 25.4f;
+        result[1] = ppinch[1] / 25.4f;
+        return result;
+    }
+    /**
+     * Converts [1/inch] to [1/mm] in place
+     * @param ppinch float[2] [1/inch] value, modified
      * @return return [1/mm] value
      */
     public static float[/*2*/] inchToMM(final float[/*2*/] ppinch) {
@@ -363,9 +382,8 @@ public abstract class MonitorDevice {
      * @param ppinch [1/inch] value
      * @return return [1/mm] value
      */
-    public static float inchToMM(float ppinch) {
-        ppinch /= 25.4f;
-        return ppinch;
+    public static float inchToMM(final float ppinch) {
+        return ppinch / 25.4f;
     }
 
     /**

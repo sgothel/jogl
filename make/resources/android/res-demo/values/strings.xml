@@ -25,6 +25,8 @@
     <string name="activity_graphuiscenedemo20_1p_descr">GraphUIScene20 1-pass</string>
     <string name="activity_graphuiscenedemo20_2p_name">GraphUIScene20 2p</string>
     <string name="activity_graphuiscenedemo20_2p_descr">GraphUIScene20 2-pass</string>
+    <string name="activity_graphuifontview01">GraphUIFont01</string>
+    <string name="activity_graphuifontview01_descr">GraphUIFont01</string>
     <string name="activity_elektro_name">Elektro</string>
     <string name="activity_elektro_descr">Elektro</string>
     <string name="activity_moviesimple0b_name">MovieSimple0b</string>

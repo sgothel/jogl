@@ -201,29 +201,25 @@ public class CommandlineOptions {
     }
 
     /**
-     * Fix AA rendering bit.
-     * @param force even fix renderModes if any Region.AA_RENDERING_MASK bits is already set
-     * @param dpiV display vertical DPI
-     * @return the previous renderModes
-     */
-    public int fixAARenderModeWithDPIThreshold(final boolean force, final float dpiV) {
-        final int o = renderModes;
-        if( ( force || !Region.isGraphAA(renderModes) ) && !FloatUtil.isZero(noAADPIThreshold)) {
-            if( dpiV >= noAADPIThreshold ) {
-                renderModes &= ~Region.AA_RENDERING_MASK;
-            } else if( !Region.isGraphAA(renderModes) ) {
-                renderModes = Region.VBAA_RENDERING_BIT;
-            }
-        }
-        return o;
-    }
-    /**
-     * Fix default AA rendering bit, forced if having default_aa_setting is true
+     * Changes default AA rendering bit if not modified via parse(), i.e. default_aa_setting is true.
+     *
+     * AA rendering will be enabled if dpiV < noAADPIThreshold, otherwise enabled.
+     *
      * @param dpiV display vertical DPI
      * @return the previous renderModes
      */
     public int fixDefaultAARenderModeWithDPIThreshold(final float dpiV) {
-        return fixAARenderModeWithDPIThreshold(default_aa_setting, dpiV);
+        //return fixAARenderModeWithDPIThreshold(default_aa_setting, dpiV);
+        final int o = renderModes;
+        final boolean usesAA = Region.isGraphAA(renderModes) || 0 < sceneMSAASamples;
+        if(default_aa_setting && !FloatUtil.isZero(noAADPIThreshold)) {
+            if( dpiV >= noAADPIThreshold ) {
+                renderModes &= ~Region.AA_RENDERING_MASK;
+            } else if( !usesAA ) {
+                renderModes = Region.VBAA_RENDERING_BIT;
+            }
+        }
+        return o;
     }
 
     @Override

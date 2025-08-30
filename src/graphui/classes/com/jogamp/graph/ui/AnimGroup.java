@@ -584,6 +584,8 @@ public class AnimGroup extends Group {
      * @see #getDuration()
      */
     public final void setFixedPeriod(final float p) { fixed_frame_period = p; }
+    /** See {@link #setFixedPeriod(float)}. */
+    public final float getFixedPeriod() { return fixed_frame_period; }
 
     /**
      * Returns either the actual duration between now-start, or the fixed frame duration increment.

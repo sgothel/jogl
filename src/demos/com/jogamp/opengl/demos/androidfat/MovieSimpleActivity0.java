@@ -141,7 +141,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                System.err.println("MovieSimpleActivity0 State: "+mp);
                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                    glWindowMain.addGLEventListener(demoMain);
-                   anim.setUpdateFPSFrames(60*5, System.err);
+                   anim.setUpdateFPSFrames(60*5, null);
                    anim.resetFPSCounter();
                }
                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
