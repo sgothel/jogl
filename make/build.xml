@@ -364,7 +364,7 @@
             <fileset dir="${build}" includes="jogl-java-src.zip" />
         </delete-->
         <mkdir dir="${build}/oculusvr/gensrc/classes"/> <!-- just in case it was _not_ build -->
-        <zip destfile="${build}/jar/jogl-java-src.zip" level="0">
+        <zip destfile="${build}/jar/jogl-java-src.zip">
             <fileset dir="${src}/nativewindow/classes"/>
             <fileset dir="${build}/nativewindow/gensrc/classes"/>
             <fileset dir="${src}/jogl/classes"/>
@@ -374,10 +374,10 @@
             <fileset dir="${src}/oculusvr/classes"/>
             <fileset dir="${build}/oculusvr/gensrc/classes"/>
         </zip>
-        <zip destfile="${build}/jar/jogl-test-java-src.zip" level="0">
+        <zip destfile="${build}/jar/jogl-test-java-src.zip">
             <fileset dir="${src}/test"/>
         </zip>
-        <zip destfile="${build}/jar/jogl-demos-java-src.zip" level="0">
+        <zip destfile="${build}/jar/jogl-demos-java-src.zip">
             <fileset dir="${src}/demos"/>
         </zip>
     </target>
