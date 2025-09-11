@@ -144,7 +144,15 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
   - 2024-01-28 [High-Performance GraphUI GLMediaPlayer Video Player](https://jausoft.com/blog/2024/01/28/fullfeature_highperformance_graphui_video_player/)
   - 2024-02-07 [MediaPlayer - Feature Complete](https://jausoft.com/blog/2024/02/07/graphui-mediaplayer-feature-complete/)
   - 2024-02-13 [Fixing Delaunay Tessellation of Complex Non-Convex Shapes](https://jausoft.com/blog/2024/02/13/fixing-jogamps-graph-delaunay-tessellation-of-complex-non-convex-shapes/)
-- 2025-08-21 [JogAmp Release 2.6.0](https://jogamp.org/wiki/index.php/SW_Tracking_Report_Objectives_for_the_release_2.5.0)
+- 2025-06-28 [JOAL: OpenAL-Soft v1.24.3](https://openal-soft.org/), [git about](https://jogamp.org/cgit/joal.git/about/)
+- 2025-07-05 Added SWT 4.26 support (JOGL)
+- 2025-07-05 Export passing through NativeLibrary artifacts (3rd party toolkits)
+- 2025-07-05 Add Doxygen API doc
+- 2025-07-21 Add convenient fat-jars for one platform in local build (JOGL)
+- 2025-08-27 FreeBSD support (update)
+- 2025-08-24 NEWT + SWT High-DPI scaling fixes on X11/Windows
+- 2025-08-25 Android 11 (API 30) + 14 (API 34) Compatibility and fat APK Demos
+- 2025-08-31 [JogAmp Release 2.6.0](https://jogamp.org/wiki/index.php/SW_Tracking_Report_Objectives_for_the_release_2.6.0)
 
 ### Conferences 
 - JavaOne [2002 (GL4Java)](https://jogamp.org/jogl/www/3167.pdf), [2003](https://jogamp.org/jogl/www/2125.pdf), [2004](https://jogamp.org/jogl/www/ts1361.pdf), [2006](https://jogamp.org/jogl/www/bof0899.pdf), [2007](https://jogamp.org/jogl/www/BOF-3908-JOGL-slides.pdf), [2008](https://www.youtube.com/watch?v=DeupVAMnvFA)
