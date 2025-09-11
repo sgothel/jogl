@@ -3,7 +3,7 @@
 [Original document location](https://jogamp.org/cgit/jogl.git/about/)
 
 ## Git Repository
-This project's canonical repositories is hosted on [JogAmp](https://jogamp.org/cgit/jogl.git/).
+This project's canonical repository is hosted on [JogAmp](https://jogamp.org/cgit/jogl.git/).
 
 ## Overview
 The [*JOGL project*](https://jogamp.org/jogl/www/) hosts the development of high-performance graphics binding for Java™, and is designed to provide hardware-supported 3D graphics and multimedia to applications written in Java™.
@@ -17,7 +17,7 @@ JOGL integrates with the AWT, Swing, OpenJFX and SWT widget sets, as well as wit
 
 JOGL also provides its own [native windowing toolkit, NEWT](https://jogamp.org/jogl/doc/NEWT-Overview.html), running on top of X11, Windows, MacOS and even on bare-metal console mode without a windowing system.
 
-JOGL contains [Graph](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/OutlineShape.html), [a resolution-independent GPU NURBS curve renderer](https://jausoft.com/blog/2023/02/22/reimagine-java-on-desktop-bare-metal-devices/) suitable for desktop and embedded devices and supporting [text type rendering](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/opengl/TextRegionUtil.html) \[ [paper](https://jogamp.org/doc/gpunurbs2011/p70-santina.pdf), [slides](https://jogamp.org/doc/gpunurbs2011/graphicon2011-slides.pdf) \].
+JOGL contains [Graph](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/classcom_1_1jogamp_1_1graph_1_1curve_1_1OutlineShape.html), [a resolution-independent GPU NURBS curve renderer](https://jausoft.com/blog/2023/02/22/reimagine-java-on-desktop-bare-metal-devices/) suitable for desktop and embedded devices and supporting [text type rendering](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/classcom_1_1jogamp_1_1graph_1_1curve_1_1opengl_1_1TextRegionUtil.html) \[ [paper](https://jogamp.org/doc/gpunurbs2011/p70-santina.pdf), [slides](https://jogamp.org/doc/gpunurbs2011/graphicon2011-slides.pdf) \].
 Graph is used in the contained [GraphUI, enabling immersive UI within the 3D scene](https://jausoft.com/blog/tag/graph_type_rendering/).
 
 JOGL is part of [the JogAmp project](https://jogamp.org).
@@ -57,8 +57,8 @@ NativeWindow, NEWT and GraphUI might be build seperately.
 - [JOGL Home](https://jogamp.org/jogl/www/)
 - [Git Repository](https://jogamp.org/cgit/jogl.git/about/)
 - [OpenGL Evolution & JOGL](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html)
-- [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#overview_description)
-  - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#GLAPIInclusionCriteria)
+- [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#autotoc_md4)
+  - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/index.html#autotoc_md17)
   - [UML Diagram](https://jogamp.org/jogl/doc/uml/html/index-withframe.html)
 - [JOGL and OpenGL Divergence](https://jogamp.org/jogl/doc/OpenGL_API_Divergence.html)
 - [How To Build](https://jogamp.org/jogl/doc/HowToBuild.html)
