@@ -891,6 +891,22 @@ public class PMVMatrix4f {
     //
 
     /**
+     * Set the the {@link #getP() projection matrix} to the perspective/frustum matrix.
+     *
+     * @param fovy_rad fov angle in radians
+     * @param aspect aspect ratio width / height
+     * @param zNear
+     * @param zFar
+     * @throws IllegalArgumentException if {@code zNear <= 0} or {@code zFar <= zNear}
+     * @see Matrix4f#setToPerspective(float, float, float, float)
+     */
+    public final PMVMatrix4f setToPerspective(final float fovy_rad, final float aspect, final float zNear, final float zFar) throws IllegalArgumentException {
+        matP.setToPerspective(fovy_rad, aspect, zNear, zFar);
+        setProjectionDirty();
+        return this;
+    }
+
+    /**
      * {@link #mulP(Matrix4f) Multiply} the {@link #getP() projection matrix} with the perspective/frustum matrix.
      *
      * @param fovy_rad fov angle in radians
@@ -906,11 +922,21 @@ public class PMVMatrix4f {
     }
 
     /**
-     * {@link #mulP(Matrix4f) Multiply} the {@link #getP() projection matrix}
-     * with the eye, object and orientation, i.e. {@link Matrix4f#setToLookAt(Vec3f, Vec3f, Vec3f, Matrix4f)}.
+     * Set the {@link #getMv() modelview matrix}
+     * to the eye, object and orientation (camera), i.e. {@link Matrix4f#setToLookAt(Vec3f, Vec3f, Vec3f, Matrix4f)}.
      */
-    public final PMVMatrix4f lookAtP(final Vec3f eye, final Vec3f center, final Vec3f up) {
-        mulP( mat4Tmp1.setToLookAt(eye, center, up, getTmp2Mat()) );
+    public final PMVMatrix4f setToLookAtMv(final Vec3f eye, final Vec3f center, final Vec3f up) {
+        matMv.setToLookAt(eye, center, up, getTmp2Mat());
+        setModelviewDirty();
+        return this;
+    }
+
+    /**
+     * {@link #mulMv(Matrix4f) Multiply} the {@link #getMv() modelview matrix}
+     * with the eye, object and orientation (camera), i.e. {@link Matrix4f#setToLookAt(Vec3f, Vec3f, Vec3f, Matrix4f)}.
+     */
+    public final PMVMatrix4f lookAtMv(final Vec3f eye, final Vec3f center, final Vec3f up) {
+        mulMv( mat4Tmp1.setToLookAt(eye, center, up, getTmp2Mat()) );
         return this;
     }
 
