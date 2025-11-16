@@ -810,20 +810,7 @@ public final class ShaderState {
     //
 
     /**
-     * Gets the cached location of the shader uniform.
-     *
-     * @return -1 if there is no such uniform available,
-     *         otherwise >= 0
-     */
-    public final int getCachedUniformLocation(final String name) {
-        final Integer idx = activeUniformLocationMap.get(name);
-        return (null!=idx)?idx.intValue():-1;
-    }
-
-    /**
      * Bind the {@link GLUniform} lifecycle to this ShaderState.
-     *
-     * <p>If a uniform location is cached it is promoted to the {@link GLUniformData} instance.</p>
      *
      * <p>The attribute will be destroyed with {@link #destroy(GL2ES2)}
      * and it's location will be reset when switching shader with {@link #attachShaderProgram(GL2ES2, ShaderProgram)}.</p>
@@ -835,10 +822,6 @@ public final class ShaderState {
      * @see #getUniform(String)
      */
     public void ownUniform(final GLUniformData uniform) {
-        final int location = getCachedUniformLocation(uniform.getName());
-        if(0<=location) {
-            uniform.setLocation(location);
-        }
         activeUniformDataMap.put(uniform.getName(), uniform);
         managedUniforms.add(uniform);
     }
@@ -848,45 +831,8 @@ public final class ShaderState {
     }
 
     /**
-     * Gets the location of a shader uniform with given <code>name</code>.<br>
-     * Uses either the cached value {@link #getCachedUniformLocation(String)} if valid,
-     * or the GLSL queried via {@link GL2ES2#glGetUniformLocation(int, String)}.<br>
-     * The location will be cached.
-     * <p>
-     * The current shader program ({@link #attachShaderProgram(GL2ES2, ShaderProgram)})
-     * must be in use ({@link #useProgram(GL2ES2, boolean) }) !</p>
-     *
-     * @return -1 if there is no such attribute available,
-     *         otherwise >= 0
-
-     * @throws GLException is the program is not linked
-     *
-     * @see #glGetUniformLocation
-     * @see com.jogamp.opengl.GL2ES2#glGetUniformLocation
-     * @see #getUniformLocation
-     * @see ShaderProgram#glReplaceShader
-     */
-    public final int getUniformLocation(final GL2ES2 gl, final String name) {
-        if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
-        int location = getCachedUniformLocation(name);
-        if(0>location) {
-            if(!shaderProgram.linked()) throw new GLException("Program is not linked");
-            location = gl.glGetUniformLocation(shaderProgram.program(), name);
-            if(0<=location) {
-                activeUniformLocationMap.put(name, Integer.valueOf(location));
-            } else if(verbose) {
-                System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
-                if(DEBUG) {
-                    ExceptionUtils.dumpStack(System.err);
-                }
-            }
-        }
-        return location;
-    }
-
-    /**
      * Validates and returns the location of a shader uniform.<br>
-     * Uses either the cached value {@link #getCachedUniformLocation(String)} if valid,
+     * Uses either the internal value {@link GLUniformData#getLocation()} if valid,
      * or the GLSL queried via {@link GL2ES2#glGetUniformLocation(int, String)}.<br>
      * The location will be cached and set in the
      * {@link GLUniformData} object.
@@ -901,21 +847,16 @@ public final class ShaderState {
      *
      * @see #glGetUniformLocation
      * @see com.jogamp.opengl.GL2ES2#glGetUniformLocation
-     * @see #getUniformLocation
      * @see ShaderProgram#glReplaceShader
      */
     public int getUniformLocation(final GL2ES2 gl, final GLUniformData data) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         final String name = data.getName();
-        int location = getCachedUniformLocation(name);
-        if(0<=location) {
-            data.setLocation(location);
-        } else {
+        int location = data.getLocation();
+        if(0>location) {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = data.setLocation(gl, shaderProgram.program());
-            if(0<=location) {
-                activeUniformLocationMap.put(name, Integer.valueOf(location));
-            } else if(verbose) {
+            if(0>location && verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
                     ExceptionUtils.dumpStack(System.err);
@@ -974,7 +915,6 @@ public final class ShaderState {
      */
     public void releaseAllUniforms(final GL2ES2 gl) {
         activeUniformDataMap.clear();
-        activeUniformLocationMap.clear();
         managedUniforms.clear();
     }
 
@@ -995,7 +935,6 @@ public final class ShaderState {
      */
     private final void resetAllUniforms(final GL2ES2 gl) {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
-        activeUniformLocationMap.clear();
         for(final Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
             iter.next().setLocation(-1);
         }
@@ -1004,7 +943,6 @@ public final class ShaderState {
             final int loc = data.setLocation(gl, shaderProgram.program());
             if( 0 <= loc ) {
                 // only pass the data, if the uniform exists in the current shader
-                activeUniformLocationMap.put(data.getName(), Integer.valueOf(loc));
                 if(DEBUG) {
                     System.err.println("ShaderState: resetAllUniforms: "+data);
                 }
@@ -1079,7 +1017,6 @@ public final class ShaderState {
     private final HashMap<String, GLArrayData> activeAttribDataMap = new HashMap<String, GLArrayData>();
     private final ArrayList<GLArrayData> managedAttributes = new ArrayList<GLArrayData>();
 
-    private final HashMap<String, Integer> activeUniformLocationMap = new HashMap<String, Integer>();
     private final HashMap<String, GLUniformData> activeUniformDataMap = new HashMap<String, GLUniformData>();
     private final ArrayList<GLUniformData> managedUniforms = new ArrayList<GLUniformData>();
 
