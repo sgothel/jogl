@@ -44,6 +44,7 @@
 #include "KeyEvent.h"
 
 #include <EGL/egl.h>
+#include "NewtCommon.h"
 
 typedef unsigned int    GLuint;
 
