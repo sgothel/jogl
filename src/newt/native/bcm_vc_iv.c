@@ -38,6 +38,7 @@
 #include "jogamp_newt_driver_bcm_vc_iv_DisplayDriver.h"
 #include "jogamp_newt_driver_bcm_vc_iv_ScreenDriver.h"
 #include "jogamp_newt_driver_bcm_vc_iv_WindowDriver.h"
+#include "NewtCommon.h"
 
 // #define VERBOSE_ON 1
 
