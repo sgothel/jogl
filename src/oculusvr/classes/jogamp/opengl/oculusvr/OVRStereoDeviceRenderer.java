@@ -274,20 +274,20 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         }
 
         /* pp */  void linkData(final GL2ES2 gl, final ShaderProgram sp) {
-            if( 0 > vboPos.setLocation(gl, sp.program()) ) {
+            if( 0 > vboPos.resolveLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vboPos);
             }
-            if( 0 > vboParams.setLocation(gl, sp.program()) ) {
+            if( 0 > vboParams.resolveLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vboParams);
             }
-            if( 0 > vboTexCoordsR.setLocation(gl, sp.program()) ) {
+            if( 0 > vboTexCoordsR.resolveLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vboTexCoordsR);
             }
             if( StereoUtil.usesChromaticDistortion(distortionBits) ) {
-                if( 0 > vboTexCoordsG.setLocation(gl, sp.program()) ) {
+                if( 0 > vboTexCoordsG.resolveLocation(gl, sp.program()) ) {
                     throw new GLException("Couldn't locate "+vboTexCoordsG);
                 }
-                if( 0 > vboTexCoordsB.setLocation(gl, sp.program()) ) {
+                if( 0 > vboTexCoordsB.resolveLocation(gl, sp.program()) ) {
                     throw new GLException("Couldn't locate "+vboTexCoordsB);
                 }
             }

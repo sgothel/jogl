@@ -105,11 +105,11 @@ public class GLSLTextureRaster  {
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+2, GL.GL_FLOAT, false, 2*4, GL.GL_STATIC_DRAW);
         {
             final GLArrayData vArrayData = interleavedVBO.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);
-            if( vArrayData.setLocation(gl, sp.program()) < 0 ) {
+            if( !vArrayData.resolveLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+vArrayData+" in shader: "+sp);
             }
             final GLArrayData tArrayData = interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
-            if( tArrayData.setLocation(gl, sp.program()) < 0 ) {
+            if( !tArrayData.resolveLocation(gl, sp.program()) ) {
                 throw new GLException("Couldn't locate "+tArrayData+" in shader: "+sp);
             }
             final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();

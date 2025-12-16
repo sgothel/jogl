@@ -98,7 +98,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
                 glsl.glBindBuffer(ad.getVBOTarget(), 0);
-            } else if(st.getAttribLocation(glsl, ad) >= 0) {
+            } else if(st.resolveLocation(glsl, ad) ) {
                 // didn't experience a performance hit on this query ..
                 // (using ShaderState's location query above to validate the location)
                 glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, tempI, 0);

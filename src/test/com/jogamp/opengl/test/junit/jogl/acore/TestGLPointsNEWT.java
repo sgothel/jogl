@@ -101,14 +101,18 @@ public class TestGLPointsNEWT extends UITestCase {
     public void test01FFP__GL2() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
         final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
-        runTestGL(caps, new PointsDemoES1(), false);
+        final PointsDemoES1 demo = new PointsDemoES1();
+        demo.setForceFFPEmu(true, false, false, false);
+        runTestGL(caps, demo, false);
     }
 
     @Test
     public void test02FFP__ES1() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GLES1)) { System.err.println("GLES1 n/a"); return; }
         final GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
-        runTestGL(caps, new PointsDemoES1(), false);
+        final PointsDemoES1 demo = new PointsDemoES1();
+        demo.setForceFFPEmu(true, false, false, false);
+        runTestGL(caps, demo, false);
     }
 
     @Test

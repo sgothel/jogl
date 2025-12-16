@@ -124,8 +124,10 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLSLCode"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLSLState"
+    #D_ARGS="-Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.quirks.force=NoSurfacelessCtx"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles"
@@ -666,7 +668,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestX11DefaultDisplay $*
@@ -1062,7 +1064,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO01 $*
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO02 $*
 
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 

@@ -215,16 +215,16 @@ public class GearsES2 implements StereoGLEventListener {
         pmvMatrix = new PMVMatrix(PMVMatrix4f.INVERSE_MODELVIEW | PMVMatrix4f.INVERSE_TRANSPOSED_MODELVIEW);
         st.attachObject("pmvMatrix", pmvMatrix);
         pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.getSyncPMvMviMvit()); // P, Mv, Mvi and Mvit
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         final GLUniformData lightU = new GLUniformData("lightPos", 3, lightPos);
-        st.ownUniform(lightU);
-        st.uniform(gl, lightU);
+        st.manage(lightU, true);
+        st.send(gl, lightU);
 
         colorU = new GLUniformData("color", 4, Buffers.newDirectFloatBuffer(4));
-        st.ownUniform(colorU);
-        st.uniform(gl, colorU);
+        st.manage(colorU, true);
+        st.send(gl, colorU);
 
         {
             gear1 = new GearsObjectES2(gl, useMappedBuffers, st, GearsObject.red, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);
@@ -325,7 +325,7 @@ public class GearsES2 implements StereoGLEventListener {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -zViewDist);
         st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
     }
     // private boolean useAndroidDebug = false;
@@ -377,7 +377,7 @@ public class GearsES2 implements StereoGLEventListener {
             pmvMatrix.glLoadMatrixf(mat4);
         }
         st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
     }
 

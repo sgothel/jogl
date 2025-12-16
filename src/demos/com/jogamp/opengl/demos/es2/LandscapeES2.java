@@ -112,11 +112,11 @@ public class LandscapeES2 implements GLEventListener {
 
         resolution = new float[] { drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0};
         resolutionUni = new GLUniformData("iResolution", 3, FloatBuffer.wrap(resolution));
-        shaderState.ownUniform(resolutionUni);
-        shaderState.uniform(gl, resolutionUni);
+        shaderState.manage(resolutionUni, true);
+        shaderState.send(gl, resolutionUni);
 
         timeUni = new GLUniformData("iGlobalTime", 0.0f);
-        shaderState.ownUniform(timeUni);
+        shaderState.manage(timeUni, true);
 
         vertices = GLArrayDataServer.createGLSL("inVertex", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         vertices.putf(-1.0f); vertices.putf(-1.0f);
@@ -124,7 +124,7 @@ public class LandscapeES2 implements GLEventListener {
         vertices.putf(-1.0f); vertices.putf(+1.0f);
         vertices.putf(+1.0f); vertices.putf(+1.0f);
         vertices.seal(gl, true);
-        shaderState.ownAttribute(vertices, true);
+        shaderState.manage(vertices, true);
         shaderState.useProgram(gl, false);
 
         millisOffset = System.currentTimeMillis();
@@ -144,7 +144,7 @@ public class LandscapeES2 implements GLEventListener {
 
         resolution[0] = width;
         resolution[1] = height;
-        shaderState.uniform(gl, resolutionUni);
+        shaderState.send(gl, resolutionUni);
 
         shaderState.useProgram(gl, false);
     }
@@ -170,7 +170,7 @@ public class LandscapeES2 implements GLEventListener {
         shaderState.useProgram(gl, true);
 
         timeUni.setData((System.currentTimeMillis() - millisOffset) / 1000.0f);
-        shaderState.uniform(gl, timeUni);
+        shaderState.send(gl, timeUni);
         vertices.enableBuffer(gl, true);
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         vertices.enableBuffer(gl, false);

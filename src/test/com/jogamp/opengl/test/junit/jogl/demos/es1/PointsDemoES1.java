@@ -75,8 +75,10 @@ public class PointsDemoES1 extends PointsDemo {
         this.traceFFPEmu = traceFFPEmu;
     }
 
+    @Override
     public void setSmoothPoints(final boolean v) { smooth = v; }
 
+    @Override
     public void init(final GLAutoDrawable glad) {
         GL _gl = glad.getGL();
 
@@ -130,6 +132,7 @@ public class PointsDemoES1 extends PointsDemo {
         gl.glEnable(GL.GL_DEPTH_TEST);
     }
 
+    @Override
     public void setPointParams(final float minSize, final float maxSize, final float distAttenConst, final float distAttenLinear, final float distAttenQuadratic, final float fadeThreshold) {
         pointMinSize = minSize;
         pointMaxSize = maxSize;
@@ -145,6 +148,7 @@ public class PointsDemoES1 extends PointsDemo {
     private float pointFadeThreshold = 1.0f;
     private final FloatBuffer pointDistAtten = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f });
 
+    @Override
     public void display(final GLAutoDrawable glad) {
         final GL2ES1 gl = glad.getGL().getGL2ES1();
         gl.glClearColor(0f, 0f, 0f, 0f);
@@ -177,6 +181,7 @@ public class PointsDemoES1 extends PointsDemo {
         vertices.enableBuffer(gl, false);
     }
 
+    @Override
     public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         // Thread.dumpStack();
         final GL2ES1 gl = glad.getGL().getGL2ES1();
@@ -190,6 +195,7 @@ public class PointsDemoES1 extends PointsDemo {
         //gl.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable glad) {
         final GL2ES1 gl = glad.getGL().getGL2ES1();
         vertices.destroy(gl);

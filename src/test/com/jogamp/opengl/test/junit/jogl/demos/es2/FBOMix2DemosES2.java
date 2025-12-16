@@ -117,8 +117,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
         st.attachShaderProgram(gl, sp0, true);
 
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
         {
@@ -138,14 +138,14 @@ public class FBOMix2DemosES2 implements GLEventListener {
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 
         texUnit0 = new GLUniformData("mgl_Texture0", 0);
-        st.ownUniform(texUnit0);
-        st.uniform(gl, texUnit0);
+        st.manage(texUnit0, true);
+        st.send(gl, texUnit0);
         texUnit1 = new GLUniformData("mgl_Texture1", 1);
-        st.ownUniform(texUnit1);
-        st.uniform(gl, texUnit1);
+        st.manage(texUnit1, true);
+        st.send(gl, texUnit1);
 
         st.useProgram(gl, false);
 
@@ -287,7 +287,7 @@ public class FBOMix2DemosES2 implements GLEventListener {
         pmvMatrix.glLoadIdentity();
 
         st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
 
     }

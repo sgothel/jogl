@@ -465,10 +465,10 @@ public class MovieSBSStereo implements StereoGLEventListener {
             pmvMatrix = new PMVMatrix();
             reshapePMV(viewPort.width(), viewPort.height());
             pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-            if(!st.uniform(gl, pmvMatrixUniform)) {
+            if(!st.send(gl, pmvMatrixUniform)) {
                 throw new GLException("Error setting PMVMatrix in shader: "+st);
             }
-            if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", mPlayer.getTextureUnit()))) {
+            if(!st.send(gl, new GLUniformData("mgl_ActiveTexture", mPlayer.getTextureUnit()))) {
                 throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
             }
 
@@ -513,8 +513,8 @@ public class MovieSBSStereo implements StereoGLEventListener {
             updateInterleavedVBO(gl, interleavedVBOLeft, tex, 0);
             updateInterleavedVBO(gl, interleavedVBORight, tex, 1);
 
-            st.ownAttribute(interleavedVBOLeft, true);
-            st.ownAttribute(interleavedVBORight, true);
+            st.manage(interleavedVBOLeft, true);
+            st.manage(interleavedVBORight, true);
             gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
 
             gl.glEnable(GL.GL_DEPTH_TEST);
@@ -613,7 +613,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         if(null != st) {
             reshapePMV(width, height);
             st.useProgram(gl, true);
-            st.uniform(gl, pmvMatrixUniform);
+            st.send(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
         }
 
@@ -691,7 +691,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             pmvMatrix.glLoadMatrixf(mat4);
         }
         st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
         if( null != textRendererGLEL ) {
             textRendererGLEL.reshape(drawable, 0, 0, width, height);
@@ -784,7 +784,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         } else {
             rotate = 0;
         }
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         iVBO.enableBuffer(gl, true);
         Texture tex = null;
         if(null!=mPlayer) {

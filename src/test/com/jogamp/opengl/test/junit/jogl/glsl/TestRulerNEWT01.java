@@ -111,8 +111,8 @@ public class TestRulerNEWT01 extends UITestCase {
                 st.attachShaderProgram(gl, sp0, true);
 
                 Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-                st.ownUniform(pmvMatrixUniform);
-                st.uniform(gl, pmvMatrixUniform);
+                st.manage(pmvMatrixUniform, true);
+                st.send(gl, pmvMatrixUniform);
                 Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
                 final GLUniformData rulerColor= new GLUniformData("gcu_RulerColor", 3, Buffers.newDirectFloatBuffer(3));
@@ -120,18 +120,18 @@ public class TestRulerNEWT01 extends UITestCase {
                 rulerColorV.put(0, 0.5f);
                 rulerColorV.put(1, 0.5f);
                 rulerColorV.put(2, 0.5f);
-                st.ownUniform(rulerColor);
-                st.uniform(gl, rulerColor);
+                st.manage(rulerColor, true);
+                st.send(gl, rulerColor);
                 Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-                st.ownUniform(rulerPixFreq);
+                st.manage(rulerPixFreq, true);
 
                 vertices0.putf(0); vertices0.putf(1);  vertices0.putf(0);
                 vertices0.putf(1);  vertices0.putf(1);  vertices0.putf(0);
                 vertices0.putf(0); vertices0.putf(0); vertices0.putf(0);
                 vertices0.putf(1);  vertices0.putf(0); vertices0.putf(0);
                 vertices0.seal(gl, true);
-                st.ownAttribute(vertices0, true);
+                st.manage(vertices0, true);
 
                 // misc GL setup
                 gl.glClearColor(1, 1, 1, 1);
@@ -163,13 +163,13 @@ public class TestRulerNEWT01 extends UITestCase {
                 pmvMatrix.glLoadIdentity();
                 // pmvMatrix.glTranslatef(0, 0, -6);
                 // pmvMatrix.glRotatef(45f, 1f, 0f, 0f);
-                st.uniform(gl, pmvMatrixUniform);
+                st.send(gl, pmvMatrixUniform);
 
                 final float[] ppmmStore = glWindow.getPixelsPerMM(new float[2]);
                 final FloatBuffer rulerPixFreqV = (FloatBuffer) rulerPixFreq.getBuffer();
                 rulerPixFreqV.put(0, ppmmStore[0] * 10.0f);
                 rulerPixFreqV.put(1, ppmmStore[1] * 10.0f);
-                st.uniform(gl, rulerPixFreq);
+                st.send(gl, rulerPixFreq);
                 System.err.println("Screen pixel/cm "+rulerPixFreqV.get(0)+", "+rulerPixFreqV.get(1));
             }
 

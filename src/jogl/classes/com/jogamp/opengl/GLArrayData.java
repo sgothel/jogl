@@ -45,7 +45,7 @@ public interface GLArrayData {
      * One currently known use case is to associate a {@link com.jogamp.opengl.util.glsl.ShaderState ShaderState}
      * to an GLSL aware vertex attribute object, allowing to use the ShaderState to handle it's
      * data persistence, location and state change.<br/>
-     * This is implicitly done via {@link com.jogamp.opengl.util.glsl.ShaderState#ownAttribute(GLArrayData, boolean) shaderState.ownAttribute(GLArrayData, boolean)}.
+     * This is implicitly done via {@link com.jogamp.opengl.util.glsl.ShaderState#manage(GLArrayData, boolean) shaderState.ownAttribute(GLArrayData, boolean)}.
      * </p>
      * @param obj implementation and type dependent association
      * @param enable pass true to enable the association and false to disable it.
@@ -80,7 +80,7 @@ public interface GLArrayData {
      * This clears the location, i.e. sets it to -1.
      * </p>
      * @see #setLocation(int)
-     * @see #setLocation(GL2ES2, int)
+     * @see #resolveLocation(GL2ES2, int)
      */
     public void setName(String newName);
 
@@ -91,13 +91,15 @@ public interface GLArrayData {
      */
     public int getLocation();
 
+    /** Returns true is location() is >= 0, otherwise false */
+    public boolean hasLocation();
+
     /**
      * Sets the given location of the shader attribute
      *
-     * @return the given location
      * @see com.jogamp.opengl.util.glsl.ShaderState#vertexAttribPointer(GL2ES2, GLArrayData)
      */
-    public int setLocation(int v);
+    public void setLocation(int v);
 
     /**
      * Retrieves the location of the shader attribute from the linked shader program.
@@ -106,10 +108,9 @@ public interface GLArrayData {
      * </p>
      * @param gl
      * @param program
-     * @return &ge;0 denotes a valid attribute location as found and used in the given shader program.
-     *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
+     * @return true if a valid attribute location has been found and used in the given shader program, otherwise false.
      */
-    public int setLocation(GL2ES2 gl, int program);
+    public boolean resolveLocation(GL2ES2 gl, int program);
 
     /**
      * Binds the location of the shader attribute to the given location for the unlinked shader program.
@@ -118,9 +119,8 @@ public interface GLArrayData {
      * </p>
      * @param gl
      * @param program
-     * @return the given location
      */
-    public int setLocation(GL2ES2 gl, int program, int location);
+    public void setLocation(GL2ES2 gl, int program, int location);
 
     /**
      * Determines whether the data is server side (VBO) and enabled,

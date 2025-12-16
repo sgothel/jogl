@@ -122,14 +122,14 @@ public class PointsDemoES2 extends PointsDemo {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
-        st.uniform(gl, new GLUniformData(mgl_PointParams, 4, pointParams));
+        st.send(gl, new GLUniformData(mgl_PointParams, 4, pointParams));
 
         final GLUniformData colorStaticUniform = new GLUniformData("mgl_ColorStatic", 4, Buffers.newDirectFloatBuffer(new float[] { 1.0f, 1.0f, 1.0f, 1.0f }) );
-        st.uniform(gl, colorStaticUniform);
-        st.ownUniform(colorStaticUniform);
+        st.send(gl, colorStaticUniform);
+        st.manage(colorStaticUniform, true);
 
         // Allocate Vertex Array
         vertices = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, edge*edge, GL.GL_STATIC_DRAW);
@@ -145,10 +145,10 @@ public class PointsDemoES2 extends PointsDemo {
             }
         }
         vertices.seal(gl, true);
-        st.ownAttribute(vertices, true);
+        st.manage(vertices, true);
         vertices.enableBuffer(gl, false);
         pointSizes.seal(gl, true);
-        st.ownAttribute(pointSizes, true);
+        st.manage(pointSizes, true);
         pointSizes.enableBuffer(gl, false);
 
         // OpenGL Render Settings
@@ -165,12 +165,12 @@ public class PointsDemoES2 extends PointsDemo {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
 
-        final GLUniformData ud = st.getUniform(mgl_PointParams);
+        final GLUniformData ud = st.getActiveUniform(mgl_PointParams);
         if(null!=ud) {
             // same data object
-            st.uniform(gl, ud);
+            st.send(gl, ud);
         }
 
         vertices.enableBuffer(gl, true);
@@ -209,7 +209,7 @@ public class PointsDemoES2 extends PointsDemo {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, ( (float) width / (float) height ) / 1.0f, 1.0F, 100.0F);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
     }
 

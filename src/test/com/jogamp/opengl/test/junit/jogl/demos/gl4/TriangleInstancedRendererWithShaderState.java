@@ -105,15 +105,15 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 		initShader(gl);
         projectionMatrix = new PMVMatrix();
 		projectionMatrixUniform = new GLUniformData("mgl_PMatrix", 4, 4, projectionMatrix.getSyncP());
-		st.ownUniform(projectionMatrixUniform);
-        if(!st.uniform(gl, projectionMatrixUniform)) {
+		st.manage(projectionMatrixUniform, true);
+        if(!st.send(gl, projectionMatrixUniform)) {
             throw new GLException("Error setting mgl_PMatrix in shader: " + st);
         }
 
         transformMatrixUniform =  new GLUniformData("mgl_MVMatrix", 4, 4, triangleTransform);
 
-        st.ownUniform(transformMatrixUniform);
-        if(!st.uniform(gl, transformMatrixUniform)) {
+        st.manage(transformMatrixUniform, true);
+        if(!st.send(gl, transformMatrixUniform)) {
             throw new GLException("Error setting mgl_MVMatrix in shader: " + st);
         }
 
@@ -140,11 +140,11 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 		float winScale = 0.1f;
 		if(view != null) winScale = view.getScale();
 		projectionMatrix.glScalef(winScale, winScale, winScale);
-		st.uniform(gl, projectionMatrixUniform);
+		st.send(gl, projectionMatrixUniform);
 		projectionMatrix.glPopMatrix();
 
 		generateTriangleTransform();
-		st.uniform(gl, transformMatrixUniform);
+		st.send(gl, transformMatrixUniform);
 		if(useInterleaved) {
 			interleavedVBO.enableBuffer(gl, true);
 		} else {
@@ -206,8 +206,8 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
         verticesVBO.enableBuffer(gl, false);
         colorsVBO.enableBuffer(gl, false);
 
-        st.ownAttribute(verticesVBO, true);
-        st.ownAttribute(colorsVBO, true);
+        st.manage(verticesVBO, true);
+        st.manage(colorsVBO, true);
 		st.useProgram(gl, false);
 	}
 
@@ -225,7 +225,7 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 		st.useProgram(gl, false);
 	}
 

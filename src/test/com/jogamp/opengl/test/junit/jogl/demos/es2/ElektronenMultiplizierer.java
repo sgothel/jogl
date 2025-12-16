@@ -255,13 +255,13 @@ public class ElektronenMultiplizierer implements GLEventListener {
         final FloatBuffer mScreenDimensionV = (FloatBuffer) mScreenDimensionUniform.getBuffer();
         mScreenDimensionV.put(0, XRESf);
         mScreenDimensionV.put(1, YRESf);
-        st.ownUniform(mScreenDimensionUniform);
-        st.uniform(gl, mScreenDimensionUniform);
+        st.manage(mScreenDimensionUniform, true);
+        st.send(gl, mScreenDimensionUniform);
 
         pmvMatrix = new PMVMatrix();
         pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         vertices0.putf(0);     vertices0.putf(YRESf);
@@ -269,7 +269,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         vertices0.putf(0);     vertices0.putf(0);
         vertices0.putf(XRESf); vertices0.putf(0);
         vertices0.seal(gl, true);
-        st.ownAttribute(vertices0, true);
+        st.manage(vertices0, true);
         vertices0.enableBuffer(gl, false);
 
         /**
@@ -299,13 +299,13 @@ public class ElektronenMultiplizierer implements GLEventListener {
         gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextureID, 0);
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        st.uniform(gl, new GLUniformData("fb", 0));
+        st.send(gl, new GLUniformData("fb", 0));
 
         // will be changed in display(..)
-        st.uniform(gl, new GLUniformData("en", 0));
-        st.uniform(gl, new GLUniformData("tm", 0.0f));
-        st.uniform(gl, new GLUniformData("br", 0.0f));
-        st.uniform(gl, new GLUniformData("et", 0.0f));
+        st.send(gl, new GLUniformData("en", 0));
+        st.send(gl, new GLUniformData("tm", 0.0f));
+        st.send(gl, new GLUniformData("br", 0.0f));
+        st.send(gl, new GLUniformData("et", 0.0f));
 
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -381,7 +381,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         pmvMatrix.glOrthof(0f, XRES, YRES, 0f, -1f, 1f);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
 
         gl.glActiveTexture(GL_TEXTURE0);
 
@@ -432,7 +432,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
 
         gl.glBindFramebuffer(GL_FRAMEBUFFER, mFrameBufferObjectID);
         // gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-        final GLUniformData en = st.getUniform("en");
+        final GLUniformData en = st.getActiveUniform("en");
         if(mSyncEventNumber==7) {
              en.setData(2);
         }
@@ -441,13 +441,13 @@ public class ElektronenMultiplizierer implements GLEventListener {
         } else {
              en.setData(0);
         }
-        st.uniform(gl, en);
+        st.send(gl, en);
 
-        final GLUniformData et = st.getUniform("et");
-        st.uniform(gl, et.setData(9.1f));
+        final GLUniformData et = st.getActiveUniform("et");
+        st.send(gl, et.setData(9.1f));
 
-        st.uniform(gl, st.getUniform("tm").setData(MMTime_u_ms/40000.0f));
-        st.uniform(gl, st.getUniform("br").setData(tBrightnessSync));
+        st.send(gl, st.getActiveUniform("tm").setData(MMTime_u_ms/40000.0f));
+        st.send(gl, st.getActiveUniform("br").setData(tBrightnessSync));
 
         if(mSyncEventNumber==4 || mSyncEventNumber==7) {
            //render to fbo only when using julia/mandel orbittrap ...
@@ -455,8 +455,8 @@ public class ElektronenMultiplizierer implements GLEventListener {
            gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         }
         gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        st.uniform(gl, en.setData(mEffectNumber));
-        st.uniform(gl, et.setData(mEffectTime));
+        st.send(gl, en.setData(mEffectNumber));
+        st.send(gl, et.setData(mEffectTime));
 
         if( !gl.isGLcore() ) {
             gl.glEnable(GL_TEXTURE_2D);
@@ -486,13 +486,13 @@ public class ElektronenMultiplizierer implements GLEventListener {
         vertices0.putf(0);     vertices0.putf(0);
         vertices0.putf(width); vertices0.putf(0);
         vertices0.seal(gl, true);
-        st.ownAttribute(vertices0, true);
+        st.manage(vertices0, true);
         vertices0.enableBuffer(gl, false);
 
         final FloatBuffer mScreenDimensionV = (FloatBuffer) mScreenDimensionUniform.getBuffer();
         mScreenDimensionV.put(0, width);
         mScreenDimensionV.put(1, height);
-        st.uniform(gl, mScreenDimensionUniform);
+        st.send(gl, mScreenDimensionUniform);
 
         st.useProgram(gl, false);
         gl.glViewport(0, 0, width, height);

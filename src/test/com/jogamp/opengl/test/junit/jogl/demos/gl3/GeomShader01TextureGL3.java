@@ -136,14 +136,14 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
-        st.ownUniform(pmvMatrixUniform);
-        if(!st.uniform(gl, pmvMatrixUniform)) {
+        st.manage(pmvMatrixUniform, true);
+        if(!st.send(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", 0))) {
+        if(!st.send(gl, new GLUniformData("mgl_ActiveTexture", 0))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
 
@@ -186,7 +186,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 
         gl.glClearColor(0f, 0f, 0f, 0f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -238,7 +238,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             pmvMatrix.glLoadIdentity();
 
             st.useProgram(gl, true);
-            st.uniform(gl, pmvMatrixUniform);
+            st.send(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
         }
     }

@@ -255,6 +255,9 @@ public final class GLUniformData {
 
     public int getLocation() { return location; }
 
+    /// Returns true if location is valid, otherwise false
+    public boolean hasLocation() { return 0 <= location; }
+
     /**
      * Sets the given location of the shader uniform.
      * @return the given location

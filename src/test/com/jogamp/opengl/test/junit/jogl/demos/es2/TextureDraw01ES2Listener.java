@@ -140,11 +140,11 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
 
-        st.ownUniform(pmvMatrixUniform);
-        if(!st.uniform(gl, pmvMatrixUniform)) {
+        st.manage(pmvMatrixUniform, true);
+        if(!st.send(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", textureUnit))) {
+        if(!st.send(gl, new GLUniformData("mgl_ActiveTexture", textureUnit))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
 
@@ -171,7 +171,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 
         // OpenGL Render Settings
         gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -200,7 +200,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
             pmvMatrix.glLoadIdentity();
 
             st.useProgram(gl, true);
-            st.uniform(gl, pmvMatrixUniform);
+            st.send(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
         }
     }

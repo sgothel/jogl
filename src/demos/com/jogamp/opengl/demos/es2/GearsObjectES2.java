@@ -110,10 +110,10 @@ public class GearsObjectES2 extends GearsObject {
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
         pmvMatrix.glRotatef(angle, 0f, 0f, 1f);
-        st.uniform(gl, pmvMatrixUniform); // automatic sync + update of Mvi + Mvit
+        st.send(gl, pmvMatrixUniform); // automatic sync + update of Mvi + Mvit
 
         colorUniform.setData(gearColor);
-        st.uniform(gl, colorUniform);
+        st.send(gl, colorUniform);
 
         draw(gl, frontFace, GL.GL_TRIANGLE_STRIP, 0);
         draw(gl, frontSide, GL.GL_TRIANGLES, 1);

@@ -91,8 +91,8 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
 
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv().getSyncFloats());
         if(null != st) {
-            st.ownUniform(pmvMatrixUniform);
-            st.uniform(gl, pmvMatrixUniform);
+            st.manage(pmvMatrixUniform, true);
+            st.send(gl, pmvMatrixUniform);
         } else {
             if( pmvMatrixUniform.setLocation(gl, sp.program()) < 0 ) {
                 throw new GLException("Could not find location for uniform: "+pmvMatrixUniform+", "+sp);
@@ -183,7 +183,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
 
         if(null != st) {
             st.useProgram(gl, true);
-            st.uniform(gl, pmvMatrixUniform);
+            st.send(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
         } else {
             gl.glUseProgram(sp.program());

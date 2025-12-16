@@ -121,8 +121,8 @@ public class ComputeShader01GL4ES31 implements GLEventListener  {
             stComp=new ShaderState();
             stComp.attachShaderProgram(gl, sp, true);
             uRadius = new GLUniformData("radius", 1.0f);
-            stComp.ownUniform(uRadius);
-            if(!stComp.uniform(gl, uRadius)) {
+            stComp.manage(uRadius, true);
+            if(!stComp.send(gl, uRadius)) {
                 throw new GLException("Error setting radius in shader: "+uRadius);
             }
             System.err.println("uRadius: "+uRadius);
@@ -155,8 +155,8 @@ public class ComputeShader01GL4ES31 implements GLEventListener  {
             pmvMatrix.glLoadIdentity();
             if( usesPMVMatrix ) {
                 pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
-                stGfx.ownUniform(pmvMatrixUniform);
-                if(!stGfx.uniform(gl, pmvMatrixUniform)) {
+                stGfx.manage(pmvMatrixUniform, true);
+                if(!stGfx.send(gl, pmvMatrixUniform)) {
                     throw new GLException("Error setting PMVMatrix in shader: "+stGfx);
                 }
             }
@@ -218,7 +218,7 @@ public class ComputeShader01GL4ES31 implements GLEventListener  {
 
             stGfx.useProgram(gl, true);
             if( usesPMVMatrix ) {
-                stGfx.uniform(gl, pmvMatrixUniform);
+                stGfx.send(gl, pmvMatrixUniform);
             }
             stGfx.useProgram(gl, false);
         }
@@ -245,7 +245,7 @@ public class ComputeShader01GL4ES31 implements GLEventListener  {
             }
             r += radius_dir * 0.004f;
             uRadius.setData(r);
-            stComp.uniform(gl, uRadius);
+            stComp.send(gl, uRadius);
 
             // Bind the VBO onto SSBO, which is going to filled in witin the compute shader.
             // gIndexBufferBinding is equal to 0 (same as the compute shader binding)

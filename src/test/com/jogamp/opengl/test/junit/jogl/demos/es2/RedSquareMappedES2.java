@@ -124,8 +124,8 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         // Allocate Vertex Array
         vertices = GLArrayDataServer.createGLSLMapped("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
@@ -142,7 +142,7 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
             ad.unmapStorage(gl);
         }
         vertices.seal(gl, true);
-        st.ownAttribute(vertices, true);
+        st.manage(vertices, true);
         vertices.enableBuffer(gl, false);
 
         // Allocate Color Array
@@ -160,7 +160,7 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
             ad.unmapStorage(gl);
         }
         colors.seal(gl, true);
-        st.ownAttribute(colors, true);
+        st.manage(colors, true);
         colors.enableBuffer(gl, false);
 
         // OpenGL Render Settings
@@ -197,7 +197,7 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
             pmvMatrix.glRotatef(ang, 0, 0, 1);
             pmvMatrix.glRotatef(ang, 0, 1, 0);
         }
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
 
         // Draw a square
         vertices.enableBuffer(gl, true);
@@ -258,7 +258,7 @@ public class RedSquareMappedES2 implements GLEventListener, TileRendererBase.Til
 
         pmvMatrix.glFrustumf(l, r, b, t, zNear, zFar);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
 
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");

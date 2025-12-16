@@ -327,11 +327,11 @@ public void run() {
     shaderState.attachShaderProgram(gl, shaderProg, true);
 
     resolution = new GLUniformData("iResolution", 3, FloatBuffer.wrap(new float[] {width, height, 0}));
-    shaderState.ownUniform(resolution);
-    shaderState.uniform(gl, resolution);
+    shaderState.manage(resolution, true);
+    shaderState.send(gl, resolution);
 
     time = new GLUniformData("iGlobalTime", 0.0f);
-    shaderState.ownUniform(time);
+    shaderState.manage(time, true);
 
     vertices = GLArrayDataServer.createGLSL("inVertex", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
     vertices.putf(-1.0f); vertices.putf(-1.0f);
@@ -339,7 +339,7 @@ public void run() {
     vertices.putf(-1.0f); vertices.putf(+1.0f);
     vertices.putf(+1.0f); vertices.putf(+1.0f);
     vertices.seal(gl, true);
-    shaderState.ownAttribute(vertices, true);
+    shaderState.manage(vertices, true);
     shaderState.useProgram(gl, false);
 
     doneSetup = true;
@@ -352,7 +352,7 @@ public void run() {
     shaderState.useProgram(gl, true);
 
     time.setData((System.currentTimeMillis() - millisOffset) / 1000.0f);
-    shaderState.uniform(gl, time);
+    shaderState.send(gl, time);
     vertices.enableBuffer(gl, true);
     gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
     vertices.enableBuffer(gl, false);

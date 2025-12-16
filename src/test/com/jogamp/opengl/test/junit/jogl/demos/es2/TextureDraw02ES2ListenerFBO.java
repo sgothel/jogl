@@ -109,8 +109,8 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
         st.attachShaderProgram(gl, sp0, true);
 
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
         {
@@ -130,11 +130,11 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 
         texUnit0 = new GLUniformData("mgl_Texture0", textureUnit);
-        st.ownUniform(texUnit0);
-        st.uniform(gl, texUnit0);
+        st.manage(texUnit0, true);
+        st.send(gl, texUnit0);
 
         st.useProgram(gl, false);
 
@@ -258,7 +258,7 @@ public class TextureDraw02ES2ListenerFBO implements GLEventListener {
         pmvMatrix.glLoadIdentity();
 
         st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
 
     }

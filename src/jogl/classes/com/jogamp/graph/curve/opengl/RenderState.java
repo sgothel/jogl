@@ -377,7 +377,7 @@ public class RenderState {
      */
     public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataWrapper data, final boolean throwOnError) {
         if( updateLocation || 0 > data.getLocation() ) {
-            final boolean ok = 0 <= data.setLocation(gl, sp.program());
+            final boolean ok = data.resolveLocation(gl, sp.program());
             if( throwOnError && !ok ) {
                 sp.dumpSource(System.err);
                 throw new GLException("Could not locate "+data.getName()+" in "+sp+", "+data);

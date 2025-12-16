@@ -46,10 +46,11 @@ public class GLSLMiscHelper {
         if(null != st) {
             Assert.assertEquals(data, st.getAttribute(data.getName()));
             if(st.shaderProgram().linked()) {
-                Assert.assertEquals(data.getLocation(), st.getCachedAttribLocation(data.getName()));
-                Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data));
-                Assert.assertEquals(data.getLocation(), st.getAttribLocation(gl, data.getName()));
-                Assert.assertEquals(data.getLocation(), gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));
+                final int loc = data.getLocation();
+                Assert.assertEquals(loc, st.getAttributeLocation(data.getName()));
+                Assert.assertTrue(st.resolveLocation(gl, data));
+                Assert.assertEquals(loc, data.getLocation());
+                Assert.assertEquals(loc, gl.glGetAttribLocation(st.shaderProgram().program(), data.getName()));
             }
         }
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_ENABLED, qi, 0);
@@ -126,7 +127,7 @@ public class GLSLMiscHelper {
         // Allocate Vertex Array0
         final GLArrayDataServer vDataArray = GLArrayDataServer.createGLSL("mgl_Vertex", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(null != st) {
-            st.ownAttribute(vDataArray, true);
+            st.manage(vDataArray, true);
             if(0<=location) {
                 st.bindAttribLocation(gl, location, vDataArray);
             }
@@ -134,7 +135,7 @@ public class GLSLMiscHelper {
             if(0<=location) {
                 vDataArray.setLocation(gl, shaderProgram, location);
             } else {
-                vDataArray.setLocation(gl, shaderProgram);
+                vDataArray.resolveLocation(gl, shaderProgram);
             }
         }
         Assert.assertTrue(vDataArray.isVBO());
@@ -174,7 +175,7 @@ public class GLSLMiscHelper {
         }
         final GLArrayDataServer cDataArray = GLArrayDataServer.createGLSL("mgl_Color", 4, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         if(null != st) {
-            st.ownAttribute(cDataArray, true);
+            st.manage(cDataArray, true);
             if(0<=location) {
                 st.bindAttribLocation(gl, location, cDataArray);
             }
@@ -182,7 +183,7 @@ public class GLSLMiscHelper {
             if(0<=location) {
                 cDataArray.setLocation(gl, shaderProgram, location);
             } else {
-                cDataArray.setLocation(gl, shaderProgram);
+                cDataArray.resolveLocation(gl, shaderProgram);
             }
         }
         int i=0;

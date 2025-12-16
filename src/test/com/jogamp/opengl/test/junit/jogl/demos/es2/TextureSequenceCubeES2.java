@@ -228,10 +228,10 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         pmvMatrix = new PMVMatrix();
         reshapePMV(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
-        if(!st.uniform(gl, pmvMatrixUniform)) {
+        if(!st.send(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", texSeq.getTextureUnit()))) {
+        if(!st.send(gl, new GLUniformData("mgl_ActiveTexture", texSeq.getTextureUnit()))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
 
@@ -280,7 +280,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         }
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
-        st.ownAttribute(interleavedVBO, true);
+        st.manage(interleavedVBO, true);
 
         cubeIndicesVBO = GLArrayDataServer.createData(6, GL.GL_UNSIGNED_SHORT, 6, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         for(int i=0; i<6*6; i++) {
@@ -288,7 +288,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         }
         cubeIndicesVBO.seal(gl, true);
         cubeIndicesVBO.enableBuffer(gl, false);
-        st.ownAttribute(cubeIndicesVBO, true);
+        st.manage(cubeIndicesVBO, true);
 
 
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -326,7 +326,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         if(null != st) {
             reshapePMV(width, height);
             st.useProgram(gl, true);
-            st.uniform(gl, pmvMatrixUniform);
+            st.send(gl, pmvMatrixUniform);
             st.useProgram(gl, false);
         }
     }
@@ -390,7 +390,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
         pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         interleavedVBO.enableBuffer(gl, true);
         Texture tex = null;
         if(null!=texSeq) {

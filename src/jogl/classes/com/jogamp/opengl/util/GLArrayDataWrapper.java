@@ -199,19 +199,21 @@ public class GLArrayDataWrapper implements GLArrayData {
   public final int getLocation() { return location; }
 
   @Override
-  public final int setLocation(final int v) { location = v; return location; }
+  public boolean hasLocation() { return 0<=location; }
 
   @Override
-  public final int setLocation(final GL2ES2 gl, final int program) {
+  public final void setLocation(final int v) { location = v; }
+
+  @Override
+  public final boolean resolveLocation(final GL2ES2 gl, final int program) {
       location = gl.glGetAttribLocation(program, name);
-      return location;
+      return 0<=location;
   }
 
   @Override
-  public final int setLocation(final GL2ES2 gl, final int program, final int location) {
+  public final void setLocation(final GL2ES2 gl, final int program, final int location) {
       this.location = location;
       gl.glBindAttribLocation(program, location, name);
-      return location;
   }
 
   @Override

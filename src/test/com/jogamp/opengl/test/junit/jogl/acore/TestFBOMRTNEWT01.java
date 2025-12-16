@@ -121,8 +121,8 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
@@ -132,7 +132,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         vertices0.putf(0); vertices0.putf(0); vertices0.putf(0);
         vertices0.putf(1);  vertices0.putf(0); vertices0.putf(0);
         vertices0.seal(gl, true);
-        st.ownAttribute(vertices0, true);
+        st.manage(vertices0, true);
         vertices0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
@@ -143,16 +143,16 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         colors0.putf(0); colors0.putf(0); colors0.putf(0); colors0.putf(1);
         colors0.putf(0);  colors0.putf(1); colors0.putf(1); colors0.putf(1);
         colors0.seal(gl, true);
-        st.ownAttribute(colors0, true);
+        st.manage(colors0, true);
         colors0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         final GLUniformData texUnit0 = new GLUniformData("gcs_TexUnit0", 0);
-        st.ownUniform(texUnit0);
-        st.uniform(gl, texUnit0);
+        st.manage(texUnit0, true);
+        st.send(gl, texUnit0);
         final GLUniformData texUnit1 = new GLUniformData("gcs_TexUnit1", 1);
-        st.ownUniform(texUnit1);
-        st.uniform(gl, texUnit1);
+        st.manage(texUnit1, true);
+        st.send(gl, texUnit1);
 
         final GLArrayDataServer texCoords0 = GLArrayDataServer.createGLSL("gca_TexCoords", 2, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
         // st.bindAttribLocation(gl, 2, texCoords0);
@@ -161,7 +161,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         texCoords0.putf(0f); texCoords0.putf(0f);
         texCoords0.putf(1f);  texCoords0.putf(0f);
         texCoords0.seal(gl, true);
-        st.ownAttribute(texCoords0, true);
+        st.manage(texCoords0, true);
         texCoords0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
@@ -194,7 +194,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         pmvMatrix.glOrthof(0f, 1f, 0f, 1f, -10f, 10f);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         final int[] two_buffers = new int[] { GL.GL_COLOR_ATTACHMENT0+texA0Point, GL.GL_COLOR_ATTACHMENT0+texA1Point };

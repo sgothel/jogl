@@ -118,8 +118,8 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-        st.ownUniform(pmvMatrixUniform);
-        st.uniform(gl, pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
+        st.send(gl, pmvMatrixUniform);
 
         // Allocate Vertex Array0
         final GLArrayDataServer vertices0 = GLSLMiscHelper.createVertices(gl, st, 0, -1, GLSLMiscHelper.vertices0);
@@ -148,7 +148,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
         gl.setSwapInterval(0);
@@ -306,12 +306,12 @@ com.jogamp.opengl.GLException: Thread[main,5,main] glGetError() returned the fol
         Assert.assertTrue(sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
+        Assert.assertTrue(st.resolveLocation(gl, vertices0));
         Assert.assertEquals(vertices0_loc, vertices0.getLocation());
-        Assert.assertEquals(vertices0_loc, st.getAttribLocation(gl, vertices0.getName()));
         Assert.assertEquals(vertices0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), vertices0.getName()));
 
+        Assert.assertTrue(st.resolveLocation(gl, colors0));
         Assert.assertEquals(colors0_loc, colors0.getLocation());
-        Assert.assertEquals(colors0_loc, st.getAttribLocation(gl, colors0.getName()));
         Assert.assertEquals(colors0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), colors0.getName()));
 
         st.useProgram(gl, true);
@@ -321,12 +321,12 @@ com.jogamp.opengl.GLException: Thread[main,5,main] glGetError() returned the fol
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
-        st.ownUniform(pmvMatrixUniform);
+        st.manage(pmvMatrixUniform, true);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(pmvMatrixUniform, st.getUniform("mgl_PMVMatrix"));
+        Assert.assertEquals(pmvMatrixUniform, st.getActiveUniform("mgl_PMVMatrix"));
 
         // Allocate Vertex Array1
         final GLArrayDataServer vertices1 = GLSLMiscHelper.createVertices(gl, st, 0, -1, GLSLMiscHelper.vertices1);
@@ -350,7 +350,7 @@ com.jogamp.opengl.GLException: Thread[main,5,main] glGetError() returned the fol
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
-        st.uniform(gl, pmvMatrixUniform);
+        st.send(gl, pmvMatrixUniform);
         gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
@@ -373,12 +373,12 @@ com.jogamp.opengl.GLException: Thread[main,5,main] glGetError() returned the fol
 
         if(!linkSP1) {
             // all attribute locations shall be same now, due to impl. glBindAttributeLocation
+            Assert.assertTrue(st.resolveLocation(gl, vertices0));
             Assert.assertEquals(vertices0_loc, vertices0.getLocation());
-            Assert.assertEquals(vertices0_loc, st.getAttribLocation(gl, vertices0.getName()));
             Assert.assertEquals(vertices0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), vertices0.getName()));
 
+            Assert.assertTrue(st.resolveLocation(gl, colors0));
             Assert.assertEquals(colors0_loc, colors0.getLocation());
-            Assert.assertEquals(colors0_loc, st.getAttribLocation(gl, colors0.getName()));
             Assert.assertEquals(colors0_loc, gl.glGetAttribLocation(st.shaderProgram().program(), colors0.getName()));
         }
 

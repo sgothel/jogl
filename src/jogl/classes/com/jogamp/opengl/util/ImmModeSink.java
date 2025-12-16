@@ -879,25 +879,25 @@ public class ImmModeSink {
 
         if(null != vArrayData) {
             iA++;
-            if( vArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+            if( vArrayData.resolveLocation(gl, shaderProgram) ) {
                 iL++;
             }
         }
         if(null != cArrayData) {
             iA++;
-            if( cArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+            if( cArrayData.resolveLocation(gl, shaderProgram) ) {
                 iL++;
             }
         }
         if(null != nArrayData) {
             iA++;
-            if( nArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+            if( nArrayData.resolveLocation(gl, shaderProgram) ) {
                 iL++;
             }
         }
         if(null != tArrayData) {
             iA++;
-            if( tArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+            if( tArrayData.resolveLocation(gl, shaderProgram) ) {
                 iL++;
             }
         }
