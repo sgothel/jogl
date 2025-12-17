@@ -74,7 +74,6 @@ typedef int (APIENTRYP AVCODEC_RECEIVE_FRAME)(AVCodecContext *avctx, AVFrame *pi
 typedef int (APIENTRYP AVCODEC_DECODE_SUBTITLE2)(AVCodecContext *avctx, AVSubtitle *sub, int *got_sub_ptr, const AVPacket *avpkt); // 52.23
 typedef int (APIENTRYP AV_SUBTITLE_FREE)(AVSubtitle *sub); // 52.82
 
-static AVCODEC_CLOSE sp_avcodec_close;
 static AVCODEC_STRING sp_avcodec_string;
 static AVCODEC_FIND_DECODER sp_avcodec_find_decoder;
 static AVCODEC_ALLOC_CONTEXT3 sp_avcodec_alloc_context3;
@@ -95,7 +94,7 @@ static AVCODEC_SEND_PACKET sp_avcodec_send_packet;    // 57
 static AVCODEC_RECEIVE_FRAME sp_avcodec_receive_frame;    // 57
 static AVCODEC_DECODE_SUBTITLE2 sp_avcodec_decode_subtitle2; // 52.23
 static AV_SUBTITLE_FREE sp_avsubtitle_free; // 52.82
-// count: +20 = 26
+// count: +19 = 25
 
 // libavutil
 typedef AVPixFmtDescriptor* (APIENTRYP AV_PIX_FMT_DESC_GET)(enum AVPixelFormat pix_fmt); // lavu >= 51.45;  lavu 51: 'enum PixelFormat pix_fmt', lavu 53: 'enum AVPixelFormat pix_fmt'
@@ -133,7 +132,7 @@ static AV_CHANNEL_LAYOUT_DEFAULT sp_av_channel_layout_default; // >= 59
 static AV_CHANNEL_LAYOUT_UNINIT sp_av_channel_layout_uninit; // >= 59
 static AV_CHANNEL_LAYOUT_DESCRIBE sp_av_channel_layout_describe; // >= 59
 static AV_OPT_SET_CHLAYOUT sp_av_opt_set_chlayout; // >= 59
-// count: +17 = 43
+// count: +17 = 42
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -165,12 +164,12 @@ static AV_READ_PAUSE sp_av_read_pause;
 static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
-// count: +14 = 57
+// count: +14 = 56
 
 // libavdevice [53.0.0]
 typedef int (APIENTRYP AVDEVICE_REGISTER_ALL)(void);
 static AVDEVICE_REGISTER_ALL sp_avdevice_register_all;
-// count: +1 = 58
+// count: +1 = 57
 
 // libswresample [1...]
 typedef int (APIENTRYP AV_OPT_SET_SAMPLE_FMT)(void *obj, const char *name, enum AVSampleFormat fmt, int search_flags); // actually lavu .. but exist only w/ swresample!
@@ -186,7 +185,7 @@ static SWR_INIT sp_swr_init;
 static SWR_FREE sp_swr_free;
 static SWR_CONVERT sp_swr_convert;
 static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
-// count: +6 = 64
+// count: +6 = 63
 
 
 typedef struct SwsContext *(APIENTRYP SWS_GETCACHEDCONTEXT)(struct SwsContext *context, int srcW, int srcH, enum AVPixelFormat srcFormat, 
@@ -199,7 +198,9 @@ typedef void (APIENTRYP SWS_FREECONTEXT)(struct SwsContext* swsContext);
 static SWS_GETCACHEDCONTEXT sp_sws_getCachedContext;
 static SWS_SCALE sp_sws_scale;
 static SWS_FREECONTEXT sp_sws_freeContext;
-// count: +3 = 67
+// count: +3 = 66
+
+#define SYMBOL_COUNT 66
 
 static const char * const ClazzNameString = "java/lang/String";
 
@@ -224,8 +225,6 @@ static const char * const ClazzNameString = "java/lang/String";
     #define MY_MUTEX_LOCK(e,s)
     #define MY_MUTEX_UNLOCK(e,s)
 #endif
-
-#define SYMBOL_COUNT 67
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
   (JNIEnv *env, jobject instance, jobject jmutex_avcodec_openclose, jobject jSymbols, jint count)
@@ -253,7 +252,6 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_swresample_version = (SWRESAMPLE_VERSION) (intptr_t) symbols[i++];
     sp_swscale_version = (SWSCALE_VERSION) (intptr_t) symbols[i++];
 
-    sp_avcodec_close = (AVCODEC_CLOSE)  (intptr_t) symbols[i++];
     sp_avcodec_string = (AVCODEC_STRING) (intptr_t) symbols[i++];
     sp_avcodec_find_decoder = (AVCODEC_FIND_DECODER) (intptr_t) symbols[i++];
     sp_avcodec_alloc_context3 = (AVCODEC_ALLOC_CONTEXT3) (intptr_t) symbols[i++];
@@ -506,7 +504,6 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
         {
             // Close the V codec
             if(NULL != pAV->pVCodecCtx) {
-                sp_avcodec_close(pAV->pVCodecCtx);
                 sp_avcodec_free_context(&pAV->pVCodecCtx);
                 pAV->pVCodecCtx = NULL;
             }
@@ -514,7 +511,6 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
 
             // Close the A codec
             if(NULL != pAV->pACodecCtx) {
-                sp_avcodec_close(pAV->pACodecCtx);
                 sp_avcodec_free_context(&pAV->pACodecCtx);
                 pAV->pACodecCtx = NULL;
             }
@@ -522,7 +518,6 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
 
             // Close the S codec
             if(NULL != pAV->pSCodecCtx) {
-                sp_avcodec_close(pAV->pSCodecCtx);
                 sp_avcodec_free_context(&pAV->pSCodecCtx);
                 pAV->pSCodecCtx = NULL;
             }

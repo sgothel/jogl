@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2024 JogAmp Community. All rights reserved.
+ * Copyright 2015-2025 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
  */
 package jogamp.opengl.util.av.impl;
 
-class FFMPEGv0400Natives extends FFMPEGNatives {
+class FFMPEGv0700Natives extends FFMPEGNatives {
     @Override
     native boolean initSymbols0(Object mutex_avcodec_openclose, long[] symbols, int count);
 

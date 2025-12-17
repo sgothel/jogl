@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2023 JogAmp Community. All rights reserved.
+ * Copyright 2012-2025 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -52,7 +52,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 67;
+    private static final int symbolCount = 66;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
@@ -63,7 +63,6 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          /* 6 */
 
          // libavcodec
-         "avcodec_close",
          "avcodec_string",
          "avcodec_find_decoder",
          "avcodec_alloc_context3",
@@ -83,7 +82,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avcodec_receive_frame",     // 57
          "avcodec_decode_subtitle2",  // 52.23.0
          "avsubtitle_free",           // 52.82.0
-         /* +20 = 26 */
+         /* +19 = 25 */
 
          // libavutil
          "av_pix_fmt_desc_get",       // >= lavu 51.45
@@ -103,7 +102,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_channel_layout_uninit", // >= 59 (opt)
          "av_channel_layout_describe", // >= 59 (opt)
          "av_opt_set_chlayout",        // >= 59
-         /* +17 = 43 */
+         /* +17 = 42 */
 
          // libavformat
          "avformat_alloc_context",
@@ -120,11 +119,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-         /* +14 = 57 */
+         /* +14 = 56 */
 
          // libavdevice
          "avdevice_register_all",     // supported in all versions (opt)
-         /* +1  = 58 */
+         /* +1  = 57 */
 
          // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
@@ -133,13 +132,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_free",
          "swr_convert",
          "swr_get_out_samples",
-         /* +6  = 64 */
+         /* +6  = 63 */
 
          // libswscale
          "sws_getCachedContext",      // opt
          "sws_scale",                 // opt
          "sws_freeContext",           // opt
-         /* +3  = 67 */
+         /* +3  = 66 */
     };
 
     // optional symbol names
@@ -342,21 +341,21 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             final int avDeviceMajor = avDevice.version.getMajor();
             final int swResampleMajor = swResample.version.getMajor();
             final int swScaleMajor = swScale.version.getMajor();
-            if( avCodecMajor == 58 && avFormatMajor == 58 && ( avDeviceMajor == 58 || avDeviceMajor == 0 ) && avUtilMajor == 56 &&
-                swResampleMajor == 3 && ( swScaleMajor == 5 || swScaleMajor == 0 ) )
-            {
-                // Exact match: ffmpeg 4.x.y
-                natives = new FFMPEGv0400Natives();
-            } else if( avCodecMajor == 59 && avFormatMajor == 59 && ( avDeviceMajor == 59 || avDeviceMajor == 0 ) && avUtilMajor == 57 &&
-                       swResampleMajor == 4 && ( swScaleMajor == 6 || swScaleMajor == 0 ) )
-            {
-                // Exact match: ffmpeg 5.x.y
-                natives = new FFMPEGv0500Natives();
-            } else if( avCodecMajor == 60 && avFormatMajor == 60 && ( avDeviceMajor == 60 || avDeviceMajor == 0 ) && avUtilMajor == 58 &&
-                       swResampleMajor == 4 && ( swScaleMajor == 7 || swScaleMajor == 0 ) )
+            if( avCodecMajor == 60 && avFormatMajor == 60 && ( avDeviceMajor == 60 || avDeviceMajor == 0 ) && avUtilMajor == 58 &&
+                swResampleMajor == 4 && ( swScaleMajor == 7 || swScaleMajor == 0 ) )
             {
                 // Exact match: ffmpeg 6.x.y
                 natives = new FFMPEGv0600Natives();
+            } else if( avCodecMajor == 61 && avFormatMajor == 61 && ( avDeviceMajor == 61 || avDeviceMajor == 0 ) && avUtilMajor == 59 &&
+                       swResampleMajor == 5 && ( swScaleMajor == 8 || swScaleMajor == 0 ) )
+            {
+                // Exact match: ffmpeg 7.x.y
+                natives = new FFMPEGv0700Natives();
+            } else if( avCodecMajor == 62 && avFormatMajor == 62 && ( avDeviceMajor == 62 || avDeviceMajor == 0 ) && avUtilMajor == 60 &&
+                       swResampleMajor == 6 && ( swScaleMajor == 9 || swScaleMajor == 0 ) )
+            {
+                // Exact match: ffmpeg 8.x.y
+                natives = new FFMPEGv0800Natives();
             } else {
                 natives = null;
             }
@@ -426,13 +425,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avutil.add("internal_avutil"); // internal
         }
+        avutil.add("libavutil.so.60");     // ffmpeg 8.[0-x]
+        avutil.add("libavutil.so.59");     // ffmpeg 7.[0-x]
         avutil.add("libavutil.so.58");     // ffmpeg 6.[0-x]
-        avutil.add("libavutil.so.57");     // ffmpeg 5.[0-x]
-        avutil.add("libavutil.so.56");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avutil.add("avutil-60");           // ffmpeg 8.[0-x]
+        avutil.add("avutil-59");           // ffmpeg 7.[0-x]
         avutil.add("avutil-58");           // ffmpeg 6.[0-x]
-        avutil.add("avutil-57");           // ffmpeg 5.[0-x]
-        avutil.add("avutil-56");           // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avutil.add("internal_avutil"); // internal
         } else {
@@ -446,13 +445,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avformat.add("internal_avformat"); // internal
         }
+        avformat.add("libavformat.so.62");     // ffmpeg 8.[0-x]
+        avformat.add("libavformat.so.61");     // ffmpeg 7.[0-x]
         avformat.add("libavformat.so.60");     // ffmpeg 6.[0-x]
-        avformat.add("libavformat.so.59");     // ffmpeg 5.[0-x]
-        avformat.add("libavformat.so.58");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avformat.add("avformat-62");           // ffmpeg 8.[0-x]
+        avformat.add("avformat-61");           // ffmpeg 7.[0-x]
         avformat.add("avformat-60");           // ffmpeg 6.[0-x]
-        avformat.add("avformat-59");           // ffmpeg 5.[0-x]
-        avformat.add("avformat-58");           // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avformat.add("internal_avformat"); // internal
         } else {
@@ -466,13 +465,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avcodec.add("internal_avcodec");   // internal
         }
+        avcodec.add("libavcodec.so.62");       // ffmpeg 8.[0-x]
+        avcodec.add("libavcodec.so.61");       // ffmpeg 7.[0-x]
         avcodec.add("libavcodec.so.60");       // ffmpeg 6.[0-x]
-        avcodec.add("libavcodec.so.59");       // ffmpeg 5.[0-x]
-        avcodec.add("libavcodec.so.58");       // ffmpeg 4.[0-x] (Debian-11)
 
+        avcodec.add("avcodec-62");             // ffmpeg 8.[0-x]
+        avcodec.add("avcodec-61");             // ffmpeg 7.[0-x]
         avcodec.add("avcodec-60");             // ffmpeg 6.[0-x]
-        avcodec.add("avcodec-59");             // ffmpeg 5.[0-x]
-        avcodec.add("avcodec-58");             // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avcodec.add("internal_avcodec");   // internal
         } else {
@@ -486,13 +485,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avdevice.add("internal_avdevice"); // internal
         }
+        avdevice.add("libavdevice.so.62");     // ffmpeg 8.[0-x]
+        avdevice.add("libavdevice.so.61");     // ffmpeg 7.[0-x]
         avdevice.add("libavdevice.so.60");     // ffmpeg 6.[0-x]
-        avdevice.add("libavdevice.so.59");     // ffmpeg 5.[0-x]
-        avdevice.add("libavdevice.so.58");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avdevice.add("avdevice-62");           // ffmpeg 8.[0-x]
+        avdevice.add("avdevice-61");           // ffmpeg 7.[0-x]
         avdevice.add("avdevice-60");           // ffmpeg 6.[0-x]
-        avdevice.add("avdevice-59");           // ffmpeg 5.[0-x]
-        avdevice.add("avdevice-58");           // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avdevice.add("internal_avdevice"); // internal
         } else {
@@ -506,11 +505,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             swresample.add("internal_swresample");// internal
         }
+        swresample.add("libswresample.so.6");     // ffmpeg 8.[0-x]
+        swresample.add("libswresample.so.5");     // ffmpeg 7.[0-x]
         swresample.add("libswresample.so.4");     // ffmpeg 5.[0-x] - 6.[0-x]
-        swresample.add("libswresample.so.3");     // ffmpeg 4.[0-x] (Debian-11)
 
+        swresample.add("swresample-6");           // ffmpeg 8.[0-x]
+        swresample.add("swresample-5");           // ffmpeg 7.[0-x]
         swresample.add("swresample-4");           // ffmpeg 5.[0-x] - 6.[0-x]
-        swresample.add("swresample-3");           // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             swresample.add("internal_swresample");// internal
         } else {
@@ -524,13 +525,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             swscale.add("internal_swscale");// internal
         }
+        swscale.add("libswscale.so.9");     // ffmpeg 8.[0-x]
+        swscale.add("libswscale.so.8");     // ffmpeg 7.[0-x]
         swscale.add("libswscale.so.7");     // ffmpeg 6.[0-x]
-        swscale.add("libswscale.so.6");     // ffmpeg 5.[0-x]
-        swscale.add("libswscale.so.5");     // ffmpeg 4.[0-x] (Debian-11)
 
+        swscale.add("swscale-9");           // ffmpeg 8.[0-x]
+        swscale.add("swscale-8");           // ffmpeg 7.[0-x]
         swscale.add("swscale-7");           // ffmpeg 6.[0-x]
-        swscale.add("swscale-6");           // ffmpeg 5.[0-x]
-        swscale.add("swscale-5");           // ffmpeg 4.[0-x]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             swscale.add("internal_swscale");// internal
         } else {

@@ -687,6 +687,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         if( true ) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
+            mPlayer.printNativeInfo(System.err);
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
             button = new MediaButton(options.renderModes, buttonRWidth, buttonRHeight, mPlayer);
@@ -743,7 +744,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
-        {
+        if( true ) {
             final SimpleSineSynth sineSound = new SimpleSineSynth();
             scene.addDisposeAction((final GLAutoDrawable glad) -> {
                 sineSound.stop();

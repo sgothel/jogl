@@ -1115,9 +1115,9 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/util/av/impl/FFMPEGStaticNatives.java" />
-            <include name="jogamp/opengl/util/av/impl/FFMPEGv0400Natives.java" />
-            <include name="jogamp/opengl/util/av/impl/FFMPEGv0500Natives.java" />
             <include name="jogamp/opengl/util/av/impl/FFMPEGv0600Natives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv0700Natives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv0800Natives.java" />
           <compilerarg value="-implicit:none" />
         </javac>
 
@@ -1619,9 +1619,9 @@
         <patternset id="c.obj.files.none">
         </patternset>
         <patternset id="c.obj.files.ffmpeg.inject">
-          <include name="${rootrel.obj.joglsub}/ffmpeg_v0400.*"/> <!-- ffmpeg 4.x.y -->
-          <include name="${rootrel.obj.joglsub}/ffmpeg_v0500.*"/> <!-- ffmpeg 5.x.y -->
           <include name="${rootrel.obj.joglsub}/ffmpeg_v0600.*"/> <!-- ffmpeg 6.x.y -->
+          <include name="${rootrel.obj.joglsub}/ffmpeg_v0700.*"/> <!-- ffmpeg 7.x.y -->
+          <include name="${rootrel.obj.joglsub}/ffmpeg_v0800.*"/> <!-- ffmpeg 8.x.y -->
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
@@ -1688,7 +1688,8 @@
         <outofdate>
           <sourcefiles>
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
-            <fileset dir="${obj.joglsub}" includes="*jogl_ffmpegv0400*, *jogl_ffmpegv0500*, *jogl_ffmpegv0600*"/> <!-- requires linkage -->
+            <fileset dir="${obj.joglsub}" 
+                     includes="*jogl_ffmpegv0600*, *jogl_ffmpegv0700*, *jogl_ffmpegv0800*"/> <!-- requires linkage -->
           </sourcefiles>
           <targetfiles>
             <fileset dir="${obj.jogl}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
@@ -1758,18 +1759,18 @@
     </macrodef>
 
     <target name="c.build.jogl.ffmpeg" if="setup.addNativeFFmpeg">
-      <c.build.ffmpeg version.lav="v0400"
-               output.lib.name="jogl_ffmpegv0400"
-               compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.os}"/>
-
-      <c.build.ffmpeg version.lav="v0500"
-               output.lib.name="jogl_ffmpegv0500"
-               compiler.cfg.id="${compiler.cfg.id}"
-               linker.cfg.id="${linker.cfg.id.os}"/>
-
       <c.build.ffmpeg version.lav="v0600"
                output.lib.name="jogl_ffmpegv0600"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="v0700"
+               output.lib.name="jogl_ffmpegv0700"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.os}"/>
+
+      <c.build.ffmpeg version.lav="v0800"
+               output.lib.name="jogl_ffmpegv0800"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.os}"/>
     </target>

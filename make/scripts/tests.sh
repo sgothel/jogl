@@ -81,6 +81,7 @@ fi
 #export ALSOFT_TRAP_AL_ERROR=true
 #export ALSOFT_TRAP_ALC_ERROR=true
 #export ALSOFT_LOGFILE=openal-soft.log
+#export ALSOFT_DRIVERS=null
 
 which "$javaexe" 2>&1 | tee -a java-run.log
 "$javaexe" -version 2>&1 | tee -a java-run.log
@@ -382,6 +383,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync -Djogl.debug.GLMediaPlayer.Native -Djogamp.debug.AudioSink"
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
