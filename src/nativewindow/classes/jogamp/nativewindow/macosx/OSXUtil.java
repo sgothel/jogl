@@ -182,7 +182,9 @@ public class OSXUtil implements ToolkitProperties {
     }
 
     public static void DestroyNSWindow(final long nsWindow) {
-      DestroyNSWindow0(nsWindow);
+      RunOnMainThread(true, false /* kickNSApp */, () -> {
+          DestroyNSWindow0(nsWindow);
+      });
     }
     public static long GetNSView(final long nsWindow, final boolean onMainThread) {
       if( onMainThread ) {
