@@ -120,11 +120,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
 
     private volatile AWTGraphicsConfiguration awtConfig;
 
-    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy(). */
-    private boolean destroyJAWTPending = false;
-    /** Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy(). */
-    private boolean skipJAWTDestroy = false;
-
     /** Safeguard for AWTWindowClosingProtocol and 'removeNotify()' on other thread than AWT-EDT. */
     private volatile boolean componentAdded = false;
 
@@ -449,20 +444,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
-    /**
-     * Mitigates Bug 910 (IcedTea-Web), i.e. crash via removeNotify() invoked before Applet.destroy().
-     * <p>
-     * <code>skipJAWTDestroy</code> defaults to <code>false</code>.
-     * Due to above IcedTea-Web issue the <code>Applet</code> code needs to avoid JAWT destruction before
-     * <code>Applet.destroy()</code> is reached by setting <code>skipJAWTDestroy</code> to <code>true</code>.
-     * Afterwards the value should be reset to <code>false</code> and {@link #destroy()} needs to be called,
-     * which finally will perform the pending JAWT destruction.
-     * </p>
-     */
-    public final void setSkipJAWTDestroy(final boolean v) { skipJAWTDestroy = v; }
-    /** See {@link #setSkipJAWTDestroy(boolean)}. */
-    public final boolean getSkipJAWTDestroy() { return skipJAWTDestroy; }
-
     private void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
         // Cache awtConfig
         awtConfig = config;
@@ -697,8 +678,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             final java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroyImpl @ "+currentThreadName());
-                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet false, isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy "+skipJAWTDestroy+
-                                    "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending "+destroyJAWTPending+
+                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet false, isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy false"+
+                                    "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending false"+
                                     ", hasJAWT "+(null!=jawtWindow)+", hasNEWT "+(null!=newtChild)+
                                     "): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
             }
@@ -716,16 +697,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
                     }
                 }
             }
-            if( ( destroyJAWTPending || removeNotify || windowClosing ) && null!=jawtWindow ) {
-                if( skipJAWTDestroy ) {
-                    // Bug 910 - See setSkipJAWTDestroy(boolean)
-                    destroyJAWTPending = true;
-                } else {
-                    NewtFactoryAWT.destroyNativeWindow(jawtWindow);
-                    jawtWindow=null;
-                    awtConfig=null;
-                    destroyJAWTPending = false;
-                }
+            if( ( removeNotify || windowClosing ) && null!=jawtWindow ) {
+                NewtFactoryAWT.destroyNativeWindow(jawtWindow);
+                jawtWindow = null;
+                awtConfig = null;
             }
         }
     }
