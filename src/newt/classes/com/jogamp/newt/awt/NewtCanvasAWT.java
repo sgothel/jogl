@@ -109,7 +109,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
 
     private final Object sync = new Object();
     private volatile JAWTWindow jawtWindow = null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
-    private boolean isApplet = false;
     private boolean shallUseOffscreenLayer = false;
     private Window newtChild = null;
     private boolean newtChildAttached = false;
@@ -213,7 +212,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
      * otherwise false. This information is valid only after {@link #addNotify()} is issued.
      */
     public final boolean isApplet() {
-        return isApplet;
+        return false;
     }
 
     private final boolean isParent() {
@@ -464,16 +463,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
     /** See {@link #setSkipJAWTDestroy(boolean)}. */
     public final boolean getSkipJAWTDestroy() { return skipJAWTDestroy; }
 
-    @SuppressWarnings("removal")
-    private final void determineIfApplet() {
-        isApplet = false;
-        Component c = this;
-        while(!isApplet && null != c) {
-            isApplet = c instanceof java.applet.Applet;
-            c = c.getParent();
-        }
-    }
-
     private void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
         // Cache awtConfig
         awtConfig = config;
@@ -621,9 +610,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             }
 
             synchronized(sync) {
-                determineIfApplet();
                 if(DEBUG) {
-                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet "+isApplet+", addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
+                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet false, addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
                     ExceptionUtils.dumpStack(System.err);
                 }
                 jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, awtConfig);
@@ -669,7 +657,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             super.removeNotify();
         } else {
             if(DEBUG) {
-                System.err.println("NewtCanvasAWT.removeNotify.0 - isApplet "+isApplet+" @ "+currentThreadName());
+                System.err.println("NewtCanvasAWT.removeNotify.0 - isApplet false @ "+currentThreadName());
                 ExceptionUtils.dumpStack(System.err);
             }
             componentAdded = false; // Bug 910
@@ -709,7 +697,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             final java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroyImpl @ "+currentThreadName());
-                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet "+isApplet+", isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy "+skipJAWTDestroy+
+                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet false, isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy "+skipJAWTDestroy+
                                     "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending "+destroyJAWTPending+
                                     ", hasJAWT "+(null!=jawtWindow)+", hasNEWT "+(null!=newtChild)+
                                     "): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
