@@ -469,17 +469,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     return component;
   }
 
-  /**
-   *
-   * Return false since there is no more {@link java.applet.Applet} support.
-   *
-   * Historical: Returns true if the AWT component is parented to an {@link java.applet.Applet},
-   * otherwise false. This information is valid only after {@link #lockSurface()}.
-   */
-  public final boolean isApplet() {
-      return false; // return isApplet;
-  }
-
   /** Returns the underlying JAWT instance created @ {@link #lockSurface()}. */
   public final JAWT getJAWT() {
       return jawt;
@@ -643,19 +632,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   //
 
   /**
-  private void determineIfApplet() {
-    boolean isApplet = false; // dummy
-    Component c = component;
-    while(!isApplet && null != c) {
-        isApplet = c instanceof java.applet.Applet;
-        c = c.getParent();
-    }
-  } */
-
-  /**
    * If JAWT offscreen layer is supported,
-   * implementation shall respect {@link #getShallUseOffscreenLayer()}
-   * and may respect {@link #isApplet()}.
+   * implementation shall respect {@link #getShallUseOffscreenLayer()}.
    *
    * @return The JAWT instance reflecting offscreen layer support, etc.
    *

@@ -242,7 +242,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   @Override
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
        // use offscreen if supported and [ applet or requested ]
-      return JAWTUtil.getJAWT(getShallUseOffscreenLayer() || isApplet());
+      return JAWTUtil.getJAWT(getShallUseOffscreenLayer());
   }
 
   @Override

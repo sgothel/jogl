@@ -202,14 +202,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
         return null != w && w.isOffscreenLayerSurfaceEnabled();
     }
 
-    /**
-     * Returns true if the AWT component is parented to an {@link java.applet.Applet},
-     * otherwise false. This information is valid only after {@link #addNotify()} is issued.
-     */
-    public final boolean isApplet() {
-        return false;
-    }
-
     private final boolean isParent() {
         final Window nw = newtChild;
         return null!=nw && jawtWindow == nw.getParent();
@@ -592,7 +584,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
 
             synchronized(sync) {
                 if(DEBUG) {
-                    System.err.println("NewtCanvasAWT.addNotify.0 - isApplet false, addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
+                    System.err.println("NewtCanvasAWT.addNotify.0, addedOnAWTEDT "+EventQueue.isDispatchThread()+" @ "+currentThreadName());
                     ExceptionUtils.dumpStack(System.err);
                 }
                 jawtWindow = NewtFactoryAWT.getNativeWindow(NewtCanvasAWT.this, awtConfig);
@@ -638,7 +630,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             super.removeNotify();
         } else {
             if(DEBUG) {
-                System.err.println("NewtCanvasAWT.removeNotify.0 - isApplet false @ "+currentThreadName());
+                System.err.println("NewtCanvasAWT.removeNotify.0 @ "+currentThreadName());
                 ExceptionUtils.dumpStack(System.err);
             }
             componentAdded = false; // Bug 910
@@ -678,7 +670,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             final java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
                 System.err.println("NewtCanvasAWT.destroyImpl @ "+currentThreadName());
-                System.err.println("NewtCanvasAWT.destroyImpl.0 - isApplet false, isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy false"+
+                System.err.println("NewtCanvasAWT.destroyImpl.0, isOnAWTEDT "+EventQueue.isDispatchThread()+", skipJAWTDestroy false"+
                                     "; removeNotify "+removeNotify+", windowClosing "+windowClosing+", destroyJAWTPending false"+
                                     ", hasJAWT "+(null!=jawtWindow)+", hasNEWT "+(null!=newtChild)+
                                     "): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
