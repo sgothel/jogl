@@ -168,6 +168,15 @@ public final class ShaderCode {
             // dumpShaderSource(System.out); // already done in readShaderSource
         }
     }
+    /**
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},
+     *                    {@link GL4#GL_TESS_CONTROL_SHADER}, {@link GL4#GL_TESS_EVALUATION_SHADER} or {@link GL3ES3#GL_COMPUTE_SHADER}.
+     * @param source CharSequence containing the shader source.
+     *               May be either an immutable <code>String</code> - or mutable <code>StringBuilder</code> array.
+     */
+    public ShaderCode(final int type, final CharSequence source) {
+        this(type, 1, new CharSequence[][] {{source}});
+    }
 
     /**
      * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER}, {@link GL3#GL_GEOMETRY_SHADER},

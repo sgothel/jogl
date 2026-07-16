@@ -209,10 +209,7 @@ public class TessellationShader01aGLSL440CoreHardcoded implements GLEventListene
     }
 
     private ShaderCode createShader(final GL4 gl, final int shaderType, final String source) {
-        final String[][] sources = new String[1][1];
-        sources[0] = new String[]{ source };
-        final ShaderCode shader = new ShaderCode(shaderType, sources.length, sources);
-
+        final ShaderCode shader = new ShaderCode(shaderType, source);
         final boolean compiled = shader.compile(gl, System.err);
         if (!compiled) {
             System.err.println("[error] Shader compilation failed.");
