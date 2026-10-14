@@ -29,25 +29,17 @@
 
 package jogamp.nativewindow;
 
-import java.security.PrivilegedAction;
-
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NWJNILibLoader extends JNILibLoaderBase {
     public static boolean loadNativeWindow(final String ossuffix) {
-        return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
-            @Override
-            public Boolean run() {
-                Platform.initSingleton();
-                final String libName = "nativewindow_"+ossuffix ;
-                if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
-                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class });
-                }
-                return Boolean.valueOf(loadLibrary(libName, false, NWJNILibLoader.class.getClassLoader()));
-            }
-        }).booleanValue();
+        Platform.initSingleton();
+        final String libName = "nativewindow_"+ossuffix ;
+        if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
+            JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class });
+        }
+        return loadLibrary(libName, false, NWJNILibLoader.class.getClassLoader());
     }
 }

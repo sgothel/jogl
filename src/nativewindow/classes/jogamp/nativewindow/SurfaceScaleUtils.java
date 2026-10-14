@@ -28,10 +28,8 @@
  */
 package jogamp.nativewindow;
 
-import java.security.PrivilegedAction;
 import java.util.Map;
 
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.ScalableSurface;
 
 /**
@@ -269,12 +267,7 @@ public class SurfaceScaleUtils {
      * @return index of first found global variable name within env_var_names, otherwise -1
      */
     public static int getPixelScaleEnv(final String[] env_var_names, final float[] global_pixel_scale_xy, final Map<String,float[/*2*/]> monitorNameToScale) {
-        final Map<String, String> env = SecurityUtil.doPrivileged(new PrivilegedAction<Map<String, String>>() {
-            @Override
-            public Map<String, String> run() {
-                return System.getenv();
-            }
-        });
+        final Map<String, String> env = System.getenv();
         float global_value = -1.0f;
         int global_idx = -1;
         int mapping_idx = -1;

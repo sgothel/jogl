@@ -32,13 +32,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
@@ -138,34 +136,29 @@ public class FontFactory {
      */
     public static final Font get(final InputStream stream, final boolean closeStream) throws IOException {
         final IOException[] ioe = { null };
-        final int[] streamLen = { 0 };
-        final File tempFile[] = { null };
+        int streamLen = 0;
+        File tempFile = null;
 
-        final InputStream bis = SecurityUtil.doPrivileged(new PrivilegedAction<InputStream>() {
-            @Override
-            public InputStream run() {
-                InputStream bis = null;
-                try {
-                    tempFile[0] = IOUtil.createTempFile( "jogl.font", ".ttf", false);
-                    streamLen[0] = IOUtil.copyStream2File(stream, tempFile[0]);
-                    if( 0 == streamLen[0] ) {
-                        throw new IOException("Font stream has zero bytes");
-                    }
-                    bis = new BufferedInputStream(new FileInputStream(tempFile[0]), streamLen[0]);
-                } catch (final IOException e) {
-                    ioe[0] = e;
-                    if( null != tempFile[0] ) {
-                        tempFile[0].delete();
-                        tempFile[0] = null;
-                    }
-                    streamLen[0] = 0;
-                } finally {
-                    if( closeStream ) {
-                        IOUtil.close(stream, ioe, System.err);
-                    }
-                }
-                return bis;
-            } });
+        InputStream bis = null;
+        try {
+            tempFile = IOUtil.createTempFile( "jogl.font", ".ttf", false);
+            streamLen = IOUtil.copyStream2File(stream, tempFile);
+            if( 0 == streamLen ) {
+                throw new IOException("Font stream has zero bytes");
+            }
+            bis = new BufferedInputStream(new FileInputStream(tempFile), streamLen);
+        } catch (final IOException e) {
+            ioe[0] = e;
+            if( null != tempFile ) {
+                tempFile.delete();
+                tempFile = null;
+            }
+            streamLen = 0;
+        } finally {
+            if( closeStream ) {
+                IOUtil.close(stream, ioe, System.err);
+            }
+        }
         if( null != ioe[0] ) {
             throw ioe[0];
         }
@@ -173,18 +166,13 @@ public class FontFactory {
             throw new IOException("Could not cache font stream"); // should not be reached
         }
         try {
-            return fontConstr.create(bis, streamLen[0]);
+            return fontConstr.create(bis, streamLen);
         } finally {
             if( null != bis ) {
                 bis.close();
             }
-            if( null != tempFile[0] ) {
-                SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                    @Override
-                    public Object run() {
-                        tempFile[0].delete();
-                        return null;
-                    } } );
+            if( null != tempFile ) {
+                tempFile.delete();
             }
         }
     }

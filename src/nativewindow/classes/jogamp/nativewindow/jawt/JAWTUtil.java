@@ -45,7 +45,6 @@ import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -65,8 +64,8 @@ import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.Function0;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.LockFactory;
@@ -367,30 +366,27 @@ public class JAWTUtil {
         // Always enforce using sun.awt.SunToolkit's awtLock even on JVM >= Java_9,
         // as we have no other official means to synchronize native UI locks especially for X11
         {
-            final SunToolkitData std = SecurityUtil.doPrivileged(new PrivilegedAction<SunToolkitData>() {
+            final SunToolkitData std = UnsafeUtil.doWithoutIllegalAccessLogger(new Function0<SunToolkitData>() {
                 @Override
-                public SunToolkitData run() {
-                    return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<SunToolkitData>() {
-                        @Override
-                        public SunToolkitData run() {
-                            final SunToolkitData d = new SunToolkitData();
-                            try {
-                                final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                                d.awtLockMID = sunToolkitClass.getDeclaredMethod("awtLock");
-                                d.awtLockMID.setAccessible(true);
-                                d.awtUnlockMID = sunToolkitClass.getDeclaredMethod("awtUnlock");
-                                d.awtUnlockMID.setAccessible(true);
-                                d.stkDisableBackgroundEraseMID = sunToolkitClass.getDeclaredMethod("disableBackgroundErase", java.awt.Component.class);
-                                d.stkDisableBackgroundEraseMID.setAccessible(true);
-                                d.ok=true;
-                            } catch (final Exception e) {
-                                // Either not a Sun JDK or the interfaces have changed since [Java 1.4.2 / 1.5 -> Java 11]
-                                if(DEBUG) {
-                                    System.err.println("JAWTUtil stk.0: "+e.getMessage());
-                                }
-                            }
-                            return d;
-                        }}); }});
+                public SunToolkitData eval() {
+                    final SunToolkitData d = new SunToolkitData();
+                    try {
+                        final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                        d.awtLockMID = sunToolkitClass.getDeclaredMethod("awtLock");
+                        d.awtLockMID.setAccessible(true);
+                        d.awtUnlockMID = sunToolkitClass.getDeclaredMethod("awtUnlock");
+                        d.awtUnlockMID.setAccessible(true);
+                        d.stkDisableBackgroundEraseMID = sunToolkitClass.getDeclaredMethod("disableBackgroundErase", java.awt.Component.class);
+                        d.stkDisableBackgroundEraseMID.setAccessible(true);
+                        d.ok=true;
+                    } catch (final Exception e) {
+                        // Either not a Sun JDK or the interfaces have changed since [Java 1.4.2 / 1.5 -> Java 11]
+                        if(DEBUG) {
+                            System.err.println("JAWTUtil stk.0: "+e.getMessage());
+                        }
+                    }
+                    return d;
+                }});
             stkAWTLockMID = std.awtLockMID;
             stkAWTUnlockMID = std.awtUnlockMID;
             stkDisableBackgroundEraseMID = std.stkDisableBackgroundEraseMID;
@@ -412,27 +408,21 @@ public class JAWTUtil {
             gdGetScaleFactorMID = null;
             gdGetCGDisplayIDMIDOnOSX = null;
         } else {
-            final GraphicsDeviceData gdd = (GraphicsDeviceData) SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    final GraphicsDeviceData d = new GraphicsDeviceData();
-                    try {
-                        final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-                        final Class<?> gdClass = gd.getClass();
-                        d.getScaleFactorMID = gdClass.getDeclaredMethod("getScaleFactor");
-                        d.getScaleFactorMID.setAccessible(true);
-                        if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
-                            d.getCGDisplayIDMIDOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
-                            d.getCGDisplayIDMIDOnOSX.setAccessible(true);
-                        }
-                    } catch (final Throwable t) {
-                        if(DEBUG) {
-                            System.err.println("JAWTUtil scaleFactor: "+t.getMessage());
-                        }
-                    }
-                    return d;
+            final GraphicsDeviceData gdd = new GraphicsDeviceData();
+            try {
+                final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                final Class<?> gdClass = gd.getClass();
+                gdd.getScaleFactorMID = gdClass.getDeclaredMethod("getScaleFactor");
+                gdd.getScaleFactorMID.setAccessible(true);
+                if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
+                    gdd.getCGDisplayIDMIDOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
+                    gdd.getCGDisplayIDMIDOnOSX.setAccessible(true);
                 }
-            });
+            } catch (final Throwable t) {
+                if(DEBUG) {
+                    System.err.println("JAWTUtil scaleFactor: "+t.getMessage());
+                }
+            }
             gdGetScaleFactorMID = gdd.getScaleFactorMID;
             gdGetCGDisplayIDMIDOnOSX = gdd.getCGDisplayIDMIDOnOSX;
         }
@@ -836,28 +826,18 @@ public class JAWTUtil {
       public boolean disable(final java.awt.Canvas canvas) {
           if (!disableBackgroundEraseInitialized) {
               try {
-                  SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                      @Override
-                      public Object run() {
-                          try {
-                              Class<?> clazz = canvas.getToolkit().getClass();
-                              while (clazz != null && disableBackgroundEraseMethod == null) {
-                                  try {
-                                      disableBackgroundEraseMethod =
-                                              clazz.getDeclaredMethod("disableBackgroundErase",
-                                                      new Class[] { java.awt.Canvas.class });
-                                      disableBackgroundEraseMethod.setAccessible(true);
-                                  } catch (final Exception e) {
-                                      clazz = clazz.getSuperclass();
-                                  }
-                              }
-                          } catch (final Exception e) {
-                          }
-                          return null;
+                  Class<?> clazz = canvas.getToolkit().getClass();
+                  while (clazz != null && disableBackgroundEraseMethod == null) {
+                      try {
+                          disableBackgroundEraseMethod =
+                                  clazz.getDeclaredMethod("disableBackgroundErase",
+                                          new Class[] { java.awt.Canvas.class });
+                          disableBackgroundEraseMethod.setAccessible(true);
+                      } catch (final Exception e) {
+                          clazz = clazz.getSuperclass();
                       }
-                  });
-              } catch (final Exception e) {
-              }
+                  }
+              } catch (final Exception e) { }
               disableBackgroundEraseInitialized = true;
               if(DEBUG) {
                   System.err.println(getThreadName()+msg+" method found: "+

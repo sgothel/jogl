@@ -35,7 +35,6 @@
 package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.opengl.GLException;
@@ -45,7 +44,6 @@ import com.jogamp.opengl.Threading.Mode;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Implementation of the {@link com.jogamp.opengl.Threading} class. */
 
@@ -62,63 +60,57 @@ public class ThreadingImpl {
     private static final ToolkitThreadingPlugin threadingPlugin;
 
     static {
-        threadingPlugin =
-            SecurityUtil.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
-                    @Override
-                    public ToolkitThreadingPlugin run() {
-                        final String singleThreadProp;
-                        {
-                            final String w = PropertyAccess.getProperty("jogl.1thread", true);
-                            singleThreadProp = null != w ? w.toLowerCase() : null;
-                        }
-                        final ClassLoader cl = ThreadingImpl.class.getClassLoader();
-                        // Default to using the AWT thread on all platforms except
-                        // Windows. On OS X there is instability apparently due to
-                        // using the JAWT on non-AWT threads. On X11 platforms there
-                        // are potential deadlocks which can be caused if the AWT
-                        // EventQueue thread hands work off to the GLWorkerThread
-                        // while holding the AWT lock. The optimization of
-                        // makeCurrent / release calls isn't worth these stability
-                        // problems.
-                        hasAWT = GLProfile.isAWTAvailable();
+        final String singleThreadProp;
+        {
+            final String w = PropertyAccess.getProperty("jogl.1thread", true);
+            singleThreadProp = null != w ? w.toLowerCase() : null;
+        }
+        final ClassLoader cl = ThreadingImpl.class.getClassLoader();
+        // Default to using the AWT thread on all platforms except
+        // Windows. On OS X there is instability apparently due to
+        // using the JAWT on non-AWT threads. On X11 platforms there
+        // are potential deadlocks which can be caused if the AWT
+        // EventQueue thread hands work off to the GLWorkerThread
+        // while holding the AWT lock. The optimization of
+        // makeCurrent / release calls isn't worth these stability
+        // problems.
+        hasAWT = GLProfile.isAWTAvailable();
 
-                        _isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false);
+        _isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false);
 
-                        if (singleThreadProp != null) {
-                            if (singleThreadProp.equals("true") ||
-                                singleThreadProp.equals("auto")) {
-                                mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
-                            } else if (singleThreadProp.equals("worker")) {
-                                mode = Mode.ST_WORKER;
-                            } else if (hasAWT && singleThreadProp.equals("awt")) {
-                                mode = Mode.ST_AWT;
-                            } else if (singleThreadProp.equals("false")) {
-                                mode = Mode.MT;
-                            } else {
-                                throw new RuntimeException("Unsupported value for property jogl.1thread: "+singleThreadProp+", should be [true/auto, worker, awt or false]");
-                            }
-                        } else {
-                            mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
-                        }
-                        singleThreaded = Mode.MT != mode;
+        if (singleThreadProp != null) {
+            if (singleThreadProp.equals("true") ||
+                singleThreadProp.equals("auto")) {
+                mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
+            } else if (singleThreadProp.equals("worker")) {
+                mode = Mode.ST_WORKER;
+            } else if (hasAWT && singleThreadProp.equals("awt")) {
+                mode = Mode.ST_AWT;
+            } else if (singleThreadProp.equals("false")) {
+                mode = Mode.MT;
+            } else {
+                throw new RuntimeException("Unsupported value for property jogl.1thread: "+singleThreadProp+", should be [true/auto, worker, awt or false]");
+            }
+        } else {
+            mode  = ( hasAWT ? Mode.ST_AWT : Mode.MT );
+        }
+        singleThreaded = Mode.MT != mode;
 
-                        ToolkitThreadingPlugin threadingPlugin=null;
-                        if(hasAWT) {
-                            // try to fetch the AWTThreadingPlugin
-                            Exception error=null;
-                            try {
-                                threadingPlugin = (ToolkitThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
-                            } catch (final JogampRuntimeException jre) { error = jre; }
-                            if( Mode.ST_AWT == mode && null==threadingPlugin ) {
-                                throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
-                            }
-                        }
-                        if(DEBUG) {
-                            System.err.println("Threading: jogl.1thread "+singleThreadProp+", singleThreaded "+singleThreaded+", hasAWT "+hasAWT+", mode "+mode+", plugin "+threadingPlugin);
-                        }
-                        return threadingPlugin;
-                    }
-                });
+        ToolkitThreadingPlugin _threadingPlugin=null;
+        if(hasAWT) {
+            // try to fetch the AWTThreadingPlugin
+            Exception error=null;
+            try {
+                _threadingPlugin = (ToolkitThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
+            } catch (final JogampRuntimeException jre) { error = jre; }
+            if( Mode.ST_AWT == mode && null==_threadingPlugin ) {
+                throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
+            }
+        }
+        threadingPlugin = _threadingPlugin;
+        if(DEBUG) {
+            System.err.println("Threading: jogl.1thread "+singleThreadProp+", singleThreaded "+singleThreaded+", hasAWT "+hasAWT+", mode "+mode+", plugin "+threadingPlugin);
+        }
     }
 
     /** No reason to ever instantiate this class */

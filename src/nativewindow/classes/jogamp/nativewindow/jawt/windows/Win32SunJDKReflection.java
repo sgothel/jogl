@@ -44,10 +44,9 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
-import com.jogamp.common.util.SecurityUtil;
+import com.jogamp.common.util.Function0;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
@@ -68,28 +67,25 @@ public class Win32SunJDKReflection {
   private static boolean  initialized;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+    UnsafeUtil.doWithoutIllegalAccessLogger(new Function0<Object>() {
         @Override
-        public Object run() {
-            return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    try {
-                        win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");
-                        win32GraphicsConfigClass = Class.forName("sun.awt.Win32GraphicsConfig");
-                        win32GraphicsConfigGetConfigMethod = win32GraphicsConfigClass.getDeclaredMethod("getConfig", win32GraphicsDeviceClass, int.class);
-                        win32GraphicsConfigGetConfigMethod.setAccessible(true);
-                        win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual");
-                        win32GraphicsConfigGetVisualMethod.setAccessible(true);
-                        initialized = true;
-                    } catch (final Exception e) {
-                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-                        if( JAWTUtil.DEBUG ) {
-                            ExceptionUtils.dumpThrowable("Win32SunJDKReflection", e);
-                        }
-                    }
-                    return null;
-                }}); }});
+        public Object eval() {
+            try {
+                win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");
+                win32GraphicsConfigClass = Class.forName("sun.awt.Win32GraphicsConfig");
+                win32GraphicsConfigGetConfigMethod = win32GraphicsConfigClass.getDeclaredMethod("getConfig", win32GraphicsDeviceClass, int.class);
+                win32GraphicsConfigGetConfigMethod.setAccessible(true);
+                win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual");
+                win32GraphicsConfigGetVisualMethod.setAccessible(true);
+                initialized = true;
+            } catch (final Exception e) {
+                // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                if( JAWTUtil.DEBUG ) {
+                    ExceptionUtils.dumpThrowable("Win32SunJDKReflection", e);
+                }
+            }
+            return null;
+    }});
   }
 
   public static GraphicsConfiguration graphicsConfigurationGet(final GraphicsDevice device, final int pfdID) {

@@ -28,7 +28,6 @@
 package com.jogamp.nativewindow.javafx;
 
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
@@ -42,7 +41,6 @@ import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.RunnableTask;
-import com.jogamp.common.util.SecurityUtil;
 import com.sun.javafx.tk.TKStage;
 
 import javafx.application.Platform;
@@ -68,65 +66,58 @@ public class JFXAccessor {
 
     static {
         final boolean[] _DEBUG = new boolean[] { true };
+        Method _fxUserThreadGetter = null;
+        Method _tkStageGetter = null;
+        Method _glassWindowGetter = null;
+        Method _nativeWindowGetter = null;
 
-        final Method[] res = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
-            @Override
-            public Method[] run() {
-                NativeWindowFactory.initSingleton(); // last resort ..
-                final Method[] res = new Method[] { null, null, null, null };
-                try {
-                    int i=0;
-                    _DEBUG[0] = Debug.debug("JFX");
-                    /**
-                     * com.sun.javafx.tk.Toolkit
-                     */
-                    final Class<?> jfxToolkitClz = ReflectionUtil.getClass("com.sun.javafx.tk.Toolkit", false, JFXAccessor.class.getClassLoader());
-                    res[i] = jfxToolkitClz.getDeclaredMethod("getFxUserThread");
-                    res[i++].setAccessible(true);
+        NativeWindowFactory.initSingleton(); // last resort ..
+        try {
+            _DEBUG[0] = Debug.debug("JFX");
+            /**
+             * com.sun.javafx.tk.Toolkit
+             */
+            final Class<?> jfxToolkitClz = ReflectionUtil.getClass("com.sun.javafx.tk.Toolkit", false, JFXAccessor.class.getClassLoader());
+            _fxUserThreadGetter = jfxToolkitClz.getDeclaredMethod("getFxUserThread");
+            _fxUserThreadGetter.setAccessible(true);
 
-                    /***
-                     * class javafx.stage.Window
-                     * class javafx.stage.Stage extends javafx.stage.Window
-                     * class com.sun.javafx.tk.quantum.WindowStage extends com.sun.javafx.tk.quantum.GlassStage implements com.sun.javafx.tk.TKStage
-                     * abstract com.sun.glass.ui.Window
-                     *
-                     * javafx.stage.Window: com.sun.javafx.tk.TKStage [impl_]getPeer()
-                     * com.sun.javafx.tk.quantum.WindowStage: final com.sun.glass.ui.Window getPlatformWindow()
-                     * com.sun.glass.ui.Window: public long getNativeWindow()
-                     */
-                    final Class<?> jfxStageWindowClz = ReflectionUtil.getClass("javafx.stage.Window", false, JFXAccessor.class.getClassLoader());
-                    // final Class<?> jfxTkTKStageClz = ReflectionUtil.getClass("com.sun.javafx.tk.TKStage", false, JFXAccessor.class.getClassLoader());
-                    final Class<?> jfxTkQuWindowStageClz = ReflectionUtil.getClass("com.sun.javafx.tk.quantum.WindowStage", false, JFXAccessor.class.getClassLoader());
-                    final Class<?> jfxGlassUiWindowClz = ReflectionUtil.getClass("com.sun.glass.ui.Window", false, JFXAccessor.class.getClassLoader());
+            /***
+             * class javafx.stage.Window
+             * class javafx.stage.Stage extends javafx.stage.Window
+             * class com.sun.javafx.tk.quantum.WindowStage extends com.sun.javafx.tk.quantum.GlassStage implements com.sun.javafx.tk.TKStage
+             * abstract com.sun.glass.ui.Window
+             *
+             * javafx.stage.Window: com.sun.javafx.tk.TKStage [impl_]getPeer()
+             * com.sun.javafx.tk.quantum.WindowStage: final com.sun.glass.ui.Window getPlatformWindow()
+             * com.sun.glass.ui.Window: public long getNativeWindow()
+             */
+            final Class<?> jfxStageWindowClz = ReflectionUtil.getClass("javafx.stage.Window", false, JFXAccessor.class.getClassLoader());
+            // final Class<?> jfxTkTKStageClz = ReflectionUtil.getClass("com.sun.javafx.tk.TKStage", false, JFXAccessor.class.getClassLoader());
+            final Class<?> jfxTkQuWindowStageClz = ReflectionUtil.getClass("com.sun.javafx.tk.quantum.WindowStage", false, JFXAccessor.class.getClassLoader());
+            final Class<?> jfxGlassUiWindowClz = ReflectionUtil.getClass("com.sun.glass.ui.Window", false, JFXAccessor.class.getClassLoader());
 
-                    try {
-                        // jfx 9, 11, 12, ..
-                        res[i] = jfxStageWindowClz.getDeclaredMethod("getPeer");
-                    } catch (final NoSuchMethodException ex) {
-                        // jfx 8
-                        res[i] = jfxStageWindowClz.getDeclaredMethod("impl_getPeer");
-                    }
-                    res[i++].setAccessible(true);
-
-                    res[i] = jfxTkQuWindowStageClz.getDeclaredMethod("getPlatformWindow");
-                    res[i++].setAccessible(true);
-                    res[i] = jfxGlassUiWindowClz.getDeclaredMethod("getNativeWindow");
-                    res[i++].setAccessible(true);
-                } catch (final Throwable t) {
-                    if(_DEBUG[0]) {
-                        ExceptionUtils.dumpThrowable("jfx-init", t);
-                    }
-                }
-                return res;
+            try {
+                // jfx 9, 11, 12, ..
+                _tkStageGetter = jfxStageWindowClz.getDeclaredMethod("getPeer");
+            } catch (final NoSuchMethodException ex) {
+                // jfx 8
+                _tkStageGetter = jfxStageWindowClz.getDeclaredMethod("impl_getPeer");
             }
-        });
-        {
-            int i=0;
-            fxUserThreadGetter = res[i++];
-            tkStageGetter = res[i++];
-            glassWindowGetter = res[i++];
-            nativeWindowGetter = res[i++];
+            _tkStageGetter.setAccessible(true);
+
+            _glassWindowGetter = jfxTkQuWindowStageClz.getDeclaredMethod("getPlatformWindow");
+            _glassWindowGetter.setAccessible(true);
+            _nativeWindowGetter = jfxGlassUiWindowClz.getDeclaredMethod("getNativeWindow");
+            _nativeWindowGetter.setAccessible(true);
+        } catch (final Throwable t) {
+            if(_DEBUG[0]) {
+                ExceptionUtils.dumpThrowable("jfx-init", t);
+            }
         }
+        fxUserThreadGetter = _fxUserThreadGetter;
+        tkStageGetter = _tkStageGetter;
+        glassWindowGetter = _glassWindowGetter;
+        nativeWindowGetter = _nativeWindowGetter;
         jfxAvailable = null != fxUserThreadGetter && null != tkStageGetter && null != glassWindowGetter && null != nativeWindowGetter;
 
         nwt = NativeWindowFactory.getNativeWindowType(false);
@@ -137,7 +128,7 @@ public class JFXAccessor {
 
         DEBUG = _DEBUG[0];
         if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - Info: JFXAccessor.<init> available "+jfxAvailable+", nwt "+nwt+"( x11 "+isX11+", win "+isWindows+", osx "+isOSX+")");
+            System.err.println(Thread.currentThread().getName()+" - Info: JFXAccessor.<init> available "+jfxAvailable+", nwt "+nwt+"( x11 "+isX11+", win "+isWindows+", osx "+isOSX+", ios "+isIOS+")");
         }
     }
 

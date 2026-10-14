@@ -34,7 +34,6 @@
 
 package com.jogamp.newt.opengl;
 
-import java.security.PrivilegedAction;
 import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -74,7 +73,6 @@ import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Clock;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.MonitorDevice;
@@ -754,21 +752,16 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 if( animThread == Thread.currentThread() ) {
                     anim.stop(); // on anim thread, non-blocking
                 } else {
-                    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                        @Override
-                        public Object run() {
-                            if( anim.isAnimating() && null != animThread ) {
-                                try {
-                                    animThread.stop();
-                                } catch(final Throwable t) {
-                                    if( DEBUG ) {
-                                        System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
-                                        t.printStackTrace();
-                                    }
-                                }
+                    if( anim.isAnimating() && null != animThread ) {
+                        try {
+                            animThread.stop();
+                        } catch(final Throwable t) {
+                            if( DEBUG ) {
+                                System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage());
+                                t.printStackTrace();
                             }
-                            return null;
-                        } } );
+                        }
+                    }
                 }
             }
         }

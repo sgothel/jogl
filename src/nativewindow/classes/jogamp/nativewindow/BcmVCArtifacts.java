@@ -48,18 +48,9 @@ public class BcmVCArtifacts {
             "/sys/module/vc4");
         final File driCard0Location = new File(
             "/dev/dri/card0");
-        final boolean[] res = new boolean [3];
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    res[0] = vcLibLocation.isFile();
-                    res[1] = vc4ModLocation.isDirectory();
-                    res[2] = driCard0Location.exists(); // not a normal file
-                    return null;
-                } } );
-        hasVCLib = res[0];
-        hasVC4ModLocation = res[1];
-        hasDriCard0File = res[2];
+        hasVCLib = vcLibLocation.isFile();
+        hasVC4ModLocation = vc4ModLocation.isDirectory();
+        hasDriCard0File = driCard0Location.exists(); // not a normal file
     }
 
     /**

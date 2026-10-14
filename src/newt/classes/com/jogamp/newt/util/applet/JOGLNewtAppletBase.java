@@ -28,7 +28,6 @@
 package com.jogamp.newt.util.applet;
 
 import java.lang.reflect.Field;
-import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -42,7 +41,6 @@ import com.jogamp.opengl.GLPipelineFactory;
 import jogamp.newt.Debug;
 
 import com.jogamp.common.util.InterruptSource;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -53,7 +51,6 @@ import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.AnimatorBase;
 
 
 /**
@@ -119,19 +116,13 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         Object instance = null;
 
         try {
-            final Class<?> clazz = SecurityUtil.doPrivileged(new PrivilegedAction<Class<?>>() {
-                @Override
-                public Class<?> run() {
-                    final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                    Class<?> clazz = null;
-                    try {
-                        clazz = Class.forName(clazzName, false, cl);
-                    } catch (final Throwable t) {
-                        t.printStackTrace();
-                    }
-                    return clazz;
-                }
-            });
+            Class<?> clazz = null;
+            final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            try {
+                clazz = Class.forName(clazzName, false, cl);
+            } catch (final Throwable t) {
+                t.printStackTrace();
+            }
             instance = clazz.newInstance();
         } catch (final Throwable t) {
             t.printStackTrace();

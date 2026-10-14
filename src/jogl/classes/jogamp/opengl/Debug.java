@@ -28,10 +28,7 @@
 
 package jogamp.opengl;
 
-import java.security.PrivilegedAction;
-
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Helper routines for logging and debugging. */
 
@@ -41,12 +38,7 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-            PropertyAccess.addTrustedPrefix("jogl.");
-            return null;
-    } } );
+    PropertyAccess.addTrustedPrefix("jogl.");
 
     verbose = isPropertyDefined("jogl.verbose", true);
     debugAll = isPropertyDefined("jogl.debug", true);

@@ -43,7 +43,6 @@ package jogamp.nativewindow.jawt.macosx;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.nio.Buffer;
-import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.Capabilities;
@@ -53,7 +52,6 @@ import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.util.Point;
 
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 
 import jogamp.nativewindow.Debug;
@@ -363,13 +361,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           ret = NativeSurface.LOCK_SURFACE_CHANGED;
       }
       if (firstLock) {
-          SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-              @Override
-              public Object run() {
-                  dsi = ds.GetDrawingSurfaceInfo();
-                  return null;
-              }
-          });
+          dsi = ds.GetDrawingSurfaceInfo();
       } else {
           dsi = ds.GetDrawingSurfaceInfo();
       }

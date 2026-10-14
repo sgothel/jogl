@@ -35,7 +35,6 @@ package com.jogamp.nativewindow;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +55,6 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Provides a pluggable mechanism for arbitrary window toolkits to
     adapt their components to the {@link NativeWindow} interface,
@@ -216,33 +214,30 @@ public abstract class NativeWindowFactory {
     }
 
     static {
-        final boolean[] _DEBUG = new boolean[] { false };
-        final String[] _tmp = new String[] { null };
-        final String[] _nativeWindowingTypeNative = new String[] { null };
+        boolean _DEBUG = false;
+        String _tmp = null;
+        String _nativeWindowingTypeNative = null;
 
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                Platform.initSingleton(); // last resort ..
-                _DEBUG[0] = Debug.debug("NativeWindow");
-                _tmp[0] = PropertyAccess.getProperty("nativewindow.ws.name", true);
-                _nativeWindowingTypeNative[0] = _getNativeWindowingType(_DEBUG[0]);
-                Runtime.getRuntime().addShutdownHook(
-                    new InterruptSource.Thread(null, new Runnable() {
-                                @Override
-                                public void run() {
-                                    NativeWindowFactory.shutdown(true);
-                                } }, "NativeWindowFactory_ShutdownHook" ) ) ;
-                return null;
-            } } ) ;
+        {
+            Platform.initSingleton(); // last resort ..
+            _DEBUG = Debug.debug("NativeWindow");
+            _tmp = PropertyAccess.getProperty("nativewindow.ws.name", true);
+            _nativeWindowingTypeNative = _getNativeWindowingType(_DEBUG);
+            Runtime.getRuntime().addShutdownHook(
+                new InterruptSource.Thread(null, new Runnable() {
+                            @Override
+                            public void run() {
+                                NativeWindowFactory.shutdown(true);
+                            } }, "NativeWindowFactory_ShutdownHook" ) ) ;
+        }
 
-        DEBUG = _DEBUG[0];
+        DEBUG = _DEBUG;
 
-        nativeWindowingTypeNative = _nativeWindowingTypeNative[0];
-        if(null==_tmp[0] || _tmp[0].length()==0) {
+        nativeWindowingTypeNative = _nativeWindowingTypeNative;
+        if(null==_tmp || _tmp.length()==0) {
             nativeWindowingTypeCustom = nativeWindowingTypeNative;
         } else {
-            nativeWindowingTypeCustom = _tmp[0].intern(); // canonical representation
+            nativeWindowingTypeCustom = _tmp.intern(); // canonical representation
         }
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>: Type "+nativeWindowingTypeCustom+" custom / "+nativeWindowingTypeNative+" native");
@@ -385,26 +380,21 @@ public abstract class NativeWindowFactory {
             if( Platform.AWT_AVAILABLE &&
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
 
-                final Method[] jawtUtilMethods = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
-                    @Override
-                    public Method[] run() {
-                        try {
-                            final Class<?> _jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());
-                            final Method jawtUtilIsHeadlessMethod = _jawtUtilClass.getDeclaredMethod("isHeadlessMode", (Class[])null);
-                            jawtUtilIsHeadlessMethod.setAccessible(true);
-                            final Method jawtUtilInitMethod = _jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
-                            jawtUtilInitMethod.setAccessible(true);
-                            final Method jawtUtilGetJAWTToolkitLockMethod = _jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
-                            jawtUtilGetJAWTToolkitLockMethod.setAccessible(true);
-                            return new Method[] { jawtUtilInitMethod, jawtUtilIsHeadlessMethod, jawtUtilGetJAWTToolkitLockMethod };
-                        } catch (final Exception e) {
-                            if(DEBUG) {
-                                e.printStackTrace();
-                            }
-                        }
-                        return null;
+                Method[] jawtUtilMethods = null;
+                try {
+                    final Class<?> _jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());
+                    final Method jawtUtilIsHeadlessMethod = _jawtUtilClass.getDeclaredMethod("isHeadlessMode", (Class[])null);
+                    jawtUtilIsHeadlessMethod.setAccessible(true);
+                    final Method jawtUtilInitMethod = _jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
+                    jawtUtilInitMethod.setAccessible(true);
+                    final Method jawtUtilGetJAWTToolkitLockMethod = _jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
+                    jawtUtilGetJAWTToolkitLockMethod.setAccessible(true);
+                    jawtUtilMethods = new Method[] { jawtUtilInitMethod, jawtUtilIsHeadlessMethod, jawtUtilGetJAWTToolkitLockMethod };
+                } catch (final Exception e) {
+                    if(DEBUG) {
+                        e.printStackTrace();
                     }
-                });
+                }
                 if(null != jawtUtilMethods) {
                     final Method jawtUtilInitMethod = jawtUtilMethods[0];
                     final Method jawtUtilIsHeadlessMethod = jawtUtilMethods[1];

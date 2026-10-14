@@ -28,7 +28,6 @@
 
 package jogamp.opengl.util.av.impl;
 
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -41,7 +40,6 @@ import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.RunnableExecutor;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 
 /**
@@ -216,28 +214,26 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     static final VersionedLib swScale;
     private static final FFMPEGNatives natives;
 
-    private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
-        @Override
-        public DynamicLibraryBundle run() {
-            final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
-            for(int i=0; i<libLoaded.length; i++) {
-                libLoaded[i] = dl.isToolLibLoaded(i);
+    private static DynamicLibraryBundle getDLB() {
+        final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+        for(int i=0; i<libLoaded.length; i++) {
+            libLoaded[i] = dl.isToolLibLoaded(i);
+        }
+        if( !libLoaded[LIB_IDX_COD] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_SWR]) {
+            System.err.println("FFMPEG Tool library incomplete: [ avcodec "+libLoaded[LIB_IDX_COD]+", avformat "+libLoaded[LIB_IDX_FMT]+
+                               ", avutil "+libLoaded[LIB_IDX_UTI]+", swres "+libLoaded[LIB_IDX_SWR]+" ]");
+            return null;
+        }
+        dl.claimAllLinkPermission();
+        try {
+            for(int i = 0; i<symbolCount; i++) {
+                symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
             }
-            if( !libLoaded[LIB_IDX_COD] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_SWR]) {
-                System.err.println("FFMPEG Tool library incomplete: [ avcodec "+libLoaded[LIB_IDX_COD]+", avformat "+libLoaded[LIB_IDX_FMT]+
-                                   ", avutil "+libLoaded[LIB_IDX_UTI]+", swres "+libLoaded[LIB_IDX_SWR]+" ]");
-                return null;
-            }
-            dl.claimAllLinkPermission();
-            try {
-                for(int i = 0; i<symbolCount; i++) {
-                    symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
-                }
-            } finally {
-                dl.releaseAllLinkPermission();
-            }
-            return dl;
-        } };
+        } finally {
+            dl.releaseAllLinkPermission();
+        }
+        return dl;
+    }
 
     /**
      * @param versions 6: util, format, codec, device, swresample, swscale
@@ -251,7 +247,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
 
-        final DynamicLibraryBundle dl = SecurityUtil.doPrivileged(privInitSymbolsAction);
+        final DynamicLibraryBundle dl = getDLB();
         if( null == dl ) {
             return false;
         }

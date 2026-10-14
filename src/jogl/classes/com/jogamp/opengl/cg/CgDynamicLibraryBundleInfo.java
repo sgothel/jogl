@@ -33,27 +33,19 @@ import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.RunnableExecutor;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
-import java.security.PrivilegedAction;
 import java.util.*;
 
 public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     private static final List<String> glueLibNames;
     static {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                Platform.initSingleton();
+        Platform.initSingleton();
 
-                if( TempJarCache.isInitialized(true) ) {
-                   // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.opengl.cg.CgPackagePlaceholder.class }, null);
-                }
-                return null;
-            }
-        });
+        if( TempJarCache.isInitialized(true) ) {
+           // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
+           JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.opengl.cg.CgPackagePlaceholder.class }, null);
+        }
 
         glueLibNames = new ArrayList<String>();
         // glueLibNames.addAll(getGlueLibNamesPreload());

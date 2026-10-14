@@ -34,26 +34,18 @@ import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.RunnableExecutor;
 import com.jogamp.common.util.cache.TempJarCache;
-import com.jogamp.common.util.SecurityUtil;
 
-import java.security.PrivilegedAction;
 import java.util.*;
 
 /* pp */ final class OVRDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final List<String> glueLibNames;
     static {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                Platform.initSingleton();
+        Platform.initSingleton();
 
-                if( TempJarCache.isInitialized(true) ) {
-                   // only: oculusvr.jar -> oculusvr-natives-<os.and.arch>.jar
-                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { com.jogamp.oculusvr.OVRDynamicLibraryBundleInfo.class }, null);
-                }
-                return null;
-            }
-        });
+        if( TempJarCache.isInitialized(true) ) {
+           // only: oculusvr.jar -> oculusvr-natives-<os.and.arch>.jar
+           JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { com.jogamp.oculusvr.OVRDynamicLibraryBundleInfo.class }, null);
+        }
 
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("oculusvr");

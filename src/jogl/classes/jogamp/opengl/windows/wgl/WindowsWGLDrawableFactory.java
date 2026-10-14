@@ -42,7 +42,6 @@ package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
-import java.security.PrivilegedAction;
 import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -77,7 +76,6 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
@@ -155,24 +153,19 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
     synchronized(WindowsWGLDrawableFactory.class) {
         if( null == windowsWGLDynamicLookupHelper ) {
-            windowsWGLDynamicLookupHelper = SecurityUtil.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
-                @Override
-                public DesktopGLDynamicLookupHelper run() {
-                    DesktopGLDynamicLookupHelper tmp;
-                    try {
-                        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
-                        if(null!=tmp && tmp.isLibComplete()) {
-                            WGL.getWGLProcAddressTable().reset(tmp);
-                        }
-                    } catch (final Exception ex) {
-                        tmp = null;
-                        if(DEBUG) {
-                            ex.printStackTrace();
-                        }
-                    }
-                    return tmp;
+            DesktopGLDynamicLookupHelper tmp = null;
+            try {
+                tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+                if(null!=tmp && tmp.isLibComplete()) {
+                    WGL.getWGLProcAddressTable().reset(tmp);
                 }
-            } );
+            } catch (final Exception ex) {
+                tmp = null;
+                if(DEBUG) {
+                    ex.printStackTrace();
+                }
+            }
+            windowsWGLDynamicLookupHelper = tmp;
         }
     }
 

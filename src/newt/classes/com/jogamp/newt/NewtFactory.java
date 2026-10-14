@@ -63,20 +63,15 @@ public class NewtFactory {
     private static String sysPaths = "jogamp/newt/assets/jogamp-16x16.png jogamp/newt/assets/jogamp-32x32.png";
 
     static {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                NativeWindowFactory.initSingleton(); // last resort ..
-                {
-                    /** See API Doc in {@link Window} ! */
-                    final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, sysPaths).split("[\\s,]");
-                    if( paths.length < 2 ) {
-                        throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
-                    }
-                    defaultWindowIcons = new IOUtil.ClassResources(paths, NewtFactory.class.getClassLoader(), null);
-                }
-                return null;
-            } } );
+        NativeWindowFactory.initSingleton(); // last resort ..
+        {
+            /** See API Doc in {@link Window} ! */
+            final String[] paths = PropertyAccess.getProperty("newt.window.icons", true, sysPaths).split("[\\s,]");
+            if( paths.length < 2 ) {
+                throw new IllegalArgumentException("Property 'newt.window.icons' did not specify at least two PNG icons, but "+Arrays.toString(paths));
+            }
+            defaultWindowIcons = new IOUtil.ClassResources(paths, NewtFactory.class.getClassLoader(), null);
+        }
     }
 
     /**

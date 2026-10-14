@@ -2,11 +2,10 @@ package com.jogamp.nativewindow.awt;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.Function0;
 import com.jogamp.common.util.RunnableTask;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -28,21 +27,18 @@ public class AppContextInfo {
   static {
       DEBUG = JAWTUtil.DEBUG;
       final Method[] _getAppContextMethod = { null };
-      SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+      UnsafeUtil.doWithoutIllegalAccessLogger(new Function0<Object>() {
           @Override
-          public Object run() {
-              return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
-                  @Override
-                  public Object run() {
-                      try {
-                          final Class<?> appContextClass = Class.forName("sun.awt.AppContext");
-                          _getAppContextMethod[0] = appContextClass.getMethod("getAppContext");
-                          _getAppContextMethod[0].setAccessible(true);
-                      } catch(final Throwable ex) {
-                          ExceptionUtils.dumpThrowable("AppContextInfo(Bug 1004)", ex);
-                      }
-                      return null;
-                  }}); }});
+          public Object eval() {
+              try {
+                  final Class<?> appContextClass = Class.forName("sun.awt.AppContext");
+                  _getAppContextMethod[0] = appContextClass.getMethod("getAppContext");
+                  _getAppContextMethod[0].setAccessible(true);
+              } catch(final Throwable ex) {
+                  ExceptionUtils.dumpThrowable("AppContextInfo(Bug 1004)", ex);
+              }
+              return null;
+          }});
       getAppContextMethod = _getAppContextMethod[0];
   }
 

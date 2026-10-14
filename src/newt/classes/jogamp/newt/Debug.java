@@ -28,10 +28,8 @@
 
 package jogamp.newt;
 
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Helper routines for logging and debugging. */
 
@@ -41,12 +39,7 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-            PropertyAccess.addTrustedPrefix("newt.");
-            return null;
-    } } );
+    PropertyAccess.addTrustedPrefix("newt.");
 
     verbose = isPropertyDefined("newt.verbose", true);
     debugAll = isPropertyDefined("newt.debug", true);

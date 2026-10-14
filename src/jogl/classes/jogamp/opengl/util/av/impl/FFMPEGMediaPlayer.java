@@ -30,7 +30,6 @@ package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -42,7 +41,6 @@ import com.jogamp.common.av.AudioSinkFactory;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -449,27 +447,24 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final int audioQueueSize;
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
-            SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    final ProcAddressTable pt = ctx.getGLProcAddressTable();
-                    final long procAddrGLTexImage2D = pt.getAddressFor("glTexImage2D");
-                    final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");
-                    final long procAddrGLGetError = pt.getAddressFor("glGetError");
-                    final long procAddrGLFlush = pt.getAddressFor("glFlush");
-                    final long procAddrGLFinish = pt.getAddressFor("glFinish");
-                    final long procAddrGLEnable;
-                    if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != getTextureTarget() ) {
-                        procAddrGLEnable = pt.getAddressFor("glEnable");
-                    } else {
-                        procAddrGLEnable = 0;
-                    }
-                    final long procAddrGLBindTexture = pt.getAddressFor("glBindTexture");
-                    natives.setGLFuncs0(moviePtr, procAddrGLTexImage2D, procAddrGLTexSubImage2D,
-                                        procAddrGLGetError, procAddrGLFlush, procAddrGLFinish,
-                                        procAddrGLEnable, procAddrGLBindTexture, gl.isNPOTTextureAvailable());
-                    return null;
-            } } );
+            {
+                final ProcAddressTable pt = ctx.getGLProcAddressTable();
+                final long procAddrGLTexImage2D = pt.getAddressFor("glTexImage2D");
+                final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");
+                final long procAddrGLGetError = pt.getAddressFor("glGetError");
+                final long procAddrGLFlush = pt.getAddressFor("glFlush");
+                final long procAddrGLFinish = pt.getAddressFor("glFinish");
+                final long procAddrGLEnable;
+                if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != getTextureTarget() ) {
+                    procAddrGLEnable = pt.getAddressFor("glEnable");
+                } else {
+                    procAddrGLEnable = 0;
+                }
+                final long procAddrGLBindTexture = pt.getAddressFor("glBindTexture");
+                natives.setGLFuncs0(moviePtr, procAddrGLTexImage2D, procAddrGLTexSubImage2D,
+                                    procAddrGLGetError, procAddrGLFlush, procAddrGLFinish,
+                                    procAddrGLEnable, procAddrGLBindTexture, gl.isNPOTTextureAvailable());
+            }
             audioQueueSize = AudioSink.DefaultQueueSizeWithVideo;
         } else {
             audioQueueSize = AudioSink.DefaultQueueSize;

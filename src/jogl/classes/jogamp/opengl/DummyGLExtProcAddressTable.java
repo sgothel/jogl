@@ -28,7 +28,6 @@
 package jogamp.opengl;
 
 import com.jogamp.gluegen.runtime.ProcAddressTable;
-import com.jogamp.common.util.SecurityUtil;
 
 /**
  * Representing the non-existing platform GL extension, i.e. a dummy type.
@@ -49,7 +48,6 @@ public final class DummyGLExtProcAddressTable extends ProcAddressTable {
   }
   @Override
   public long getAddressFor(final String functionNameUsr) throws SecurityException, IllegalArgumentException {
-    SecurityUtil.checkAllLinkPermission();
     final String functionNameBase = com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);
     // The user is calling a bogus function or one which is not
     // runtime linked

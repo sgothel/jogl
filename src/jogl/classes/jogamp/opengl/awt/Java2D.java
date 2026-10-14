@@ -45,10 +45,8 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Rectangle;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLContext;
@@ -57,7 +55,6 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.Debug;
@@ -118,184 +115,178 @@ public class Java2D {
   private static Method destroyOGLContextMethod;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-          if (DEBUG) {
-            System.err.println("Checking for Java2D/OpenGL support");
-          }
-          Throwable caught = null;
-          try {
-            isHeadless = true;
-            // Figure out whether the default graphics configuration is an
-            // OpenGL graphics configuration
-            final GraphicsConfiguration cfg;
-            final String cfgName;
-            final boolean java2dOGLDisabledByOS = PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS;
-            final boolean java2dOGLDisabledByProp;
-            {
-                boolean enabled = true;
-                final String sVal = System.getProperty("sun.java2d.opengl");
-                if( null != sVal ) {
-                    enabled = Boolean.valueOf(sVal);
-                }
-                java2dOGLDisabledByProp = !enabled;
+      if (DEBUG) {
+        System.err.println("Checking for Java2D/OpenGL support");
+      }
+      Throwable caught = null;
+      try {
+        isHeadless = true;
+        // Figure out whether the default graphics configuration is an
+        // OpenGL graphics configuration
+        final GraphicsConfiguration cfg;
+        final String cfgName;
+        final boolean java2dOGLDisabledByOS = PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS;
+        final boolean java2dOGLDisabledByProp;
+        {
+            boolean enabled = true;
+            final String sVal = System.getProperty("sun.java2d.opengl");
+            if( null != sVal ) {
+                enabled = Boolean.valueOf(sVal);
             }
-            if( !java2dOGLDisabledByProp && !java2dOGLDisabledByOS ) {
-                cfg = GraphicsEnvironment.getLocalGraphicsEnvironment().
-                        getDefaultScreenDevice().getDefaultConfiguration();
-                cfgName = cfg.getClass().getName();
-            } else {
-                if (DEBUG) {
-                  System.err.println("Java2D support disabled: by Property "+java2dOGLDisabledByProp+", by OS "+java2dOGLDisabledByOS);
-                }
-                cfg = null;
-                cfgName = "nil";
-            }
-            // If we get here, we aren't running in headless mode
-            isHeadless = false;
-            if (DEBUG) {
-              System.err.println("Java2D support: default GraphicsConfiguration = " + cfgName);
-            }
-            isOGLPipelineActive = cfgName.startsWith("sun.java2d.opengl");
-            isOGLPipelineResourceCompatible = isOGLPipelineActive;
-
-            if (isOGLPipelineActive) {
-              try {
-                // Try to get methods we need to integrate
-                final Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
-                invokeWithOGLContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLContextCurrent",
-                                                                            new Class[] {
-                                                                              Graphics.class,
-                                                                              Runnable.class
-                                                                            });
-                invokeWithOGLContextCurrentMethod.setAccessible(true);
-
-                isQueueFlusherThreadMethod = utils.getDeclaredMethod("isQueueFlusherThread",
-                                                                     new Class[] {});
-                isQueueFlusherThreadMethod.setAccessible(true);
-
-                if( isOGLPipelineResourceCompatible ) {
-                    getOGLViewportMethod = utils.getDeclaredMethod("getOGLViewport",
-                                                                   new Class[] {
-                                                                     Graphics.class,
-                                                                     Integer.TYPE,
-                                                                     Integer.TYPE
-                                                                   });
-                    getOGLViewportMethod.setAccessible(true);
-
-                    getOGLScissorBoxMethod = utils.getDeclaredMethod("getOGLScissorBox",
-                                                                     new Class[] {
-                                                                       Graphics.class
-                                                                     });
-                    getOGLScissorBoxMethod.setAccessible(true);
-
-                    getOGLSurfaceIdentifierMethod = utils.getDeclaredMethod("getOGLSurfaceIdentifier",
-                                                                            new Class[] {
-                                                                              Graphics.class
-                                                                            });
-                    getOGLSurfaceIdentifierMethod.setAccessible(true);
-
-                    // Try to get additional methods required for proper FBO support
-                    fbObjectSupportInitialized = true;
-                    try {
-                      invokeWithOGLSharedContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLSharedContextCurrent",
-                                                                                        new Class[] {
-                                                                                          GraphicsConfiguration.class,
-                                                                                          Runnable.class
-                                                                                        });
-                      invokeWithOGLSharedContextCurrentMethod.setAccessible(true);
-
-                      getOGLSurfaceTypeMethod = utils.getDeclaredMethod("getOGLSurfaceType",
-                                                                        new Class[] {
-                                                                          Graphics.class
-                                                                        });
-                      getOGLSurfaceTypeMethod.setAccessible(true);
-                    } catch (final Exception e) {
-                      fbObjectSupportInitialized = false;
-                      if (DEBUG) {
-                        e.printStackTrace();
-                        System.err.println("Info: Disabling Java2D/JOGL FBO support");
-                      }
-                    }
-
-                    // Try to get an additional method for FBO support in recent Mustang builds
-                    try {
-                      getOGLTextureTypeMethod = utils.getDeclaredMethod("getOGLTextureType",
-                                                                        new Class[] {
-                                                                          Graphics.class
-                                                                        });
-                      getOGLTextureTypeMethod.setAccessible(true);
-                    } catch (final Exception e) {
-                      if (DEBUG) {
-                        e.printStackTrace();
-                        System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
-                      }
-                    }
-
-                    // Try to set up APIs for enabling the bridge on OS X,
-                    // where it isn't possible to create generalized
-                    // external GLDrawables
-                    Class<?> cglSurfaceData = null;
-                    try {
-                      cglSurfaceData = Class.forName("sun.java2d.opengl.CGLSurfaceData");
-                    } catch (final Exception e) {
-                      if (DEBUG) {
-                        e.printStackTrace();
-                        System.err.println("Info: Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
-                      }
-                    }
-                    if (cglSurfaceData != null) {
-                      // FIXME: for now, assume that FBO support is not enabled on OS X
-                      fbObjectSupportInitialized = false;
-
-                      // We need to find these methods in order to make the bridge work on OS X
-                      createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
-                                                                                         new Class[] {
-                                                                                           Graphics.class,
-                                                                                           Long.TYPE
-                                                                                         });
-                      createOGLContextOnSurfaceMethod.setAccessible(true);
-
-                      makeOGLContextCurrentOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("makeOGLContextCurrentOnSurface",
-                                                                                              new Class[] {
-                                                                                                Graphics.class,
-                                                                                                Long.TYPE
-                                                                                              });
-                      makeOGLContextCurrentOnSurfaceMethod.setAccessible(true);
-
-                      destroyOGLContextMethod = cglSurfaceData.getDeclaredMethod("destroyOGLContext",
-                                                                                 new Class[] {
-                                                                                   Long.TYPE
-                                                                                 });
-                      destroyOGLContextMethod.setAccessible(true);
-                    }
-                }
-              } catch (final Exception e) {
-                caught = e;
-                if (DEBUG) {
-                  System.err.println("Info: Disabling Java2D/JOGL integration");
-                }
-                isOGLPipelineActive = false;
-                isOGLPipelineResourceCompatible = false;
-              }
-            }
-          } catch (final HeadlessException e) {
-            // The AWT is running in headless mode, so the Java 2D / JOGL bridge is clearly disabled
-          } catch (final Error e) {
-            // issued on OSX Java7: java.lang.Error: Could not find class: sun.awt.HeadlessGraphicsEnvironment
-            caught = e;
-          }
-
-          if (DEBUG) {
-            if(null != caught) {
-                caught.printStackTrace();
-            }
-            System.err.println("JOGL/Java2D OGL Pipeline active " + isOGLPipelineActive + ", resourceCompatible "+isOGLPipelineResourceCompatible);
-          }
-          return null;
+            java2dOGLDisabledByProp = !enabled;
         }
-      });
+        if( !java2dOGLDisabledByProp && !java2dOGLDisabledByOS ) {
+            cfg = GraphicsEnvironment.getLocalGraphicsEnvironment().
+                    getDefaultScreenDevice().getDefaultConfiguration();
+            cfgName = cfg.getClass().getName();
+        } else {
+            if (DEBUG) {
+              System.err.println("Java2D support disabled: by Property "+java2dOGLDisabledByProp+", by OS "+java2dOGLDisabledByOS);
+            }
+            cfg = null;
+            cfgName = "nil";
+        }
+        // If we get here, we aren't running in headless mode
+        isHeadless = false;
+        if (DEBUG) {
+          System.err.println("Java2D support: default GraphicsConfiguration = " + cfgName);
+        }
+        isOGLPipelineActive = cfgName.startsWith("sun.java2d.opengl");
+        isOGLPipelineResourceCompatible = isOGLPipelineActive;
+
+        if (isOGLPipelineActive) {
+          try {
+            // Try to get methods we need to integrate
+            final Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
+            invokeWithOGLContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLContextCurrent",
+                                                                        new Class[] {
+                                                                          Graphics.class,
+                                                                          Runnable.class
+                                                                        });
+            invokeWithOGLContextCurrentMethod.setAccessible(true);
+
+            isQueueFlusherThreadMethod = utils.getDeclaredMethod("isQueueFlusherThread",
+                                                                 new Class[] {});
+            isQueueFlusherThreadMethod.setAccessible(true);
+
+            if( isOGLPipelineResourceCompatible ) {
+                getOGLViewportMethod = utils.getDeclaredMethod("getOGLViewport",
+                                                               new Class[] {
+                                                                 Graphics.class,
+                                                                 Integer.TYPE,
+                                                                 Integer.TYPE
+                                                               });
+                getOGLViewportMethod.setAccessible(true);
+
+                getOGLScissorBoxMethod = utils.getDeclaredMethod("getOGLScissorBox",
+                                                                 new Class[] {
+                                                                   Graphics.class
+                                                                 });
+                getOGLScissorBoxMethod.setAccessible(true);
+
+                getOGLSurfaceIdentifierMethod = utils.getDeclaredMethod("getOGLSurfaceIdentifier",
+                                                                        new Class[] {
+                                                                          Graphics.class
+                                                                        });
+                getOGLSurfaceIdentifierMethod.setAccessible(true);
+
+                // Try to get additional methods required for proper FBO support
+                fbObjectSupportInitialized = true;
+                try {
+                  invokeWithOGLSharedContextCurrentMethod = utils.getDeclaredMethod("invokeWithOGLSharedContextCurrent",
+                                                                                    new Class[] {
+                                                                                      GraphicsConfiguration.class,
+                                                                                      Runnable.class
+                                                                                    });
+                  invokeWithOGLSharedContextCurrentMethod.setAccessible(true);
+
+                  getOGLSurfaceTypeMethod = utils.getDeclaredMethod("getOGLSurfaceType",
+                                                                    new Class[] {
+                                                                      Graphics.class
+                                                                    });
+                  getOGLSurfaceTypeMethod.setAccessible(true);
+                } catch (final Exception e) {
+                  fbObjectSupportInitialized = false;
+                  if (DEBUG) {
+                    e.printStackTrace();
+                    System.err.println("Info: Disabling Java2D/JOGL FBO support");
+                  }
+                }
+
+                // Try to get an additional method for FBO support in recent Mustang builds
+                try {
+                  getOGLTextureTypeMethod = utils.getDeclaredMethod("getOGLTextureType",
+                                                                    new Class[] {
+                                                                      Graphics.class
+                                                                    });
+                  getOGLTextureTypeMethod.setAccessible(true);
+                } catch (final Exception e) {
+                  if (DEBUG) {
+                    e.printStackTrace();
+                    System.err.println("Info: GL_ARB_texture_rectangle FBO support disabled");
+                  }
+                }
+
+                // Try to set up APIs for enabling the bridge on OS X,
+                // where it isn't possible to create generalized
+                // external GLDrawables
+                Class<?> cglSurfaceData = null;
+                try {
+                  cglSurfaceData = Class.forName("sun.java2d.opengl.CGLSurfaceData");
+                } catch (final Exception e) {
+                  if (DEBUG) {
+                    e.printStackTrace();
+                    System.err.println("Info: Unable to find class sun.java2d.opengl.CGLSurfaceData for OS X");
+                  }
+                }
+                if (cglSurfaceData != null) {
+                  // FIXME: for now, assume that FBO support is not enabled on OS X
+                  fbObjectSupportInitialized = false;
+
+                  // We need to find these methods in order to make the bridge work on OS X
+                  createOGLContextOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("createOGLContextOnSurface",
+                                                                                     new Class[] {
+                                                                                       Graphics.class,
+                                                                                       Long.TYPE
+                                                                                     });
+                  createOGLContextOnSurfaceMethod.setAccessible(true);
+
+                  makeOGLContextCurrentOnSurfaceMethod = cglSurfaceData.getDeclaredMethod("makeOGLContextCurrentOnSurface",
+                                                                                          new Class[] {
+                                                                                            Graphics.class,
+                                                                                            Long.TYPE
+                                                                                          });
+                  makeOGLContextCurrentOnSurfaceMethod.setAccessible(true);
+
+                  destroyOGLContextMethod = cglSurfaceData.getDeclaredMethod("destroyOGLContext",
+                                                                             new Class[] {
+                                                                               Long.TYPE
+                                                                             });
+                  destroyOGLContextMethod.setAccessible(true);
+                }
+            }
+          } catch (final Exception e) {
+            caught = e;
+            if (DEBUG) {
+              System.err.println("Info: Disabling Java2D/JOGL integration");
+            }
+            isOGLPipelineActive = false;
+            isOGLPipelineResourceCompatible = false;
+          }
+        }
+      } catch (final HeadlessException e) {
+        // The AWT is running in headless mode, so the Java 2D / JOGL bridge is clearly disabled
+      } catch (final Error e) {
+        // issued on OSX Java7: java.lang.Error: Could not find class: sun.awt.HeadlessGraphicsEnvironment
+        caught = e;
+      }
+
+      if (DEBUG) {
+        if(null != caught) {
+            caught.printStackTrace();
+        }
+        System.err.println("JOGL/Java2D OGL Pipeline active " + isOGLPipelineActive + ", resourceCompatible "+isOGLPipelineResourceCompatible);
+      }
   }
 
   public static boolean isOGLPipelineActive() {

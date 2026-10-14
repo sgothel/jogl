@@ -44,10 +44,9 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
-import com.jogamp.common.util.SecurityUtil;
+import com.jogamp.common.util.Function0;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
@@ -67,29 +66,26 @@ public class X11SunJDKReflection {
   private static boolean initialized;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+    UnsafeUtil.doWithoutIllegalAccessLogger(new Function0<Object>() {
         @Override
-        public Object run() {
-            return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
-                @Override
-                public Object run() {
-                    try {
-                        x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
-                        x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay");
-                        x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
+        public Object eval() {
+            try {
+                x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
+                x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay");
+                x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
 
-                        x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
-                        x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual");
-                        x11GraphicsConfigGetVisualMethod.setAccessible(true);
-                        initialized = true;
-                    } catch (final Exception e) {
-                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-                        if( JAWTUtil.DEBUG ) {
-                            ExceptionUtils.dumpThrowable("X11SunJDKReflection", e);
-                        }
-                    }
-                    return null;
-                }}); }});
+                x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
+                x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual");
+                x11GraphicsConfigGetVisualMethod.setAccessible(true);
+                initialized = true;
+            } catch (final Exception e) {
+                // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                if( JAWTUtil.DEBUG ) {
+                    ExceptionUtils.dumpThrowable("X11SunJDKReflection", e);
+                }
+            }
+            return null;
+        }});
   }
 
   public static long graphicsDeviceGetDisplay(final GraphicsDevice device) {

@@ -1,19 +1,14 @@
 private static boolean useJavaMipmapCode = true;
 
 static {
-  SecurityUtil.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        String val = System.getProperty("jogl.glu.nojava");
-        if (val != null && !val.toLowerCase().equals("false")) {
-          useJavaMipmapCode = false;
-        }
-        /** Not required nor forced
-        if( !initializeImpl() ) {
-            throw new RuntimeException("Initialization failure");
-        } */
-        return null;
-      }
-    });
+    String val = System.getProperty("jogl.glu.nojava");
+    if (val != null && !val.toLowerCase().equals("false")) {
+      useJavaMipmapCode = false;
+    }
+    /** Not required nor forced
+    if( !initializeImpl() ) {
+        throw new RuntimeException("Initialization failure");
+    } */
 }
 
 /**

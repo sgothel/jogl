@@ -39,41 +39,33 @@
 
 package jogamp.nativewindow.jawt;
 
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 
 import java.awt.Toolkit;
-import java.security.PrivilegedAction;
 
 public class JAWTJNILibLoader extends NWJNILibLoader {
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-      @Override
-      public Object run() {
-        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
-        // a Dialog with "awt.dll not found" might pop up.
-        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
-        Toolkit.getDefaultToolkit();
+      // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
+      // a Dialog with "awt.dll not found" might pop up.
+      // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
+      Toolkit.getDefaultToolkit();
 
-        // Must pre-load JAWT on all non-Mac platforms to
-        // ensure references from jogl_awt shared object
-        // will succeed since JAWT shared object isn't in
-        // default library path
-        if ( NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false) ) {
-            try {
-                loadLibrary("jawt", null, true, JAWTJNILibLoader.class.getClassLoader());
-            } catch (final Throwable t) {
-                // It might be ok .. if it's already loaded
-                if(DEBUG) {
-                    t.printStackTrace();
-                }
-            }
-        }
-        return null;
+      // Must pre-load JAWT on all non-Mac platforms to
+      // ensure references from jogl_awt shared object
+      // will succeed since JAWT shared object isn't in
+      // default library path
+      if (NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false)) {
+          try {
+              loadLibrary("jawt", null, true, JAWTJNILibLoader.class.getClassLoader());
+          } catch (final Throwable t) {
+              // It might be ok .. if it's already loaded
+              if (DEBUG) {
+                  t.printStackTrace();
+              }
+          }
       }
-    });
   }
 
   public static void initSingleton() {

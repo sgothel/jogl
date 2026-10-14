@@ -32,7 +32,6 @@ import com.jogamp.common.os.Platform;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GCData;
@@ -49,7 +48,6 @@ import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
@@ -140,13 +138,7 @@ public class SWTAccessor {
         // final int SWT_VERSION_4_26 = 4956;
         // major * 1000 + minor;
 
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                NativeWindowFactory.initSingleton(); // last resort ..
-                return null;
-            } } );
-
+        NativeWindowFactory.initSingleton(); // last resort ..
         nwt = NativeWindowFactory.getNativeWindowType(false);
         isOSX = NativeWindowFactory.TYPE_MACOSX == nwt;
         isWindows = NativeWindowFactory.TYPE_WINDOWS == nwt;

@@ -28,10 +28,7 @@
 
 package jogamp.nativewindow;
 
-import java.security.PrivilegedAction;
-
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 /** Helper routines for logging and debugging. */
 
@@ -41,12 +38,7 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
 
   static {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-            PropertyAccess.addTrustedPrefix("nativewindow.");
-            return null;
-    } } );
+    PropertyAccess.addTrustedPrefix("nativewindow.");
 
     verbose = isPropertyDefined("nativewindow.verbose", true);
     debugAll = isPropertyDefined("nativewindow.debug", true);

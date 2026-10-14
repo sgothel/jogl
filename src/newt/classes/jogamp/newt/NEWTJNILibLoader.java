@@ -52,32 +52,22 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
      * i.e. X11 for Unix, GDI for Windows .. and so forth.
      */
     public static boolean loadNEWTHead() {
-        return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
-            @Override
-            public Boolean run() {
-                Platform.initSingleton();
-                final String libName = "newt_head";
-                if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
-                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.newt.Debug.class });
-                }
-                return Boolean.valueOf(loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader()));
-            }
-        }).booleanValue();
+        Platform.initSingleton();
+        final String libName = "newt_head";
+        if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
+            JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.newt.Debug.class });
+        }
+        return loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader());
     }
     /**
      * Loads the NEWT native library for the drm/gbm display.
      */
     public static boolean loadNEWTDrmGbm() {
-        return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
-            @Override
-            public Boolean run() {
-                Platform.initSingleton();
-                final String libName = "newt_drm";
-                if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
-                    JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.newt.Debug.class });
-                }
-                return Boolean.valueOf(loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader()));
-            }
-        }).booleanValue();
+        Platform.initSingleton();
+        final String libName = "newt_drm";
+        if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
+            JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.newt.Debug.class });
+        }
+        return loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader());
     }
 }

@@ -34,15 +34,10 @@ import java.net.URLConnection;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.JarUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
-
-import java.security.PrivilegedAction;
 
 public abstract class FontLoaderImpl {
 
@@ -60,20 +55,8 @@ public abstract class FontLoaderImpl {
             if( TempJarCache.isInitialized(false) ) {
                 try {
                     final Uri uri = JarUtil.getRelativeOf(FontLoaderImpl.class, null, jarName);
-                    final Exception e0 = SecurityUtil.doPrivileged(new PrivilegedAction<Exception>() {
-                        @Override
-                        public Exception run() {
-                            try {
-                                TempJarCache.addResources(FontLoaderImpl.class, uri);
-                                useTempJARCache = true;
-                                return null;
-                            } catch (final Exception e) {
-                                return e;
-                            }
-                        } } );
-                    if( null != e0 ) {
-                        throw e0;
-                    }
+                    TempJarCache.addResources(FontLoaderImpl.class, uri);
+                    useTempJARCache = true;
                 } catch(final Exception e1) {
                     System.err.println("Caught "+e1.getMessage());
                     e1.printStackTrace();
@@ -91,22 +74,13 @@ public abstract class FontLoaderImpl {
         }
     }
     private Font readFontImpl(final String fname) throws IOException {
-        final InputStream stream;
+        InputStream stream = null;
         if( useTempJARCache ) {
-            final Exception[] privErr = { null };
-            stream = SecurityUtil.doPrivileged(new PrivilegedAction<InputStream>() {
-                @Override
-                public InputStream run() {
-                    try {
-                        final Uri uri = TempJarCache.getResourceUri(fname);
-                        return null != uri ? uri.toURL().openConnection().getInputStream() : null;
-                    } catch (final Exception e) {
-                        privErr[0] = e;
-                        return null;
-                    }
-                } } );
-            if( null != privErr[0] ) {
-                throw new IOException(privErr[0]);
+            try {
+                final Uri uri = TempJarCache.getResourceUri(fname);
+                stream = null != uri ? uri.toURL().openConnection().getInputStream() : null;
+            } catch (final Exception e) {
+                throw new IOException(e);
             }
         } else {
             final URLConnection urlConn = IOUtil.getResource(fname, getClass().getClassLoader(), null);

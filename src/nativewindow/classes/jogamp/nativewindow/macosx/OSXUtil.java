@@ -33,7 +33,6 @@ import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
 
 import java.lang.reflect.Method;
-import java.security.PrivilegedAction;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,7 +42,6 @@ import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
 import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.RunnableTask;
-import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
@@ -216,11 +214,7 @@ public class OSXUtil implements ToolkitProperties {
             }
             if( useMainThreadChecker ) {
                 final String libMainThreadChecker = "/Applications/Xcode.app/Contents/Developer/usr/lib/libMainThreadChecker.dylib";
-                final NativeLibrary lib = SecurityUtil.doPrivileged(new PrivilegedAction<NativeLibrary>() {
-                    @Override
-                    public NativeLibrary run() {
-                        return NativeLibrary.open(libMainThreadChecker, false, false, OSXUtil.class.getClassLoader(), true);
-                    } } );
+                final NativeLibrary lib = NativeLibrary.open(libMainThreadChecker, false, false, OSXUtil.class.getClassLoader(), true);
                 if( null == lib ) {
                     System.err.println("Could not load "+libMainThreadChecker);
                 } else {

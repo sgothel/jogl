@@ -47,7 +47,6 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.common.util.locks.LockFactory;
@@ -60,7 +59,6 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import java.lang.reflect.Constructor;
-import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,24 +217,20 @@ public class GLProfile {
 
                 // run the whole static initialization privileged to speed up,
                 // since this skips checking further access
-                SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-                    @Override
-                    public Object run() {
-                        Platform.initSingleton();
+                {
+                    Platform.initSingleton();
 
-                        if( TempJarCache.isInitialized(true) ) {
-                           final ClassLoader cl = GLProfile.class.getClassLoader();
-                           final String newtDebugClassName = "jogamp.newt.Debug";
-                           final Class<?>[] classesFromJavaJars = new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.opengl.Debug.class, null };
-                           if( ReflectionUtil.isClassAvailable(newtDebugClassName, cl) ) {
-                               classesFromJavaJars[2] = ReflectionUtil.getClass(newtDebugClassName, false, cl);
-                           }
-                           JNILibLoaderBase.addNativeJarLibsJoglCfg(classesFromJavaJars);
-                        }
-                        initProfilesForDefaultDevices();
-                        return null;
+                    if( TempJarCache.isInitialized(true) ) {
+                       final ClassLoader cl = GLProfile.class.getClassLoader();
+                       final String newtDebugClassName = "jogamp.newt.Debug";
+                       final Class<?>[] classesFromJavaJars = new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.opengl.Debug.class, null };
+                       if( ReflectionUtil.isClassAvailable(newtDebugClassName, cl) ) {
+                           classesFromJavaJars[2] = ReflectionUtil.getClass(newtDebugClassName, false, cl);
+                       }
+                       JNILibLoaderBase.addNativeJarLibsJoglCfg(classesFromJavaJars);
                     }
-                });
+                    initProfilesForDefaultDevices();
+                }
                 if( ReflectionUtil.DEBUG_STATS_FORNAME ) {
                     if( justInitialized ) {
                         System.err.println(ReflectionUtil.getForNameStats(null).toString());
