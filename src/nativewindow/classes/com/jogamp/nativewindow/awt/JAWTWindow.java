@@ -39,6 +39,7 @@ package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.RunnableTask;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -88,7 +89,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   // lifetime: forever
   protected final Component component;
-  private final AppContextInfo appContextInfo; // only used for offscreen layer, i.e. MacOS only
   private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
   private final RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
   private final JAWTComponentListener jawtComponentListener;
@@ -119,11 +119,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     }
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
-    }
-    if( JAWTUtil.isOffscreenLayerSupported() ) {
-        appContextInfo = new AppContextInfo("<init>");
-    } else {
-        appContextInfo = null;
     }
     this.component = (Component)comp;
     this.jawtComponentListener = new JAWTComponentListener();
@@ -499,15 +494,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   @Override
   public final void attachSurfaceLayer(final long layerHandle) throws NativeWindowException {
-      if( null == appContextInfo ) { // !JAWTUtil.isOffscreenLayerSupported()
-          throw new NativeWindowException("Offscreen layer not supported");
-      }
-      if( !isOffscreenLayerSurfaceEnabled() ) {
+      if( !isOffscreenLayerSurfaceEnabled() ) { // implies check for JAWTUtil.isOffscreenLayerSupported()
           throw new NativeWindowException("Not an offscreen layer surface");
       }
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
-      appContextInfo.invokeOnAppContextThread(false /* waitUntilDone */, repaintTask, "Repaint");
+      RunnableTask.invokeOnNewThread(null, "Repaint-OnSystemTG", false /* waitUntilDone */, repaintTask);
+
   }
   private final Runnable repaintTask = new Runnable() {
           @Override
