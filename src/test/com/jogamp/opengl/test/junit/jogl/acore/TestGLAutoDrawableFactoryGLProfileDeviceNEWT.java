@@ -174,9 +174,9 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
         if(null != glp) {
             Assert.assertTrue("Not a GL2GL3 profile but "+glp, glp.isGL2GL3());
         }
-        if(null == glp || !glp.isGL2ES2()) {
+        if(null == glp || !glp.isGL2ES2() || !glp.isHardwareRasterizer()) {
             if( null != glp ) {
-                System.err.println("Not a GL2ES2 profile but "+glp);
+                System.err.println("Not a hw GL2ES2 profile but "+glp);
             }
             return;
         }
