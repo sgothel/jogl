@@ -99,17 +99,21 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     }
 
     class SwingGLAction implements GLEventListener {
+        @Override
         public void init(final GLAutoDrawable glad) {
         }
 
+        @Override
         public void dispose(final GLAutoDrawable glad) {
         }
 
+        @Override
         public void display(final GLAutoDrawable glad) {
             colorPanel.setBackground(modLight(colorPanel.getBackground()));
             colorPanel.repaint();
         }
 
+        @Override
         public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         }
     }
@@ -127,6 +131,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         button = new JButton("Click me");
         button.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(final MouseEvent e) {
                 System.err.println("Test: "+e);
             }
@@ -141,6 +146,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         frame = new JFrame("PRE JOGL");
         frame.addWindowListener( new WindowAdapter() {
+            @Override
             public void windowClosing(final WindowEvent ev) {
                 windowClosing=true;
             }
@@ -151,6 +157,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         //            you need to use AWT/Swing's invokeAndWait()
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setSize(512, 512);
                 frame.setLocation(0, 0);
@@ -191,6 +198,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         robot = null;
         Assert.assertNotNull(frame);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.dispose();
             }
@@ -206,13 +214,16 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         canvas.setPreferredSize(size);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 panel.add(canvas, BorderLayout.CENTER);
                 frame.pack();
             }
         });
 
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.a");
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.b");
 
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(drawable, true, null));
 
@@ -220,42 +231,55 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         for(int i=0; i<100; i++) {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     colorPanel.setBackground(modLight(colorPanel.getBackground()));
                     colorPanel.repaint();
                 }
             });
             drawable.display(); // one in process display
+            System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: display: "+i+"/100");
             Thread.sleep(10);
         }
 
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: swing mod.0");
         colorPanel.setBackground(Color.blue);
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: swing mod.1");
         drawable.addGLEventListener(new SwingGLAction());
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: swing mod.X");
 
         final Point p0 = canvas.getLocationOnScreen();
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.1");
         p0.translate(10,10);
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.2");
         robot.mouseMove( (int) ( p0.getX() + .5 ) ,
                          (int) ( p0.getY() + .5 ) );
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.3");
         robot.mousePress(InputEvent.BUTTON1_MASK);
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: pos.4");
         for(int i=0; !windowClosing && i<durationPerTest/10; i++) {
             p0.translate(1,1);
             robot.mouseMove( (int) ( p0.getX() + .5 ) ,
                              (int) ( p0.getY() + .5 ) );
+            System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: mouse-move: "+i+"/"+(durationPerTest/10));
             Thread.sleep(10);
         }
         robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
         for(int i=0; !windowClosing && i<durationPerTest/100; i++) {
+            System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: sleep: "+i+"/"+(durationPerTest/100));
             Thread.sleep(100);
         }
 
         Assert.assertNotNull(canvas);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 panel.remove(canvas);
                 frame.pack();
             }
         });
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.runTestGL: End");
     }
 
     @Test
