@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -174,6 +175,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
             };
 
         window.setWindowDestroyNotifyAction( new Runnable() {
+            @Override
             public void run() {
                 glad.windowDestroyNotifyOp();
             } } );
@@ -291,6 +293,10 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     public void testGL2OffScreenPbufferDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
+        if(!reqGLCaps.getGLProfile().isHardwareRasterizer() && Platform.OSType.WINDOWS == Platform.getOSType()) {
+            // FIXME: Not viable for software MESA rendering on Windows (mesa3d-26.2.4-release-mingw.7z)
+            return;
+        }
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setPBuffer(true);
         doTest(reqGLCaps, new GearsES2(1));
@@ -300,6 +306,10 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     public void testGL2OffScreenPbufferSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
+        if(!reqGLCaps.getGLProfile().isHardwareRasterizer() && Platform.OSType.WINDOWS == Platform.getOSType()) {
+            // FIXME: Not viable for software MESA rendering on Windows (mesa3d-26.2.4-release-mingw.7z)
+            return;
+        }
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setPBuffer(true);
         reqGLCaps.setDoubleBuffered(false);

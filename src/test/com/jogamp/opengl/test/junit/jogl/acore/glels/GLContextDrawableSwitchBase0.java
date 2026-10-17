@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.lang.reflect.InvocationTargetException;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -107,6 +108,10 @@ public abstract class GLContextDrawableSwitchBase0 extends UITestCase {
     public void test02aSwitch2Onscreen2OnscreenGL2ES2_MSAA() throws InterruptedException, InvocationTargetException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
+        if(!reqGLCaps.getGLProfile().isHardwareRasterizer() && Platform.OSType.WINDOWS == Platform.getOSType()) {
+            // FIXME: Not viable for software MESA rendering on Windows (mesa3d-26.2.4-release-mingw.7z)
+            return;
+        }
         reqGLCaps.setNumSamples(4);
         reqGLCaps.setSampleBuffers(true);
         testImpl(reqGLCaps, true);
@@ -228,6 +233,7 @@ public abstract class GLContextDrawableSwitchBase0 extends UITestCase {
                     System.err.println(s+" - switch - START "+ ( t1 - t0 ));
 
                     final Runnable switchAction = new Runnable() {
+                            @Override
                             public void run() {
                                 GLDrawableUtil.swapGLContextAndAllGLEventListener(gladSource, gladDest);
                             } };
