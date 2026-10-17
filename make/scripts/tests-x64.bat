@@ -19,7 +19,6 @@ set MESA3D_LIB=C:\Mesa3D\x64
 REM set FFMPEG_LIB=C:\ffmpeg-5.1.2-full_build-shared\bin
 set FFMPEG_LIB=C:\ffmpeg-n6.1-latest-win64-gpl-shared-6.1\bin
 
-REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
 set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%MESA3D_LIB%;%FFMPEG_LIB%;%PATH%
 REM set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;C:\temp;%FFMPEG_LIB%;%PATH%
 echo PATH %PATH%
