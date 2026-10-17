@@ -326,11 +326,11 @@ public abstract class GLContextImpl extends GLContext {
                   // Failure, recover and bail out w/ GLException
                   drawableRead = oldDrawableRead;
                   drawable     = oldDrawableWrite;
-                  if( drawable.isRealized() ) {
+                  if( null != drawable && drawable.isRealized() ) {
                       makeCurrent(true); // implicit: associateDrawable(true)
-                  }
-                  if( !lockHeld ) {
-                      release(false);
+                      if( !lockHeld ) {
+                          release(false);
+                      }
                   }
                   final String msg = "Error: makeCurrent() failed with new drawable "+readWrite;
                   if( null != gle ) {
