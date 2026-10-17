@@ -185,25 +185,28 @@ public class GLDebugMessageHandler {
         }
 
         final ProcAddressTable procAddressTable = ctx.getGLProcAddressTable();
+        final String fname;
         switch(extType) {
             case EXT_KHR:
-                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
-                break;
             case EXT_ARB:
-                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
-                break;
             case EXT_AMD:
-                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallback"+extSuffix);
+                fname = "glDebugMessageCallback"+extSuffix;
+                glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, fname);
+                break;
+            default:
+                fname = "none";
+                glDebugMessageCallbackProcAddress = 0;
                 break;
         }
         extAvailable = 0 < extType && null != extName && null != extSuffix && 0 != glDebugMessageCallbackProcAddress;
-
-        if(DEBUG) {
-            System.err.println("GLDebugMessageHandler: extAvailable: "+extAvailable+", glDebugMessageCallback* : 0x"+Long.toHexString(glDebugMessageCallbackProcAddress));
-        }
-
         if(!extAvailable) {
             glDebugMessageCallbackProcAddress = 0;
+        }
+
+        if(DEBUG) {
+            System.err.println("GLDebugMessageHandler: extAvailable: "+extAvailable+
+                    ", '"+fname+"': 0x"+Long.toHexString(glDebugMessageCallbackProcAddress)+
+                    " from "+procAddressTable.getClass().toString());
         }
 
         handle = 0;

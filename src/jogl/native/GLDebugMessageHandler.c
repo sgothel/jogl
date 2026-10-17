@@ -119,7 +119,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_GLDebugMessageHandler_register0
     DebugHandlerType * handle = malloc(sizeof(DebugHandlerType));
     handle->obj = (*env)->NewGlobalRef(env, obj);
     handle->extType = extType;
-    DBG_PRINT("GLDebugMessageHandler.register0: jobject %p, extType %d\n", (void*)handle->obj, handle->extType);
+    DBG_PRINT("GLDebugMessageHandler.register0: jobject %p, extType %d, glDebugMessageCallback* %p\n", (void*)handle->obj, handle->extType, procAddress);
 
     if(jogamp_opengl_GLDebugMessageHandler_EXT_KHR == extType ||
        jogamp_opengl_GLDebugMessageHandler_EXT_ARB == extType) {

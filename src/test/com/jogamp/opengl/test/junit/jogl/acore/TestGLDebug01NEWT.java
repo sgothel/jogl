@@ -99,6 +99,7 @@ public class TestGLDebug01NEWT extends UITestCase {
         Assert.assertEquals((null == glDebugExt) ? false : enable, ctx.isGLDebugMessageEnabled());
         if(ctx.isGLDebugMessageEnabled() && null != dbgTstMsg && 0 <= dbgTstId) {
             window.invoke(true, new GLRunnable() {
+                @Override
                 public boolean run(final GLAutoDrawable drawable) {
                     drawable.getContext().glDebugMessageInsert(GL2ES2.GL_DEBUG_SOURCE_APPLICATION,
                                                                GL2ES2.GL_DEBUG_TYPE_OTHER,
@@ -114,7 +115,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GL2GL3DebugDisabled() throws InterruptedException {
+    public void test11GL2GL3DebugDisabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -123,7 +124,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test02GL2GL3DebugEnabled() throws InterruptedException {
+    public void test12GL2GL3DebugEnabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -132,7 +133,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test11GLES2DebugDisabled() throws InterruptedException {
+    public void test13GLES2DebugDisabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -141,7 +142,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test12GLES2DebugEnabled() throws InterruptedException {
+    public void test14GLES2DebugEnabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -151,6 +152,12 @@ public class TestGLDebug01NEWT extends UITestCase {
 
     void testX3GLDebugError(final GLProfile glp) throws InterruptedException {
         final GLWindow window = createWindow(glp, true);
+        final GLContext ctx = window.getContext();
+        final String glDebugExt = ctx.getGLDebugMessageExtension();
+        System.err.println("glDebug extension: "+glDebugExt);
+        System.err.println("glDebug enabled: "+ctx.isGLDebugMessageEnabled());
+        System.err.println("glDebug sync: "+ ctx.isGLDebugSynchronous());
+        System.err.println("context version: "+ctx.getGLVersion());
 
         final MyGLDebugListener myGLDebugListener = new MyGLDebugListener(
                 GL2ES2.GL_DEBUG_SOURCE_API,
@@ -159,6 +166,7 @@ public class TestGLDebug01NEWT extends UITestCase {
         window.getContext().addGLDebugListener(myGLDebugListener);
 
         window.invoke(true, new GLRunnable() {
+            @Override
             public boolean run(final GLAutoDrawable drawable) {
                 drawable.getGL().glBindFramebuffer(-1, -1); // ERROR !
                 return true;
@@ -173,7 +181,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test03GL2GL3DebugError() throws InterruptedException {
+    public void test31GL2GL3DebugError() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -182,7 +190,7 @@ public class TestGLDebug01NEWT extends UITestCase {
     }
 
     @Test
-    public void test13GLES2DebugError() throws InterruptedException {
+    public void test32GLES2DebugError() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -222,6 +230,7 @@ public class TestGLDebug01NEWT extends UITestCase {
 
         public boolean received() { return received; }
 
+        @Override
         public void messageSent(final GLDebugMessage event) {
             System.err.println("XXX: "+event);
             if(null != recMsg && recMsg.equals(event.getDbgMsg()) && recId == event.getDbgId()) {

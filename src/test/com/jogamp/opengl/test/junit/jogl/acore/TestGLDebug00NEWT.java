@@ -100,6 +100,8 @@ public class TestGLDebug00NEWT extends UITestCase {
         final GLContext context = drawable.createContext(null);
         Assert.assertNotNull(context);
 
+        Assert.assertFalse(context.isCreated());
+        Assert.assertFalse(context.isCurrent());
         context.enableGLDebugMessage(debugGL);
 
         final int res = context.makeCurrent();
@@ -136,7 +138,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GL2GL3DebugDisabled() throws InterruptedException {
+    public void test11GL2GL3DebugDisabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -145,7 +147,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test02GL2GL3DebugEnabled() throws InterruptedException {
+    public void test12GL2GL3DebugEnabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -154,7 +156,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test11GLES2DebugDisabled() throws InterruptedException {
+    public void test13GLES2DebugDisabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -163,7 +165,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test12GLES2DebugEnabled() throws InterruptedException {
+    public void test14GLES2DebugEnabled() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -173,6 +175,11 @@ public class TestGLDebug00NEWT extends UITestCase {
 
     void testX2GLDebugError(final GLProfile glp) throws InterruptedException {
         final WindowContext winctx = createWindow(glp, true);
+        final String glDebugExt = winctx.context.getGLDebugMessageExtension();
+        System.err.println("glDebug extension: "+glDebugExt);
+        System.err.println("glDebug enabled: "+winctx.context.isGLDebugMessageEnabled());
+        System.err.println("glDebug sync: "+winctx.context.isGLDebugSynchronous());
+        System.err.println("context version: "+winctx.context.getGLVersion());
 
         final MyGLDebugListener myGLDebugListener = new MyGLDebugListener(
                 GL2ES2.GL_DEBUG_SOURCE_API,
@@ -183,6 +190,7 @@ public class TestGLDebug00NEWT extends UITestCase {
         final GL gl = winctx.context.getGL();
 
         gl.glBindFramebuffer(-1, -1); // ERROR !
+        gl.glEnable(-1);
 
         if( winctx.context.isGLDebugMessageEnabled() ) {
             Assert.assertEquals(true, myGLDebugListener.received());
@@ -192,8 +200,8 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test03GL2GL3DebugError() throws InterruptedException {
-        final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
+    public void test21GL2GL3DebugError() throws InterruptedException {
+        final GLProfile glp = getGLProfile(GLProfile.GL3); // GL2GL3);
         if( null == glp ) {
             return;
         }
@@ -201,7 +209,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test13GLES2DebugError() throws InterruptedException {
+    public void test22GLES2DebugError() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -211,10 +219,15 @@ public class TestGLDebug00NEWT extends UITestCase {
 
     void testX3GLDebugInsert(final GLProfile glp) throws InterruptedException {
         final WindowContext winctx = createWindow(glp, true);
+        final String glDebugExt = winctx.context.getGLDebugMessageExtension();
+        System.err.println("glDebug extension: "+glDebugExt);
+        System.err.println("glDebug enabled: "+winctx.context.isGLDebugMessageEnabled());
+        System.err.println("glDebug sync: "+winctx.context.isGLDebugSynchronous());
+        System.err.println("context version: "+winctx.context.getGLVersion());
+
         final MyGLDebugListener myGLDebugListener = new MyGLDebugListener(dbgTstMsg0, dbgTstId0);
         winctx.context.addGLDebugListener(myGLDebugListener);
 
-        final String glDebugExt = winctx.context.getGLDebugMessageExtension();
         Assert.assertEquals((null == glDebugExt) ? false : true, winctx.context.isGLDebugMessageEnabled());
 
         if( winctx.context.isGLDebugMessageEnabled() ) {
@@ -229,7 +242,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test04GL2GL3DebugInsert() throws InterruptedException {
+    public void test31GL2GL3DebugInsert() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GL2GL3);
         if( null == glp ) {
             return;
@@ -238,7 +251,7 @@ public class TestGLDebug00NEWT extends UITestCase {
     }
 
     @Test
-    public void test14GLES2DebugInsert() throws InterruptedException {
+    public void test32GLES2DebugInsert() throws InterruptedException {
         final GLProfile glp = getGLProfile(GLProfile.GLES2);
         if( null == glp ) {
             return;
@@ -278,6 +291,7 @@ public class TestGLDebug00NEWT extends UITestCase {
 
         public boolean received() { return received; }
 
+        @Override
         public void messageSent(final GLDebugMessage event) {
             System.err.println("XXX: "+event);
             if(null != recMsg && recMsg.equals(event.getDbgMsg()) && recId == event.getDbgId()) {
