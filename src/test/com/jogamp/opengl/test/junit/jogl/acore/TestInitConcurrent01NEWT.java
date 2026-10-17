@@ -52,17 +52,17 @@ import com.jogamp.common.os.Platform;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
 
-    @Test(timeout=180000) // TO 3 min
+    @Test(timeout=30000) // TO 30 sec
     public void test02TwoThreads() throws InterruptedException {
         runJOGLTasks(2, true);
     }
 
-    @Test(timeout=180000) // TO 3 min
+    @Test(timeout=30000) // TO 30 sec
     public void test04FourThreads() throws InterruptedException {
         runJOGLTasks(4, true);
     }
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=60000) // TO 1 min
     public void test16SixteenThreads() throws InterruptedException {
         if( Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
             Platform.getOSType() != Platform.OSType.WINDOWS ) {

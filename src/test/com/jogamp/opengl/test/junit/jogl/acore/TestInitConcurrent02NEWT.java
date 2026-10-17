@@ -53,7 +53,7 @@ import com.jogamp.common.os.Platform;
 public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
     static boolean mainRun = false;
 
-    @Test(timeout=180000) // TO 3 min
+    @Test(timeout=30000) // TO 30 sec
     public void test02TwoThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
@@ -62,7 +62,7 @@ public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
         runJOGLTasks(2, false);
     }
 
-    @Test(timeout=180000) // TO 3 min
+    @Test(timeout=30000) // TO 30 sec
     public void test02FourThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
@@ -71,7 +71,7 @@ public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
         runJOGLTasks(4, false);
     }
 
-    @Test(timeout=180000) // TO 3 min
+    @Test(timeout=60000) // TO 1 min
     public void test16SixteenThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");

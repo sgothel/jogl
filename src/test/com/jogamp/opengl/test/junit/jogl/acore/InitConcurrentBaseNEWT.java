@@ -99,10 +99,14 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
             this.id = id;
             this.reuse = reuse;
         }
+        @Override
         public void run() {
             final int x = (  id          % num_x ) * ( demoWinSize + insets.getTotalHeight() );
             final int y = ( (id / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() );
 
+            System.err.println("JOGLTask "+id+": LAUNCHED: "+Thread.currentThread().getName());
+            GLProfile.initSingleton();
+            System.err.println("JOGLTask "+id+": POST INIT: "+Thread.currentThread().getName());
             System.err.println("GLprofile default: "+GLProfile.getDefault());
             System.err.println("GLprofile defaultDevice: "+GLProfile.getDefaultDevice());
 
