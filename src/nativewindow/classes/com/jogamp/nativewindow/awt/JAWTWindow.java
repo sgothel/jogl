@@ -500,7 +500,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
       RunnableTask.invokeOnNewThread(null, "Repaint-OnSystemTG", false /* waitUntilDone */, repaintTask);
-
   }
   private final Runnable repaintTask = new Runnable() {
           @Override
