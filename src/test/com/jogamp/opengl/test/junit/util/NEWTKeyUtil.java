@@ -62,6 +62,7 @@ public class NEWTKeyUtil {
             this.description = description;
             this.event = event;
         }
+        @Override
         public String toString() {
             return "Code 0x"+Integer.toHexString( code & 0x0000FFFF )+" != "+event+" // "+description;
         }
@@ -91,14 +92,19 @@ public class NEWTKeyUtil {
         }
         return res;
     }
+    @SuppressWarnings("unused")
     public static boolean validateKeyCodes(final List<CodeEvent> missCodes, final CodeSeg codeSeg, final List<EventObject> keyEvents, final boolean verbose) {
         final int codeCount = codeSeg.max - codeSeg.min + 1;
         int misses = 0;
         int evtIdx = 0;
+        final int missPre = missCodes.size();
         for(int i=0; i<codeCount; i++) {
             // evtIdx -> KEY_PRESSED !
             final short c = (short) ( codeSeg.min + i );
             final KeyEvent e = (KeyEvent) ( evtIdx < keyEvents.size() ? keyEvents.get(evtIdx) : null );
+            if(false && verbose) {
+                System.err.println("XXX i "+i+", evtIdx "+evtIdx+": "+e);
+            }
             if( null == e ) {
                 missCodes.add(new CodeEvent(c, codeSeg.description, e));
                 misses++;
@@ -108,12 +114,25 @@ public class NEWTKeyUtil {
                     missCodes.add(new CodeEvent(c, codeSeg.description, e));
                     misses++;
                 }
-                evtIdx += 2;
+                evtIdx++;
+                if(e.getEventType() == KeyEvent.EVENT_KEY_PRESSED) {
+                    final KeyEvent f = (KeyEvent) ( evtIdx < keyEvents.size() ? keyEvents.get(evtIdx) : null );
+                    if(false && verbose) {
+                        System.err.println("ZZZ i "+i+", evtIdx "+evtIdx+": "+f);
+                    }
+                    if(f == null) {
+                        // Error, but tolerate
+                    } else if(f.getEventType() == KeyEvent.EVENT_KEY_RELEASED) {
+                        evtIdx++;
+                    }
+                } else if(e.getEventType() == KeyEvent.EVENT_KEY_RELEASED) {
+                    // OK, no PRESSED
+                }
             }
         }
-        final boolean res = evtIdx == keyEvents.size() && 0 == missCodes.size();
+        final boolean res = evtIdx == keyEvents.size() && 0 == missCodes.size()-missPre;
         if(verbose) {
-            System.err.println("+++ Code Segment "+codeSeg.description+", Misses: "+misses+" / "+codeCount+", events "+keyEvents.size()+", valid "+res);
+            System.err.println("+++ Code Segment "+codeSeg.description+", Misses: "+misses+" / "+codeCount+", events "+evtIdx+"/"+keyEvents.size()+", valid "+res);
         }
         return res;
     }

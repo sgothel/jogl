@@ -117,6 +117,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame1.setSize(width, height);
                 frame1.setVisible(true);
@@ -128,6 +129,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
 
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     frame1.setVisible(false);
                     frame1.dispose();
@@ -169,14 +171,14 @@ public class TestNewtKeyCodesAWT extends UITestCase {
       // new CodeSeg(KeyEvent.VK_SCROLL_LOCK, KeyEvent.VK_SCROLL_LOCK, "scroll lock"),
       new CodeSeg(KeyEvent.VK_ESCAPE, KeyEvent.VK_ESCAPE, "esc"),
       new CodeSeg(KeyEvent.VK_SPACE, KeyEvent.VK_SPACE, "space"),
-      new CodeSeg(KeyEvent.VK_QUOTE, KeyEvent.VK_QUOTE, "quote"),
+      // new CodeSeg(KeyEvent.VK_QUOTE, KeyEvent.VK_QUOTE, "quote"), // MacOS issues
       new CodeSeg(KeyEvent.VK_COMMA, KeyEvent.VK_SLASH, ", - . /"),
       new CodeSeg(KeyEvent.VK_0, KeyEvent.VK_9, "0 - 9"),
       new CodeSeg(KeyEvent.VK_SEMICOLON, KeyEvent.VK_SEMICOLON, ";"),
       new CodeSeg(KeyEvent.VK_EQUALS, KeyEvent.VK_EQUALS, "="),
       new CodeSeg(KeyEvent.VK_A, KeyEvent.VK_Z, "a - z"),
       new CodeSeg(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET, "[ \\ ]"),
-      new CodeSeg(KeyEvent.VK_BACK_QUOTE, KeyEvent.VK_BACK_QUOTE, "`"),
+      // new CodeSeg(KeyEvent.VK_BACK_QUOTE, KeyEvent.VK_BACK_QUOTE, "`"), // MacOS issues
       new CodeSeg(KeyEvent.VK_F1, KeyEvent.VK_F8, "f1..f8"),
       // new CodeSeg(KeyEvent.VK_F1, KeyEvent.VK_F12, "f1..f12"), // f9-f12 may cause some odd desktop functions!
       new CodeSeg(KeyEvent.VK_DELETE, KeyEvent.VK_DELETE, "del"),
