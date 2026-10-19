@@ -35,12 +35,14 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.awt.NewtCanvasAWT;
@@ -168,7 +170,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             }});
 
         robot = new Robot();
-        robot.setAutoWaitForIdle(true);
+        robot.setAutoWaitForIdle(false);
 
         // NativeWindow/JOGL is not initialized yet ..
         for (int wait=0; wait<TestUtil.POLL_DIVIDER && !frame.isVisible(); wait++) {
@@ -328,7 +330,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
 
-        final Animator anim = new Animator();
+        final GLAnimatorControl anim = new FPSAnimator(30);
         anim.start();
 
         /**
