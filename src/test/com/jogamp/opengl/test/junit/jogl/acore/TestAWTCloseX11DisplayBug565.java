@@ -11,10 +11,11 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
+
 import java.awt.Frame;
 
 /**
- * Tests the closing the device of GLCanvas in JOGL
+ * Tests closing the device of GLCanvas in JOGL
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAWTCloseX11DisplayBug565 {
@@ -35,12 +36,19 @@ public class TestAWTCloseX11DisplayBug565 {
         final Frame frame = new Frame( "AWT Resource X11 Leak - #" + j );
 
         final GLCanvas glCanvas = new GLCanvas( caps );
+        // glCanvas.addGLEventListener(new GearsES2());
         frame.add( glCanvas );
 
         try {
           javax.swing.SwingUtilities.invokeAndWait( new Runnable() {
+            @Override
             public void run() {
+              // Revalidate size/layout.
+              // Always validate if component added/removed.
+              // Ensure 1st paint of GLCanvas will have a valid size, hence
+              // drawable gets created.
               frame.setSize( 128, 128 );
+              frame.validate();
               frame.setVisible( true );
             }
           } );
@@ -49,9 +57,13 @@ public class TestAWTCloseX11DisplayBug565 {
           t.printStackTrace();
           Assert.fail(t.getMessage());
         }
+
         glCanvas.display();
+        Thread.sleep(33);
+
         try {
           javax.swing.SwingUtilities.invokeAndWait( new Runnable() {
+            @Override
             public void run() {
               frame.setVisible( false );
               frame.remove( glCanvas );
