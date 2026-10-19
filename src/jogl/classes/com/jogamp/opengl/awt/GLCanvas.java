@@ -576,7 +576,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final boolean isBeansDesignTime = Beans.isDesignTime();
 
         if(DEBUG) {
-            System.err.println(getThreadName()+": Info: addNotify - start, bounds: "+this.getBounds()+", isBeansDesignTime "+isBeansDesignTime);
+            System.err.println(getThreadName()+": Info: addNotify - start, bounds: "+this.getBounds()+", isBeansDesignTime "+isBeansDesignTime+", isDisplayable "+isDisplayable());
             // Thread.dumpStack();
         }
 
@@ -626,9 +626,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
             createJAWTDrawableAndContext();
 
-            // init drawable by paint/display makes the init sequence more equal
-            // for all launch flavors (applet/javaws/..)
-            // validateGLDrawable();
+            if(DEBUG) {
+                System.err.println(getThreadName()+": Info: addNotify.2 - bounds: "+this.getBounds()+", isBeansDesignTime "+isBeansDesignTime+", isDisplayable "+isDisplayable());
+            }
+            // Onscreen surfaces might not have their size set yet (X11, Windows),
+            // here reshape/paint/display will trigger drawable realization.
+            // Offscreen surfaces on MacOS has their size set and will not issue reshape,
+            // hence we attempt to realize drawable here early.
+            validateGLDrawable();
         }
         awtWindowClosingProtocol.addClosingListener();
 
@@ -850,7 +855,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         System.err.println(getThreadName()+": GLCanvas.reshape.0 "+this.getName()+" resize"+(printActive?"WithinPrint":"")+
                 " [ this "+getWidth()+"x"+getHeight()+", pixelScale "+getPixelScaleStr()+
                 "] -> "+(printActive?"[skipped] ":"") + width+"x"+height+" * "+getPixelScaleStr()+" -> "+scaledWidth+"x"+scaledHeight+
-                " - surfaceHandle 0x"+Long.toHexString(nsH));
+                " - surfaceHandle 0x"+Long.toHexString(nsH)+", isDisplayable "+isDisplayable()+", hasDrawable "+drawable!=null);
         // Thread.dumpStack();
     }
     if( validateGLDrawable() && !printActive ) {

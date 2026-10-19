@@ -69,6 +69,7 @@ public abstract class ExclusiveContextBase00AWT extends ExclusiveContextBase00 {
 
         try {
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     awtEDT = Thread.currentThread();
                 } } );
@@ -102,6 +103,7 @@ public abstract class ExclusiveContextBase00AWT extends ExclusiveContextBase00 {
         // glCanvas.setSize(sz);
         try {
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     final Frame frame = new Frame();
                     frame.setLayout(new BorderLayout());
@@ -118,7 +120,6 @@ public abstract class ExclusiveContextBase00AWT extends ExclusiveContextBase00 {
             e.printStackTrace();
             Assert.assertNull(e);
         }
-
         return glCanvas;
     }
 
@@ -134,6 +135,7 @@ public abstract class ExclusiveContextBase00AWT extends ExclusiveContextBase00 {
     protected void setGLAutoDrawableVisible(final GLAutoDrawable[] glads) {
         try {
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     final int count = glads.length;
                     for(int i=0; i<count; i++) {
@@ -153,6 +155,7 @@ public abstract class ExclusiveContextBase00AWT extends ExclusiveContextBase00 {
         final Frame frame = getFrame(glad);
         try {
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     frame.dispose();
                 } } );

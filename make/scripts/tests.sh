@@ -536,7 +536,7 @@ function testawtswt() {
 # demos (any TK, more user driven tests)
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestOlympicES1NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestOlympicES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -1112,6 +1112,14 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestOlympicES1NEWT $*
 #
 # 2.5.0 Regressions
 #
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove02GLWindowNewtCanvasAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
 
 # NEW
 

@@ -46,6 +46,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -62,6 +63,7 @@ public class TestBug572AWT extends UITestCase {
             window = w;
         }
 
+        @Override
         public void run() {
             System.err.println("cleaning up...");
             window.setVisible(false);
@@ -124,10 +126,10 @@ public class TestBug572AWT extends UITestCase {
         System.err.println("XXXX-1 displayCount "+snapshooter.getDisplayCount());
 
         // Wait unitl AWT-EDT has issued reshape/repaint
-        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
+        for (int wait=0; wait<TestUtil.POLL_DIVIDER &&
                          ( 0 == snapshooter.getReshapeCount() || 0 == snapshooter.getDisplayCount() );
              wait++) {
-            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+            Thread.sleep(TestUtil.TIME_SLICE);
         }
         System.err.println("XXXX-2 reshapeCount "+snapshooter.getReshapeCount());
         System.err.println("XXXX-2 displayCount "+snapshooter.getDisplayCount());

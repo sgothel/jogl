@@ -605,6 +605,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
                             ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+
                             ", displayable "+isDisplayable()+", cont "+AWTMisc.getContainer(this));
                 }
+                // Onscreen surfaces might not have their size set yet (X11, Windows),
+                // here reshape/paint/display will trigger drawable realization.
+                // Offscreen surfaces on MacOS has their size set and will not issue reshape,
+                // hence we attempt to realize drawable here early.
+                validateComponent(true);
             }
         }
     }

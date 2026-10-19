@@ -169,7 +169,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     if ( realized != realizedArg ) { // volatile: OK (locked below)
         final boolean isProxySurface = surface instanceof ProxySurface;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": setRealized: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized+" -> "+realizedArg);
+            System.err.println(getThreadName() + ": setRealized.0: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized+" -> "+realizedArg);
             ExceptionUtils.dumpStack(System.err);
         }
         final AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
@@ -203,6 +203,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
                     ((ProxySurface)surface).destroyNotify();
                 }
             }
+        }
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": setRealized.X: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized);
         }
     } else if(DEBUG) {
         System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
