@@ -1065,7 +1065,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO01 $*
 #testnoawt com.jogamp.opengl.demos.es2.GearsFBO02 $*
 
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 
@@ -1119,7 +1119,7 @@ function testawtswt() {
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
-testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
 
 # NEW
 
