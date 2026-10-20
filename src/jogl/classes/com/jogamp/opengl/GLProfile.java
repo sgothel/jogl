@@ -1852,11 +1852,11 @@ public class GLProfile {
             }
         } catch (final LinkageError le) {
             t=le;
-        } catch (final SecurityException se) {
-            t=se;
         } catch (final NullPointerException npe) {
             t=npe;
         } catch (final RuntimeException re) {
+            t=re;
+        } catch (final Exception re) {
             t=re;
         }
         if(DEBUG) {

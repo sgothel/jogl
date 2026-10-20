@@ -34,7 +34,6 @@
 
 package com.jogamp.newt;
 
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
@@ -47,7 +46,6 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;

@@ -312,9 +312,9 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 mp.setDataSource(StaticContext.getContext(), _uri);
             } catch (final IllegalArgumentException e) {
                 throw new RuntimeException(e);
-            } catch (final SecurityException e) {
-                throw new RuntimeException(e);
             } catch (final IllegalStateException e) {
+                throw new RuntimeException(e);
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
             mp.setSurface(null);

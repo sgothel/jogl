@@ -42,7 +42,7 @@ public class GLProcAddressResolver implements FunctionAddressResolver {
     public static final boolean DEBUG = false;
 
     @Override
-    public long resolve(final String name, final DynamicLookupHelper lookup) throws SecurityException {
+    public long resolve(final String name, final DynamicLookupHelper lookup) {
         long newProcAddress = 0;
         final int permutations = GLNameResolver.getFuncNamePermutationNumber(name);
 

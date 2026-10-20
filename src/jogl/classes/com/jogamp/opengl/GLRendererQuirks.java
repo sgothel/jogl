@@ -674,8 +674,10 @@ public class GLRendererQuirks {
                 }
             } catch (final NoSuchFieldException e) {
                 System.err.println("Warning: Failed to match given property "+propertyName+"'s quirk '"+name+"' with any supported quirk! "+e.getMessage());
-            } catch (SecurityException | IllegalAccessException e) {
+            } catch (IllegalAccessException e) {
                 System.err.println("Warning: Failed to access given property "+propertyName+"'s quirk '"+name+"' bit value! "+e.getMessage());
+            } catch (Exception e) {
+                System.err.println("Warning: Unexpected exception while accessing given property "+propertyName+"'s quirk '"+name+"' bit value! "+e.getMessage());
             }
         }
         return res;

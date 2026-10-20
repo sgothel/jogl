@@ -532,7 +532,7 @@ public class GLEmitter extends ProcAddressEmitter {
         u.emitln("  }");
 
         u.emitln("  @Override");
-        u.emitln("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
+        u.emitln("  public long getAddressFor(String functionNameUsr) throws IllegalArgumentException {");
         u.emitln("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
         u.emitln("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
         u.emitln("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");

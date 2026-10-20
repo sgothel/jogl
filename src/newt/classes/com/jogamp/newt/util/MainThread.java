@@ -179,7 +179,7 @@ public class MainThread {
         private final Method mainClassMain;
         private List<java.lang.Thread> nonDaemonThreadsAtStart;
 
-        public UserApp(final String mainClassName, final String[] mainClassArgs) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
+        public UserApp(final String mainClassName, final String[] mainClassArgs) throws NoSuchMethodException, ClassNotFoundException {
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
 
@@ -253,8 +253,8 @@ public class MainThread {
     /** Your new java application main entry, which pipelines your application
      * @throws ClassNotFoundException
      * @throws NoSuchMethodException
-     * @throws SecurityException */
-    public static void main(final String[] args) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
+     */
+    public static void main(final String[] args) throws NoSuchMethodException, ClassNotFoundException {
         final Thread cur = Thread.currentThread();
 
         useMainThread = HINT_USE_MAIN_THREAD;

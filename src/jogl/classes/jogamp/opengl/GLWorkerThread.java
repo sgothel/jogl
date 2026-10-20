@@ -123,29 +123,23 @@ public class GLWorkerThread {
 
           // Install shutdown hook to terminate daemon thread more or
           // less cooperatively
-          AccessController.doPrivileged(new PrivilegedAction() {
-              public Object run() {
-                Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
-                    public void run() {
-                      Object lockTemp = lock;
-                      if (lockTemp == null) {
-                        // Already terminating (?)
-                        return;
-                      }
-                      synchronized (lockTemp) {
-                        shouldTerminate = true;
-                        lockTemp.notifyAll();
-                        try {
-                          lockTemp.wait(500);
-                        } catch (InterruptedException e) {
-                        }
-                      }
+            Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
+                public void run() {
+                  Object lockTemp = lock;
+                  if (lockTemp == null) {
+                    // Already terminating (?)
+                    return;
+                  }
+                  synchronized (lockTemp) {
+                    shouldTerminate = true;
+                    lockTemp.notifyAll();
+                    try {
+                      lockTemp.wait(500);
+                    } catch (InterruptedException e) {
                     }
-                  });
-                return null;
-              }
-            });
-
+                  }
+                }
+              });
           */
 
         } else {

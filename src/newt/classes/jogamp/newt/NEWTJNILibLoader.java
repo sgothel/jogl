@@ -39,11 +39,8 @@
 
 package jogamp.newt;
 
-import java.security.PrivilegedAction;
-
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {

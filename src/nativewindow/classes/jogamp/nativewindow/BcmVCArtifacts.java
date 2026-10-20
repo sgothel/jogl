@@ -29,9 +29,6 @@
 package jogamp.nativewindow;
 
 import java.io.File;
-import java.security.PrivilegedAction;
-
-import com.jogamp.common.util.SecurityUtil;
 
 /**
  * Heuristics about Broadcom (BCM) VideoCore (VC) existence and usage

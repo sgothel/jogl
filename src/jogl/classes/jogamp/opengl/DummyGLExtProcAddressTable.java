@@ -47,7 +47,7 @@ public final class DummyGLExtProcAddressTable extends ProcAddressTable {
     return false;
   }
   @Override
-  public long getAddressFor(final String functionNameUsr) throws SecurityException, IllegalArgumentException {
+  public long getAddressFor(final String functionNameUsr) throws IllegalArgumentException {
     final String functionNameBase = com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);
     // The user is calling a bogus function or one which is not
     // runtime linked
