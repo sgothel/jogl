@@ -1,3 +1,7 @@
+#! /bin/sh
+
+SDIR=$(readlink -f `dirname $0`)
+
 if [ -e ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh ] ; then
     . ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh
 fi
